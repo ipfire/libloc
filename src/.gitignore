@@ -1,0 +1,8 @@
+.dirstamp
+.deps/
+.libs/
+*.la
+*.lo
+*.trs
+libloc.pc
+test-libloc

@@ -1,0 +1,11 @@
+LIBLOC_1 {
+global:
+	loc_ref;
+	loc_get_log_priority;
+	loc_set_log_fn;
+	loc_unref;
+	loc_set_log_priority;
+	loc_new;
+local:
+	*;
+};
