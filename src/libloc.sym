@@ -1,3 +1,14 @@
+LIBLOC_PRIVATE {
+global:
+	# String Pool
+	loc_stringpool_add;
+	loc_stringpool_dump;
+	loc_stringpool_get;
+	loc_stringpool_new;
+	loc_stringpool_ref;
+	loc_stringpool_unref;
+};
+
 LIBLOC_1 {
 global:
 	loc_ref;

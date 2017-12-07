@@ -6,3 +6,4 @@
 *.trs
 libloc.pc
 test-libloc
+test-stringpool

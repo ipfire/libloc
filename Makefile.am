@@ -43,7 +43,9 @@ lib_LTLIBRARIES = \
 
 src_libloc_la_SOURCES =\
 	src/libloc-private.h \
-	src/libloc.c
+	src/libloc.c \
+	src/stringpool.c \
+	src/stringpool.h
 
 EXTRA_DIST += src/libloc.sym
 
@@ -65,13 +67,21 @@ CLEANFILES += \
 	src/libloc.pc
 
 TESTS = \
-	src/test-libloc
+	src/test-libloc \
+	src/test-stringpool
 
 check_PROGRAMS = \
-	src/test-libloc
+	src/test-libloc \
+	src/test-stringpool
 
 src_test_libloc_SOURCES = \
 	src/test-libloc.c
 
 src_test_libloc_LDADD = \
+	src/libloc.la
+
+src_test_stringpool_SOURCES = \
+	src/test-stringpool.c
+
+src_test_stringpool_LDADD = \
 	src/libloc.la
