@@ -27,7 +27,12 @@ struct loc_stringpool* loc_stringpool_ref(struct loc_stringpool* pool);
 struct loc_stringpool* loc_stringpool_unref(struct loc_stringpool* pool);
 
 const char* loc_stringpool_get(struct loc_stringpool* pool, off_t offset);
+size_t loc_stringpool_get_size(struct loc_stringpool* pool);
+
 off_t loc_stringpool_add(struct loc_stringpool* pool, const char* string);
 void loc_stringpool_dump(struct loc_stringpool* pool);
+
+int loc_stringpool_read(struct loc_stringpool* pool, FILE* f, off_t offset, size_t length);
+size_t loc_stringpool_write(struct loc_stringpool* pool, FILE* f);
 
 #endif

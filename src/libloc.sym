@@ -1,9 +1,21 @@
 LIBLOC_PRIVATE {
 global:
+	# Database
+	loc_database_get_description;
+	loc_database_get_vendor;
+	loc_database_new;
+	loc_database_open;
+	loc_database_ref;
+	loc_database_set_description;
+	loc_database_set_vendor;
+	loc_database_unref;
+	loc_database_write;
+
 	# String Pool
 	loc_stringpool_add;
 	loc_stringpool_dump;
 	loc_stringpool_get;
+	loc_stringpool_get_size;
 	loc_stringpool_new;
 	loc_stringpool_ref;
 	loc_stringpool_unref;
@@ -17,6 +29,7 @@ global:
 	loc_unref;
 	loc_set_log_priority;
 	loc_new;
+	loc_load;
 local:
 	*;
 };

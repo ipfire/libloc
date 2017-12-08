@@ -34,21 +34,39 @@ struct loc_stringpool {
 	ssize_t max_length;
 };
 
-LOC_EXPORT int loc_stringpool_new(struct loc_ctx* ctx, struct loc_stringpool** pool, size_t max_length) {
-	if (max_length <= 0)
-		return -EINVAL;
+static int loc_stringpool_allocate(struct loc_stringpool* pool, size_t length) {
+	// Drop old data
+	if (pool->data)
+		free(pool->data);
 
+	pool->max_length = length;
+	DEBUG(pool->ctx, "Allocating pool of %zu bytes\n", pool->max_length);
+
+	if (pool->max_length > 0) {
+		pool->data = malloc(pool->max_length);
+		if (!pool->data)
+			return -ENOMEM;
+	}
+
+	pool->pos = pool->data;
+
+	return 0;
+}
+
+LOC_EXPORT int loc_stringpool_new(struct loc_ctx* ctx, struct loc_stringpool** pool, size_t max_length) {
 	struct loc_stringpool* p = calloc(1, sizeof(*p));
 	if (!p)
 		return -ENOMEM;
 
 	p->ctx = loc_ref(ctx);
 	p->refcount = 1;
-	p->max_length = max_length;
 
 	// Allocate the data section
-	p->data = malloc(p->max_length);
-	p->pos = p->data;
+	int r = loc_stringpool_allocate(p, max_length);
+	if (r) {
+		loc_stringpool_unref(p);
+		return r;
+	}
 
 	DEBUG(p->ctx, "String pool allocated at %p\n", p);
 	DEBUG(p->ctx, "  Maximum size: %zu bytes\n", p->max_length);
@@ -68,7 +86,9 @@ static void loc_stringpool_free(struct loc_stringpool* pool) {
 
 	loc_unref(pool->ctx);
 
-	free(pool->data);
+	if (pool->data)
+		free(pool->data);
+
 	free(pool);
 }
 
@@ -98,7 +118,7 @@ static off_t loc_stringpool_get_next_offset(struct loc_stringpool* pool, off_t o
 }
 
 static size_t loc_stringpool_space_left(struct loc_stringpool* pool) {
-	return pool->max_length - loc_stringpool_get_offset(pool, pool->pos);
+	return pool->max_length - loc_stringpool_get_size(pool);
 }
 
 LOC_EXPORT const char* loc_stringpool_get(struct loc_stringpool* pool, off_t offset) {
@@ -112,6 +132,10 @@ LOC_EXPORT const char* loc_stringpool_get(struct loc_stringpool* pool, off_t off
 		return NULL;
 
 	return string;
+}
+
+LOC_EXPORT size_t loc_stringpool_get_size(struct loc_stringpool* pool) {
+	return loc_stringpool_get_offset(pool, pool->pos);
 }
 
 static off_t loc_stringpool_find(struct loc_stringpool* pool, const char* s) {
@@ -183,4 +207,32 @@ LOC_EXPORT void loc_stringpool_dump(struct loc_stringpool* pool) {
 
 		offset = loc_stringpool_get_next_offset(pool, offset);
 	}
+}
+
+LOC_EXPORT int loc_stringpool_read(struct loc_stringpool* pool, FILE* f, off_t offset, size_t length) {
+	// Allocate enough space
+	int r = loc_stringpool_allocate(pool, length);
+	if (r)
+		return r;
+
+	// Seek to the right offset
+	r = fseek(f, offset, SEEK_SET);
+	if (r)
+		return r;
+
+	size_t bytes_read = fread(pool->data, sizeof(*pool->data), length, f);
+	if (bytes_read < length) {
+		ERROR(pool->ctx, "Could not read pool. Only read %zu bytes\n", bytes_read);
+		return 1;
+	}
+
+	DEBUG(pool->ctx, "Read pool of %zu bytes\n", length);
+
+	return 0;
+}
+
+LOC_EXPORT size_t loc_stringpool_write(struct loc_stringpool* pool, FILE* f) {
+	size_t size = loc_stringpool_get_size(pool);
+
+	return fwrite(pool->data, sizeof(*pool->data), size, f);
 }

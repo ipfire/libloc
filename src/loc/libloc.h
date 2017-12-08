@@ -35,6 +35,8 @@ void loc_set_log_fn(struct loc_ctx* ctx,
 int loc_get_log_priority(struct loc_ctx* ctx);
 void loc_set_log_priority(struct loc_ctx* ctx, int priority);
 
+int loc_load(struct loc_ctx* ctx, const char* path);
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif
