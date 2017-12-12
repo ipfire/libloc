@@ -19,6 +19,16 @@
 
 #include <stdint.h>
 
+#define LOC_DATABASE_MAGIC      "LOCDBXX"
+#define LOC_DATABASE_VERSION    0
+
+struct loc_database_magic {
+	char magic[7];
+
+	// Database version information
+	uint8_t version;
+};
+
 struct loc_database_header_v0 {
 	// Vendor who created the database
 	uint32_t vendor;

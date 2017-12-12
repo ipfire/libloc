@@ -46,16 +46,6 @@ struct loc_database {
 	struct loc_stringpool* pool;
 };
 
-const char* LOC_DATABASE_MAGIC = "LOCDBXX";
-unsigned int LOC_DATABASE_VERSION = 0;
-
-struct loc_database_magic {
-	char magic[7];
-
-	// Database version information
-	uint8_t version;
-};
-
 LOC_EXPORT int loc_database_new(struct loc_ctx* ctx, struct loc_database** database, size_t pool_size) {
 	struct loc_database* db = calloc(1, sizeof(*db));
 	if (!db)
