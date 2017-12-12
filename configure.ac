@@ -81,6 +81,5 @@ AC_MSG_RESULT([
         cflags:                 ${CFLAGS}
         ldflags:                ${LDFLAGS}
 
-        logging:                ${enable_logging}
         debug:                  ${enable_debug}
 ])
