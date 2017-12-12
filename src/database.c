@@ -272,6 +272,9 @@ LOC_EXPORT int loc_database_get_as(struct loc_database* db, struct loc_as** as, 
 	off_t lo = 0;
 	off_t hi = db->as_count - 1;
 
+	// Save start time
+	clock_t start = clock();
+
 	while (lo <= hi) {
 		off_t i = (lo + hi) / 2;
 
@@ -282,8 +285,15 @@ LOC_EXPORT int loc_database_get_as(struct loc_database* db, struct loc_as** as, 
 
 		// Check if this is a match
 		uint32_t as_number = loc_as_get_number(*as);
-		if (as_number == number)
+		if (as_number == number) {
+			clock_t end = clock();
+
+			// Log how fast this has been
+			DEBUG(db->ctx, "Found AS%u in %.8fs\n", as_number,
+				(double)(end - start) / CLOCKS_PER_SEC);
+
 			return 0;
+		}
 
 		// If it wasn't, we release the AS and
 		// adjust our search pointers
@@ -298,5 +308,5 @@ LOC_EXPORT int loc_database_get_as(struct loc_database* db, struct loc_as** as, 
 	// Nothing found
 	*as = NULL;
 
-	return 0;
+	return 1;
 }

@@ -22,7 +22,7 @@
 #include <loc/writer.h>
 #include "database.h"
 
-#define TEST_AS_COUNT 100
+#define TEST_AS_COUNT 5000
 
 int main(int argc, char** argv) {
 	int err;
@@ -85,10 +85,14 @@ int main(int argc, char** argv) {
 	}
 
 	struct loc_as* as;
-	err = loc_database_get_as(db, &as, 99);
-	if (err) {
-		fprintf(stderr, "Could not find AS99\n");
-		exit(EXIT_FAILURE);
+	for (unsigned int i = 1; i <= 10; i++) {
+		err = loc_database_get_as(db, &as, i);
+		if (err) {
+			fprintf(stderr, "Could not find AS%d\n", i);
+			exit(EXIT_FAILURE);
+		}
+
+		loc_as_unref(as);
 	}
 
 	loc_database_unref(db);
