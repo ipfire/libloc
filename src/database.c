@@ -38,7 +38,6 @@ struct loc_database {
 	struct loc_ctx* ctx;
 	int refcount;
 
-	FILE* file;
 	unsigned int version;
 	time_t created_at;
 	off_t vendor;
@@ -51,11 +50,11 @@ struct loc_database {
 	struct loc_stringpool* pool;
 };
 
-static int loc_database_read_magic(struct loc_database* db) {
+static int loc_database_read_magic(struct loc_database* db, FILE* f) {
 	struct loc_database_magic magic;
 
 	// Read from file
-	size_t bytes_read = fread(&magic, 1, sizeof(magic), db->file);
+	size_t bytes_read = fread(&magic, 1, sizeof(magic), f);
 
 	// Check if we have been able to read enough data
 	if (bytes_read < sizeof(magic)) {
@@ -82,12 +81,12 @@ static int loc_database_read_magic(struct loc_database* db) {
 }
 
 static int loc_database_read_as_section_v0(struct loc_database* db,
-		off_t as_offset, size_t as_length) {
+		FILE* f, off_t as_offset, size_t as_length) {
 	DEBUG(db->ctx, "Reading AS section from %jd (%zu bytes)\n", as_offset, as_length);
 
 	if (as_length > 0) {
 		db->as_v0 = mmap(NULL, as_length, PROT_READ,
-			MAP_SHARED, fileno(db->file), as_offset);
+			MAP_SHARED, fileno(f), as_offset);
 
 		if (db->as_v0 == MAP_FAILED)
 			return -errno;
@@ -100,11 +99,11 @@ static int loc_database_read_as_section_v0(struct loc_database* db,
 	return 0;
 }
 
-static int loc_database_read_header_v0(struct loc_database* db) {
+static int loc_database_read_header_v0(struct loc_database* db, FILE* f) {
 	struct loc_database_header_v0 header;
 
 	// Read from file
-	size_t size = fread(&header, 1, sizeof(header), db->file);
+	size_t size = fread(&header, 1, sizeof(header), f);
 
 	if (size < sizeof(header)) {
 		ERROR(db->ctx, "Could not read enough data for header\n");
@@ -121,7 +120,7 @@ static int loc_database_read_header_v0(struct loc_database* db) {
 	size_t pool_length = be32toh(header.pool_length);
 
 	int r = loc_stringpool_open(db->ctx, &db->pool,
-		db->file, pool_length, pool_offset);
+		f, pool_length, pool_offset);
 	if (r)
 		return r;
 
@@ -129,17 +128,17 @@ static int loc_database_read_header_v0(struct loc_database* db) {
 	off_t as_offset  = be32toh(header.as_offset);
 	size_t as_length = be32toh(header.as_length);
 
-	r = loc_database_read_as_section_v0(db, as_offset, as_length);
+	r = loc_database_read_as_section_v0(db, f, as_offset, as_length);
 	if (r)
 		return r;
 
 	return 0;
 }
 
-static int loc_database_read_header(struct loc_database* db) {
+static int loc_database_read_header(struct loc_database* db, FILE* f) {
 	switch (db->version) {
 		case 0:
-			return loc_database_read_header_v0(db);
+			return loc_database_read_header_v0(db, f);
 
 		default:
 			ERROR(db->ctx, "Incompatible database version: %u\n", db->version);
@@ -147,25 +146,16 @@ static int loc_database_read_header(struct loc_database* db) {
 	}
 }
 
-static FILE* copy_file_pointer(FILE* f) {
-	int fd = fileno(f);
-
-	// Make a copy
-	fd = dup(fd);
-
-	return fdopen(fd, "r");
-}
-
-static int loc_database_read(struct loc_database* db) {
+static int loc_database_read(struct loc_database* db, FILE* f) {
 	clock_t start = clock();
 
 	// Read magic bytes
-	int r = loc_database_read_magic(db);
+	int r = loc_database_read_magic(db, f);
 	if (r)
 		return r;
 
 	// Read the header
-	r = loc_database_read_header(db);
+	r = loc_database_read_header(db, f);
 	if (r)
 		return r;
 
@@ -178,6 +168,10 @@ static int loc_database_read(struct loc_database* db) {
 }
 
 LOC_EXPORT int loc_database_new(struct loc_ctx* ctx, struct loc_database** database, FILE* f) {
+	// Fail on invalid file handle
+	if (!f)
+		return -EINVAL;
+
 	struct loc_database* db = calloc(1, sizeof(*db));
 	if (!db)
 		return -ENOMEM;
@@ -188,13 +182,7 @@ LOC_EXPORT int loc_database_new(struct loc_ctx* ctx, struct loc_database** datab
 
 	DEBUG(db->ctx, "Database object allocated at %p\n", db);
 
-	// Copy the file pointer and work on that so we don't care if
-	// the calling function closes the file
-	db->file = copy_file_pointer(f);
-	if (!db->file)
-		goto FAIL;
-
-	int r = loc_database_read(db);
+	int r = loc_database_read(db, f);
 	if (r) {
 		loc_database_unref(db);
 		return r;
@@ -203,11 +191,6 @@ LOC_EXPORT int loc_database_new(struct loc_ctx* ctx, struct loc_database** datab
 	*database = db;
 
 	return 0;
-
-FAIL:
-	loc_database_unref(db);
-
-	return -errno;
 }
 
 LOC_EXPORT struct loc_database* loc_database_ref(struct loc_database* db) {
@@ -227,10 +210,6 @@ static void loc_database_free(struct loc_database* db) {
 	}
 
 	loc_stringpool_unref(db->pool);
-
-	// Close file
-	if (db->file)
-		fclose(db->file);
 
 	loc_unref(db->ctx);
 	free(db);
