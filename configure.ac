@@ -40,6 +40,8 @@ AS_IF([test "x$enable_debug" = "xyes"], [
 ])
 
 AC_CHECK_FUNCS([ \
+        mmap \
+        munmap \
 	__secure_getenv \
 	secure_getenv \
         qsort \

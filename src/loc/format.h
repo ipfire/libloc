@@ -22,6 +22,8 @@
 #define LOC_DATABASE_MAGIC      "LOCDBXX"
 #define LOC_DATABASE_VERSION    0
 
+#define LOC_DATABASE_PAGE_SIZE  4096
+
 struct loc_database_magic {
 	char magic[7];
 

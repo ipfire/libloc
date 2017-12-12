@@ -387,6 +387,10 @@ LOC_EXPORT int loc_database_write(struct loc_database* db, FILE* f) {
 	}
 	header.as_length = htonl(db->as_count * sizeof(dbas));
 
+	// Move to next page boundary
+	while (offset % LOC_DATABASE_PAGE_SIZE > 0)
+		offset += fwrite("", 1, 1, f);
+
 	// Save the offset of the pool section
 	DEBUG(db->ctx, "Pool starts at %jd bytes\n", offset);
 	header.pool_offset = htonl(offset);

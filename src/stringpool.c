@@ -19,6 +19,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/mman.h>
+#include <unistd.h>
 
 #include <loc/libloc.h>
 #include "libloc-private.h"
@@ -34,21 +36,44 @@ struct loc_stringpool {
 	ssize_t max_length;
 };
 
-static int loc_stringpool_allocate(struct loc_stringpool* pool, size_t length) {
-	// Drop old data
-	if (pool->data)
-		free(pool->data);
+static int loc_stringpool_deallocate(struct loc_stringpool* pool) {
+	if (pool->data) {
+		int r = munmap(pool->data, pool->max_length);
+		if (r) {
+			ERROR(pool->ctx, "Could not unmap data at %p: %s\n",
+				pool->data, strerror(errno));
 
-	pool->max_length = length;
-	DEBUG(pool->ctx, "Allocating pool of %zu bytes\n", pool->max_length);
-
-	if (pool->max_length > 0) {
-		pool->data = malloc(pool->max_length);
-		if (!pool->data)
-			return -ENOMEM;
+			return r;
+		}
 	}
 
-	pool->pos = pool->data;
+	return 0;
+}
+
+static int loc_stringpool_allocate(struct loc_stringpool* pool, size_t length) {
+	// Drop old data
+	int r = loc_stringpool_deallocate(pool);
+	if (r)
+		return r;
+
+	pool->max_length = length;
+
+	// Align to page size
+	while (pool->max_length % sysconf(_SC_PAGE_SIZE) > 0)
+		pool->max_length++;
+
+	DEBUG(pool->ctx, "Allocating pool of %zu bytes\n", pool->max_length);
+
+	// Allocate some memory
+	pool->data = pool->pos = mmap(NULL, pool->max_length,
+		PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
+
+	if (pool->data == MAP_FAILED) {
+		DEBUG(pool->ctx, "%s\n", strerror(errno));
+		return -errno;
+	}
+
+	DEBUG(pool->ctx, "Allocated pool at %p\n", pool->data);
 
 	return 0;
 }
@@ -62,10 +87,12 @@ LOC_EXPORT int loc_stringpool_new(struct loc_ctx* ctx, struct loc_stringpool** p
 	p->refcount = 1;
 
 	// Allocate the data section
-	int r = loc_stringpool_allocate(p, max_length);
-	if (r) {
-		loc_stringpool_unref(p);
-		return r;
+	if (max_length > 0) {
+		int r = loc_stringpool_allocate(p, max_length);
+		if (r) {
+			loc_stringpool_unref(p);
+			return r;
+		}
 	}
 
 	DEBUG(p->ctx, "String pool allocated at %p\n", p);
@@ -84,11 +111,8 @@ LOC_EXPORT struct loc_stringpool* loc_stringpool_ref(struct loc_stringpool* pool
 static void loc_stringpool_free(struct loc_stringpool* pool) {
 	DEBUG(pool->ctx, "Releasing string pool %p\n", pool);
 
+	loc_stringpool_deallocate(pool);
 	loc_unref(pool->ctx);
-
-	if (pool->data)
-		free(pool->data);
-
 	free(pool);
 }
 
@@ -209,26 +233,17 @@ LOC_EXPORT void loc_stringpool_dump(struct loc_stringpool* pool) {
 	}
 }
 
+#include <assert.h>
+
 LOC_EXPORT int loc_stringpool_read(struct loc_stringpool* pool, FILE* f, off_t offset, size_t length) {
-	// Allocate enough space
-	int r = loc_stringpool_allocate(pool, length);
-	if (r)
-		return r;
+	DEBUG(pool->ctx, "Reading string pool from %zu (%zu bytes)\n", offset, length);
 
-	DEBUG(pool->ctx, "Reading string pool from %zu\n", offset);
+	pool->data = pool->pos = mmap(NULL, length, PROT_READ,
+		MAP_PRIVATE, fileno(f), offset);
+	pool->max_length = length;
 
-	// Seek to the right offset
-	r = fseek(f, offset, SEEK_SET);
-	if (r)
-		return r;
-
-	size_t bytes_read = fread(pool->data, sizeof(*pool->data), length, f);
-	if (bytes_read < length) {
-		ERROR(pool->ctx, "Could not read pool. Only read %zu bytes\n", bytes_read);
-		return 1;
-	}
-
-	DEBUG(pool->ctx, "Read pool of %zu bytes\n", length);
+	if (pool->data == MAP_FAILED)
+		return -errno;
 
 	return 0;
 }
