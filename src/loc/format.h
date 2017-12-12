@@ -32,6 +32,9 @@ struct loc_database_magic {
 };
 
 struct loc_database_header_v0 {
+	// UNIX timestamp when the database was created
+	uint64_t created_at;
+
 	// Vendor who created the database
 	uint32_t vendor;
 

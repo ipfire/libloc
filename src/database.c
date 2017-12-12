@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <time.h>
 #include <unistd.h>
 
 #include <loc/libloc.h>
@@ -38,6 +39,7 @@ struct loc_database {
 
 	FILE* file;
 	unsigned int version;
+	time_t created_at;
 	off_t vendor;
 	off_t description;
 
@@ -56,6 +58,9 @@ LOC_EXPORT int loc_database_new(struct loc_ctx* ctx, struct loc_database** datab
 	// Reference context
 	db->ctx = loc_ref(ctx);
 	db->refcount = 1;
+
+	// Save creation time
+	db->created_at = time(NULL);
 
 	DEBUG(db->ctx, "Database allocated at %p\n", db);
 
@@ -112,6 +117,10 @@ LOC_EXPORT struct loc_database* loc_database_unref(struct loc_database* db) {
 
 	loc_database_free(db);
 	return NULL;
+}
+
+LOC_EXPORT time_t loc_database_created_at(struct loc_database* db) {
+	return db->created_at;
 }
 
 LOC_EXPORT const char* loc_database_get_vendor(struct loc_database* db) {
@@ -274,6 +283,7 @@ static int loc_database_read_header_v0(struct loc_database* db) {
 	}
 
 	// Copy over data
+	db->created_at  = be64toh(header.created_at);
 	db->vendor      = ntohl(header.vendor);
 	db->description = ntohl(header.description);
 
@@ -396,6 +406,7 @@ LOC_EXPORT int loc_database_write(struct loc_database* db, FILE* f) {
 
 	// Make the header
 	struct loc_database_header_v0 header;
+	header.created_at  = htobe64(db->created_at);
 	header.vendor      = htonl(db->vendor);
 	header.description = htonl(db->description);
 
