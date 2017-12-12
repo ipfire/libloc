@@ -18,8 +18,11 @@
 #define LIBLOC_DATABASE_H
 
 #include <stdio.h>
+#include <stdint.h>
 
 #include <loc/libloc.h>
+
+#include "as.h"
 
 struct loc_database;
 int loc_database_new(struct loc_ctx* ctx, struct loc_database** db, size_t pool_size);
@@ -31,6 +34,9 @@ const char* loc_database_get_vendor(struct loc_database* db);
 int loc_database_set_vendor(struct loc_database* db, const char* vendor);
 const char* loc_database_get_description(struct loc_database* db);
 int loc_database_set_description(struct loc_database* db, const char* description);
+
+size_t loc_database_count_as(struct loc_database* db);
+struct loc_as* loc_database_add_as(struct loc_database* db, uint32_t number);
 
 int loc_database_read(struct loc_database* db, FILE* f);
 int loc_database_write(struct loc_database* db, FILE* f);

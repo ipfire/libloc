@@ -18,6 +18,7 @@
 #define LIBLOC_STRINGPOOL_H
 
 #include <stddef.h>
+#include <stdio.h>
 
 #include <loc/libloc.h>
 

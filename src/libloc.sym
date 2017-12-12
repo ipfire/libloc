@@ -1,6 +1,16 @@
 LIBLOC_PRIVATE {
 global:
+	# AS
+	loc_as_get_name;
+	loc_as_get_number;
+	loc_as_new;
+	loc_as_ref;
+	loc_as_set_name;
+	loc_as_unref;
+
 	# Database
+	loc_database_add_as;
+	loc_database_count_as;
 	loc_database_get_description;
 	loc_database_get_vendor;
 	loc_database_new;

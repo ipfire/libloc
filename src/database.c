@@ -24,8 +24,10 @@
 #include <sys/types.h>
 
 #include <loc/libloc.h>
+#include <loc/format.h>
 
 #include "libloc-private.h"
+#include "as.h"
 #include "database.h"
 #include "stringpool.h"
 
@@ -36,6 +38,10 @@ struct loc_database {
 	unsigned int version;
 	off_t vendor;
 	off_t description;
+
+	// ASes in the database
+	struct loc_as** as;
+	size_t as_count;
 
 	struct loc_stringpool* pool;
 };
@@ -48,18 +54,6 @@ struct loc_database_magic {
 
 	// Database version information
 	uint8_t version;
-};
-
-struct loc_database_header_v0 {
-	// Vendor who created the database
-	uint32_t vendor;
-
-	// Description of the database
-	uint32_t description;
-
-	// Tells us where the pool starts
-	uint32_t pool_offset;
-	uint32_t pool_length;
 };
 
 LOC_EXPORT int loc_database_new(struct loc_ctx* ctx, struct loc_database** database, size_t pool_size) {
@@ -101,6 +95,14 @@ LOC_EXPORT struct loc_database* loc_database_ref(struct loc_database* db) {
 
 static void loc_database_free(struct loc_database* db) {
 	DEBUG(db->ctx, "Releasing database %p\n", db);
+
+	// Remove references to all ASes
+	if (db->as) {
+		for (unsigned int i = 0; i < db->as_count; i++) {
+			loc_as_unref(db->as[i]);
+		}
+		free(db->as);
+	}
 
 	loc_stringpool_unref(db->pool);
 
@@ -144,6 +146,62 @@ LOC_EXPORT int loc_database_set_description(struct loc_database* db, const char*
 	return 0;
 }
 
+LOC_EXPORT size_t loc_database_count_as(struct loc_database* db) {
+	return db->as_count;
+}
+
+static int loc_database_has_as(struct loc_database* db, struct loc_as* as) {
+	for (unsigned int i = 0; i < db->as_count; i++) {
+		if (loc_as_cmp(as, db->as[i]) == 0)
+			return i;
+	}
+
+	return -1;
+}
+
+static int __loc_as_cmp(const void* as1, const void* as2) {
+	return loc_as_cmp(*(struct loc_as**)as1, *(struct loc_as**)as2);
+}
+
+static void loc_database_sort_ases(struct loc_database* db) {
+	qsort(db->as, db->as_count, sizeof(*db->as), __loc_as_cmp);
+}
+
+static struct loc_as* __loc_database_add_as(struct loc_database* db, struct loc_as* as) {
+	// Check if AS exists already
+	int i = loc_database_has_as(db, as);
+	if (i >= 0) {
+		loc_as_unref(as);
+
+		// Select already existing AS
+		as = db->as[i];
+
+		return loc_as_ref(as);
+	}
+
+	db->as_count++;
+
+	// Make space for the new entry
+	db->as = realloc(db->as, sizeof(*db->as) * db->as_count);
+
+	// Add the new entry at the end
+	db->as[db->as_count - 1] = loc_as_ref(as);
+
+	// Sort everything
+	loc_database_sort_ases(db);
+
+	return as;
+}
+
+LOC_EXPORT struct loc_as* loc_database_add_as(struct loc_database* db, uint32_t number) {
+	struct loc_as* as;
+	int r = loc_as_new(db->ctx, db->pool, &as, number);
+	if (r)
+		return NULL;
+
+	return __loc_database_add_as(db, as);
+}
+
 static int loc_database_read_magic(struct loc_database* db, FILE* f) {
 	struct loc_database_magic magic;
 
@@ -174,6 +232,40 @@ static int loc_database_read_magic(struct loc_database* db, FILE* f) {
 	return 1;
 }
 
+static int loc_database_read_as_section_v0(struct loc_database* db,
+		off_t as_offset, size_t as_length, FILE* f) {
+	struct loc_database_as_v0 dbobj;
+
+	// Read from the start of the section
+	int r = fseek(f, as_offset, SEEK_SET);
+	if (r)
+		return r;
+
+	// Read all ASes
+	size_t as_count = as_length / sizeof(dbobj);
+	for (unsigned int i = 0; i < as_count; i++) {
+		size_t bytes_read = fread(&dbobj, 1, sizeof(dbobj), f);
+		if (bytes_read < sizeof(dbobj)) {
+			ERROR(db->ctx, "Could not read an AS object\n");
+			return -ENOMSG;
+		}
+
+		// Allocate a new AS
+		struct loc_as* as;
+		r = loc_as_new_from_database_v0(db->ctx, db->pool, &as, &dbobj);
+		if (r)
+			return r;
+
+		// Attach it to the database
+		as = __loc_database_add_as(db, as);
+		loc_as_unref(as);
+	}
+
+	INFO(db->ctx, "Read %zu ASes from the database\n", db->as_count);
+
+	return 0;
+}
+
 static int loc_database_read_header_v0(struct loc_database* db, FILE* f) {
 	struct loc_database_header_v0 header;
 
@@ -194,6 +286,14 @@ static int loc_database_read_header_v0(struct loc_database* db, FILE* f) {
 	size_t pool_length = ntohl(header.pool_length);
 
 	int r = loc_stringpool_read(db->pool, f, pool_offset, pool_length);
+	if (r)
+		return r;
+
+	// AS section
+	off_t as_offset  = ntohl(header.as_offset);
+	size_t as_length = ntohl(header.as_length);
+
+	r = loc_database_read_as_section_v0(db, as_offset, as_length, f);
 	if (r)
 		return r;
 
@@ -265,6 +365,19 @@ LOC_EXPORT int loc_database_write(struct loc_database* db, FILE* f) {
 		return r;
 	}
 	offset += sizeof(header);
+
+	// Write all ASes
+	header.as_offset = htonl(offset);
+
+	struct loc_database_as_v0 dbas;
+	for (unsigned int i = 0; i < db->as_count; i++) {
+		// Convert AS into database format
+		loc_as_to_database_v0(db->as[i], &dbas);
+
+		// Write to disk
+		offset += fwrite(&dbas, 1, sizeof(dbas), f);
+	}
+	header.as_length = htonl(db->as_count * sizeof(dbas));
 
 	// Save the offset of the pool section
 	DEBUG(db->ctx, "Pool starts at %jd bytes\n", offset);

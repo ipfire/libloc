@@ -5,6 +5,7 @@
 *.lo
 *.trs
 libloc.pc
+test-as
 test-libloc
 test-database
 test-stringpool

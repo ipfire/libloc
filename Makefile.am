@@ -36,6 +36,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 	$(SED_PROCESS)
 
 pkginclude_HEADERS = \
+	src/loc/format.h \
 	src/loc/libloc.h
 
 lib_LTLIBRARIES = \
@@ -44,6 +45,8 @@ lib_LTLIBRARIES = \
 src_libloc_la_SOURCES =\
 	src/libloc-private.h \
 	src/libloc.c \
+	src/as.c \
+	src/as.h \
 	src/database.c \
 	src/database.h \
 	src/stringpool.c \
@@ -71,17 +74,25 @@ CLEANFILES += \
 TESTS = \
 	src/test-libloc \
 	src/test-stringpool \
-	src/test-database
+	src/test-database \
+	src/test-as
 
 check_PROGRAMS = \
 	src/test-libloc \
 	src/test-stringpool \
-	src/test-database
+	src/test-database \
+	src/test-as
 
 src_test_libloc_SOURCES = \
 	src/test-libloc.c
 
 src_test_libloc_LDADD = \
+	src/libloc.la
+
+src_test_as_SOURCES = \
+	src/test-as.c
+
+src_test_as_LDADD = \
 	src/libloc.la
 
 src_test_stringpool_SOURCES = \
