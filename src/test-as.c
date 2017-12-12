@@ -41,7 +41,7 @@ int main(int argc, char** argv) {
 	char name[256];
 	for (unsigned int i = 1; i <= TEST_AS_COUNT; i++) {
 		struct loc_as* as;
-		int r = loc_writer_add_as(writer, &as, i);
+		loc_writer_add_as(writer, &as, i);
 
 		sprintf(name, "Test AS%u", i);
 		loc_as_set_name(as, name);

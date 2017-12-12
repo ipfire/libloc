@@ -48,7 +48,7 @@ LOC_EXPORT int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer) {
 	w->ctx = loc_ref(ctx);
 	w->refcount = 1;
 
-	int r = loc_stringpool_new(ctx, &w->pool, 1024 * 1024);
+	int r = loc_stringpool_new(ctx, &w->pool);
 	if (r) {
 		loc_writer_unref(w);
 		return r;

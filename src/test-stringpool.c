@@ -55,7 +55,7 @@ int main(int argc, char** argv) {
 
 	// Create the stringpool
 	struct loc_stringpool* pool;
-	err = loc_stringpool_new(ctx, &pool, 10002 * 4);
+	err = loc_stringpool_new(ctx, &pool);
 	if (err < 0)
 		exit(EXIT_FAILURE);
 

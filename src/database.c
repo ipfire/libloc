@@ -120,11 +120,8 @@ static int loc_database_read_header_v0(struct loc_database* db) {
 	off_t pool_offset  = ntohl(header.pool_offset);
 	size_t pool_length = ntohl(header.pool_length);
 
-	int r = loc_stringpool_new(db->ctx, &db->pool, 0);
-	if (r)
-		return r;
-
-	r = loc_stringpool_read(db->pool, db->file, pool_offset, pool_length);
+	int r = loc_stringpool_open(db->ctx, &db->pool,
+		db->file, pool_length, pool_offset);
 	if (r)
 		return r;
 

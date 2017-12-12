@@ -27,59 +27,24 @@
 #include "libloc-private.h"
 #include "stringpool.h"
 
-struct loc_stringpool {
-	struct loc_ctx* ctx;
-
-	int refcount;
-	char* data;
-	char* pos;
-
-	ssize_t max_length;
+enum loc_stringpool_mode {
+	STRINGPOOL_DEFAULT,
+	STRINGPOOL_MMAP,
 };
 
-static int loc_stringpool_deallocate(struct loc_stringpool* pool) {
-	if (pool->data) {
-		int r = munmap(pool->data, pool->max_length);
-		if (r) {
-			ERROR(pool->ctx, "Could not unmap data at %p: %s\n",
-				pool->data, strerror(errno));
+struct loc_stringpool {
+	struct loc_ctx* ctx;
+	int refcount;
 
-			return r;
-		}
-	}
+	enum loc_stringpool_mode mode;
 
-	return 0;
-}
+	char* data;
+	ssize_t length;
 
-static int loc_stringpool_allocate(struct loc_stringpool* pool, size_t length) {
-	// Drop old data
-	int r = loc_stringpool_deallocate(pool);
-	if (r)
-		return r;
+	char* pos;
+};
 
-	pool->max_length = length;
-
-	// Align to page size
-	while (pool->max_length % sysconf(_SC_PAGE_SIZE) > 0)
-		pool->max_length++;
-
-	DEBUG(pool->ctx, "Allocating pool of %zu bytes\n", pool->max_length);
-
-	// Allocate some memory
-	pool->data = pool->pos = mmap(NULL, pool->max_length,
-		PROT_READ|PROT_WRITE, MAP_PRIVATE|MAP_ANONYMOUS, -1, 0);
-
-	if (pool->data == MAP_FAILED) {
-		DEBUG(pool->ctx, "%s\n", strerror(errno));
-		return -errno;
-	}
-
-	DEBUG(pool->ctx, "Allocated pool at %p\n", pool->data);
-
-	return 0;
-}
-
-LOC_EXPORT int loc_stringpool_new(struct loc_ctx* ctx, struct loc_stringpool** pool, size_t max_length) {
+static int __loc_stringpool_new(struct loc_ctx* ctx, struct loc_stringpool** pool, enum loc_stringpool_mode mode) {
 	struct loc_stringpool* p = calloc(1, sizeof(*p));
 	if (!p)
 		return -ENOMEM;
@@ -87,18 +52,47 @@ LOC_EXPORT int loc_stringpool_new(struct loc_ctx* ctx, struct loc_stringpool** p
 	p->ctx = loc_ref(ctx);
 	p->refcount = 1;
 
-	// Allocate the data section
-	if (max_length > 0) {
-		int r = loc_stringpool_allocate(p, max_length);
-		if (r) {
-			loc_stringpool_unref(p);
-			return r;
-		}
-	}
+	// Save mode
+	p->mode = mode;
 
-	DEBUG(p->ctx, "String pool allocated at %p\n", p);
-	DEBUG(p->ctx, "  Maximum size: %zu bytes\n", p->max_length);
 	*pool = p;
+
+	return 0;
+}
+
+LOC_EXPORT int loc_stringpool_new(struct loc_ctx* ctx, struct loc_stringpool** pool) {
+	return __loc_stringpool_new(ctx, pool, STRINGPOOL_DEFAULT);
+}
+
+static int loc_stringpool_mmap(struct loc_stringpool* pool, FILE* f, size_t length, off_t offset) {
+	if (pool->mode != STRINGPOOL_MMAP)
+		return -EINVAL;
+
+	DEBUG(pool->ctx, "Reading string pool starting from %zu (%zu bytes)\n", offset, length);
+
+	// Map file content into memory
+	pool->data = pool->pos = mmap(NULL, length, PROT_READ,
+		MAP_PRIVATE, fileno(f), offset);
+
+	// Store size of section
+	pool->length = length;
+
+	if (pool->data == MAP_FAILED)
+		return -errno;
+
+	return 0;
+}
+
+LOC_EXPORT int loc_stringpool_open(struct loc_ctx* ctx, struct loc_stringpool** pool,
+		FILE* f, size_t length, off_t offset) {
+	int r = __loc_stringpool_new(ctx, pool, STRINGPOOL_MMAP);
+	if (r)
+		return r;
+
+	// Map data into memory
+	r = loc_stringpool_mmap(*pool, f, length, offset);
+	if (r)
+		return r;
 
 	return 0;
 }
@@ -111,8 +105,24 @@ LOC_EXPORT struct loc_stringpool* loc_stringpool_ref(struct loc_stringpool* pool
 
 static void loc_stringpool_free(struct loc_stringpool* pool) {
 	DEBUG(pool->ctx, "Releasing string pool %p\n", pool);
+	int r;
 
-	loc_stringpool_deallocate(pool);
+	switch (pool->mode) {
+		case STRINGPOOL_DEFAULT:
+			if (pool->data)
+				free(pool->data);
+			break;
+
+		case STRINGPOOL_MMAP:
+			if (pool->data) {
+				r = munmap(pool->data, pool->length);
+				if (r)
+					ERROR(pool->ctx, "Could not unmap data at %p: %s\n",
+						pool->data, strerror(errno));
+			}
+			break;
+	}
+
 	loc_unref(pool->ctx);
 	free(pool);
 }
@@ -130,7 +140,7 @@ static off_t loc_stringpool_get_offset(struct loc_stringpool* pool, const char* 
 	if (pos < pool->data)
 		return -EFAULT;
 
-	if (pos > (pool->data + pool->max_length))
+	if (pos > (pool->data + pool->length))
 		return -EFAULT;
 
 	return pos - pool->data;
@@ -142,21 +152,15 @@ static off_t loc_stringpool_get_next_offset(struct loc_stringpool* pool, off_t o
 	return offset + strlen(string) + 1;
 }
 
-static size_t loc_stringpool_space_left(struct loc_stringpool* pool) {
-	return pool->max_length - loc_stringpool_get_size(pool);
+static char* __loc_stringpool_get(struct loc_stringpool* pool, off_t offset) {
+	if (offset < 0 || offset >= pool->length)
+		return NULL;
+
+	return pool->data + offset;
 }
 
 LOC_EXPORT const char* loc_stringpool_get(struct loc_stringpool* pool, off_t offset) {
-	if (offset >= (ssize_t)pool->max_length)
-		return NULL;
-
-	const char* string = pool->data + offset;
-
-	// If the string is empty, we have reached the end
-	if (!*string)
-		return NULL;
-
-	return string;
+	return __loc_stringpool_get(pool, offset);
 }
 
 LOC_EXPORT size_t loc_stringpool_get_size(struct loc_stringpool* pool) {
@@ -168,7 +172,7 @@ static off_t loc_stringpool_find(struct loc_stringpool* pool, const char* s) {
 		return -EINVAL;
 
 	off_t offset = 0;
-	while (offset < pool->max_length) {
+	while (offset < pool->length) {
 		const char* string = loc_stringpool_get(pool, offset);
 		if (!string)
 			break;
@@ -183,26 +187,43 @@ static off_t loc_stringpool_find(struct loc_stringpool* pool, const char* s) {
 	return -ENOENT;
 }
 
+static int loc_stringpool_grow(struct loc_stringpool* pool, size_t length) {
+	DEBUG(pool->ctx, "Growing string pool to %zu bytes\n", length);
+
+	// Save pos pointer
+	off_t pos = loc_stringpool_get_offset(pool, pool->pos);
+
+	// Reallocate data section
+	pool->data = realloc(pool->data, length);
+	if (!pool->data)
+		return -ENOMEM;
+
+	pool->length = length;
+
+	// Restore pos
+	pool->pos = __loc_stringpool_get(pool, pos);
+
+	return 0;
+}
+
 static off_t loc_stringpool_append(struct loc_stringpool* pool, const char* string) {
 	if (!string || !*string)
 		return -EINVAL;
 
 	DEBUG(pool->ctx, "Appending '%s' to string pool at %p\n", string, pool);
 
-	// Check if we have enough space left
-	size_t l = strlen(string) + 1;
-	if (l > loc_stringpool_space_left(pool)) {
-		DEBUG(pool->ctx, "Not enough space to append '%s'\n", string);
-		DEBUG(pool->ctx, "  Need %zu bytes but only have %zu\n", l, loc_stringpool_space_left(pool));
-		return -ENOSPC;
+	// Make sure we have enough space
+	int r = loc_stringpool_grow(pool, pool->length + strlen(string) + 1);
+	if (r) {
+		errno = r;
+		return -1;
 	}
 
 	off_t offset = loc_stringpool_get_offset(pool, pool->pos);
 
 	// Copy string byte by byte
-	while (*string && loc_stringpool_space_left(pool) > 1) {
+	while (*string)
 		*pool->pos++ = *string++;
-	}
 
 	// Terminate the string
 	*pool->pos++ = '\0';
@@ -223,7 +244,7 @@ LOC_EXPORT off_t loc_stringpool_add(struct loc_stringpool* pool, const char* str
 LOC_EXPORT void loc_stringpool_dump(struct loc_stringpool* pool) {
 	off_t offset = 0;
 
-	while (offset < pool->max_length) {
+	while (offset < pool->length) {
 		const char* string = loc_stringpool_get(pool, offset);
 		if (!string)
 			break;
@@ -232,19 +253,6 @@ LOC_EXPORT void loc_stringpool_dump(struct loc_stringpool* pool) {
 
 		offset = loc_stringpool_get_next_offset(pool, offset);
 	}
-}
-
-LOC_EXPORT int loc_stringpool_read(struct loc_stringpool* pool, FILE* f, off_t offset, size_t length) {
-	DEBUG(pool->ctx, "Reading string pool from %zu (%zu bytes)\n", offset, length);
-
-	pool->data = pool->pos = mmap(NULL, length, PROT_READ,
-		MAP_PRIVATE, fileno(f), offset);
-	pool->max_length = length;
-
-	if (pool->data == MAP_FAILED)
-		return -errno;
-
-	return 0;
 }
 
 LOC_EXPORT size_t loc_stringpool_write(struct loc_stringpool* pool, FILE* f) {
