@@ -346,6 +346,21 @@ static void loc_database_make_magic(struct loc_database* db, struct loc_database
 	magic->version = htons(LOC_DATABASE_VERSION);
 }
 
+static int loc_database_write_pool(struct loc_database* db, struct loc_database_header_v0* header, off_t* offset, FILE* f) {
+	// Save the offset of the pool section
+	DEBUG(db->ctx, "Pool starts at %jd bytes\n", *offset);
+	header->pool_offset = htonl(*offset);
+
+	// Write the pool
+	size_t pool_length = loc_stringpool_write(db->pool, f);
+	*offset += pool_length;
+
+	DEBUG(db->ctx, "Pool has a length of %zu bytes\n", pool_length);
+	header->pool_length = htonl(pool_length);
+
+	return 0;
+}
+
 LOC_EXPORT int loc_database_write(struct loc_database* db, FILE* f) {
 	struct loc_database_magic magic;
 	loc_database_make_magic(db, &magic);
@@ -374,6 +389,15 @@ LOC_EXPORT int loc_database_write(struct loc_database* db, FILE* f) {
 	}
 	offset += sizeof(header);
 
+	// Move to next page boundary
+	while (offset % LOC_DATABASE_PAGE_SIZE > 0)
+		offset += fwrite("", 1, 1, f);
+
+	// Write pool
+	r = loc_database_write_pool(db, &header, &offset, f);
+	if (r)
+		return r;
+
 	// Write all ASes
 	header.as_offset = htonl(offset);
 
@@ -386,19 +410,6 @@ LOC_EXPORT int loc_database_write(struct loc_database* db, FILE* f) {
 		offset += fwrite(&dbas, 1, sizeof(dbas), f);
 	}
 	header.as_length = htonl(db->as_count * sizeof(dbas));
-
-	// Move to next page boundary
-	while (offset % LOC_DATABASE_PAGE_SIZE > 0)
-		offset += fwrite("", 1, 1, f);
-
-	// Save the offset of the pool section
-	DEBUG(db->ctx, "Pool starts at %jd bytes\n", offset);
-	header.pool_offset = htonl(offset);
-
-	// Size of the pool
-	size_t pool_length = loc_stringpool_write(db->pool, f);
-	DEBUG(db->ctx, "Pool has a length of %zu bytes\n", pool_length);
-	header.pool_length = htonl(pool_length);
 
 	// Write the header
 	r = fseek(f, sizeof(magic), SEEK_SET);
