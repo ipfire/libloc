@@ -346,6 +346,12 @@ static void loc_database_make_magic(struct loc_database* db, struct loc_database
 	magic->version = htons(LOC_DATABASE_VERSION);
 }
 
+static void loc_database_align_page_boundary(off_t* offset, FILE* f) {
+	// Move to next page boundary
+	while (*offset % LOC_DATABASE_PAGE_SIZE > 0)
+		*offset += fwrite("", 1, 1, f);
+}
+
 static int loc_database_write_pool(struct loc_database* db, struct loc_database_header_v0* header, off_t* offset, FILE* f) {
 	// Save the offset of the pool section
 	DEBUG(db->ctx, "Pool starts at %jd bytes\n", *offset);
@@ -412,14 +418,14 @@ LOC_EXPORT int loc_database_write(struct loc_database* db, FILE* f) {
 	}
 	offset += sizeof(header);
 
-	// Move to next page boundary
-	while (offset % LOC_DATABASE_PAGE_SIZE > 0)
-		offset += fwrite("", 1, 1, f);
+	loc_database_align_page_boundary(&offset, f);
 
 	// Write pool
 	r = loc_database_write_pool(db, &header, &offset, f);
 	if (r)
 		return r;
+
+	loc_database_align_page_boundary(&offset, f);
 
 	// Write all ASes
 	r = loc_database_write_as_section(db, &header, &offset, f);

@@ -252,11 +252,5 @@ LOC_EXPORT int loc_stringpool_read(struct loc_stringpool* pool, FILE* f, off_t o
 LOC_EXPORT size_t loc_stringpool_write(struct loc_stringpool* pool, FILE* f) {
 	size_t size = loc_stringpool_get_size(pool);
 
-	size_t bytes_written = fwrite(pool->data, sizeof(*pool->data), size, f);
-
-	// Move to next page boundary
-	while (bytes_written % LOC_DATABASE_PAGE_SIZE > 0)
-		bytes_written += fwrite("", 1, 1, f);
-
-	return bytes_written;
+	return fwrite(pool->data, sizeof(*pool->data), size, f);
 }
