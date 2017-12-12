@@ -36,7 +36,6 @@ const char* loc_database_get_description(struct loc_database* db);
 int loc_database_get_as(struct loc_database* db, struct loc_as** as, uint32_t number);
 size_t loc_database_count_as(struct loc_database* db);
 
-int loc_database_read(struct loc_database* db, FILE* f);
 int loc_database_write(struct loc_database* db, FILE* f);
 
 #endif

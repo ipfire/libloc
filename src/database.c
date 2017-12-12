@@ -156,6 +156,27 @@ static FILE* copy_file_pointer(FILE* f) {
 	return fdopen(fd, "r");
 }
 
+static int loc_database_read(struct loc_database* db) {
+	clock_t start = clock();
+
+	// Read magic bytes
+	int r = loc_database_read_magic(db);
+	if (r)
+		return r;
+
+	// Read the header
+	r = loc_database_read_header(db);
+	if (r)
+		return r;
+
+	clock_t end = clock();
+
+	INFO(db->ctx, "Opened database in %.8fs\n",
+		(double)(end - start) / CLOCKS_PER_SEC);
+
+	return 0;
+}
+
 LOC_EXPORT int loc_database_new(struct loc_ctx* ctx, struct loc_database** database, FILE* f) {
 	struct loc_database* db = calloc(1, sizeof(*db));
 	if (!db)
@@ -173,15 +194,11 @@ LOC_EXPORT int loc_database_new(struct loc_ctx* ctx, struct loc_database** datab
 	if (!db->file)
 		goto FAIL;
 
-	// Read magic bytes
-	int r = loc_database_read_magic(db);
-	if (r)
+	int r = loc_database_read(db);
+	if (r) {
+		loc_database_unref(db);
 		return r;
-
-	// Read the header
-	r = loc_database_read_header(db);
-	if (r)
-		return r;
+	}
 
 	*database = db;
 
