@@ -431,15 +431,15 @@ LOC_EXPORT int loc_database_write(struct loc_database* db, FILE* f) {
 
 	loc_database_align_page_boundary(&offset, f);
 
-	// Write pool
-	r = loc_database_write_pool(db, &header, &offset, f);
+	// Write all ASes
+	r = loc_database_write_as_section(db, &header, &offset, f);
 	if (r)
 		return r;
 
 	loc_database_align_page_boundary(&offset, f);
 
-	// Write all ASes
-	r = loc_database_write_as_section(db, &header, &offset, f);
+	// Write pool
+	r = loc_database_write_pool(db, &header, &offset, f);
 	if (r)
 		return r;
 
