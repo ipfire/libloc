@@ -27,6 +27,7 @@
 #include <loc/writer.h>
 #include "database.h"
 
+const char* VENDOR = "Test Vendor";
 const char* DESCRIPTION =
 	"Lorem ipsum dolor sit amet, consectetur adipiscing elit. "
 	"Proin ultrices pulvinar dolor, et sollicitudin eros ultricies "
@@ -50,16 +51,16 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 
 	// Set the vendor
-	err = loc_writer_set_vendor(writer, "Test Vendor");
+	err = loc_writer_set_vendor(writer, VENDOR);
 	if (err) {
 		fprintf(stderr, "Could not set vendor\n");
 		exit(EXIT_FAILURE);
 	}
 
 	// Retrieve vendor
-	const char* vendor1 = loc_writer_get_vendor(writer);
-	if (vendor1) {
-		printf("Vendor is: %s\n", vendor1);
+	const char* vendor = loc_writer_get_vendor(writer);
+	if (vendor) {
+		printf("Vendor is: %s\n", vendor);
 	} else {
 		fprintf(stderr, "Could not retrieve vendor\n");
 		exit(EXIT_FAILURE);
@@ -92,6 +93,7 @@ int main(int argc, char** argv) {
 		fprintf(stderr, "Could not write database: %s\n", strerror(err));
 		exit(EXIT_FAILURE);
 	}
+	loc_writer_unref(writer);
 
 	// Close the file
 	fclose(f);
@@ -110,19 +112,18 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	const char* vendor2 = loc_database_get_vendor(db);
-	if (!vendor2) {
+	vendor = loc_database_get_vendor(db);
+	if (!vendor) {
 		fprintf(stderr, "Could not retrieve vendor\n");
 		exit(EXIT_FAILURE);
-	} else if (strcmp(vendor1, vendor2) != 0) {
-		fprintf(stderr, "Vendor doesn't match: %s != %s\n", vendor1, vendor2);
+	} else if (strcmp(vendor, VENDOR) != 0) {
+		fprintf(stderr, "Vendor doesn't match: %s != %s\n", vendor, VENDOR);
 		exit(EXIT_FAILURE);
 	}
 
 	// Close the database
 	loc_database_unref(db);
 
-	loc_writer_unref(writer);
 	loc_unref(ctx);
 
 	return EXIT_SUCCESS;
