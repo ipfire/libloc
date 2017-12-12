@@ -234,8 +234,6 @@ LOC_EXPORT void loc_stringpool_dump(struct loc_stringpool* pool) {
 	}
 }
 
-#include <assert.h>
-
 LOC_EXPORT int loc_stringpool_read(struct loc_stringpool* pool, FILE* f, off_t offset, size_t length) {
 	DEBUG(pool->ctx, "Reading string pool from %zu (%zu bytes)\n", offset, length);
 

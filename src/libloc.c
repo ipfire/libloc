@@ -147,7 +147,7 @@ LOC_EXPORT int loc_load(struct loc_ctx* ctx, const char* path) {
 		loc_database_unref(ctx->db);
 
 	// Open the new database
-	int r = loc_database_open(ctx, &ctx->db, f);
+	int r = loc_database_new(ctx, &ctx->db, f);
 	if (r)
 		return r;
 

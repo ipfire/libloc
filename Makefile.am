@@ -37,7 +37,8 @@ pkgconfigdir = $(libdir)/pkgconfig
 
 pkginclude_HEADERS = \
 	src/loc/format.h \
-	src/loc/libloc.h
+	src/loc/libloc.h \
+	src/loc/writer.h
 
 lib_LTLIBRARIES = \
 	src/libloc.la
@@ -50,7 +51,8 @@ src_libloc_la_SOURCES =\
 	src/database.c \
 	src/database.h \
 	src/stringpool.c \
-	src/stringpool.h
+	src/stringpool.h \
+	src/writer.c
 
 EXTRA_DIST += src/libloc.sym
 

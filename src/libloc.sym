@@ -12,15 +12,12 @@ global:
 	loc_database_add_as;
 	loc_database_count_as;
 	loc_database_created_at;
+	loc_database_get_as;
 	loc_database_get_description;
 	loc_database_get_vendor;
 	loc_database_new;
-	loc_database_open;
 	loc_database_ref;
-	loc_database_set_description;
-	loc_database_set_vendor;
 	loc_database_unref;
-	loc_database_write;
 
 	# String Pool
 	loc_stringpool_add;
@@ -30,6 +27,17 @@ global:
 	loc_stringpool_new;
 	loc_stringpool_ref;
 	loc_stringpool_unref;
+
+	# Writer
+	loc_writer_add_as;
+	loc_writer_get_description;
+	loc_writer_get_vendor;
+	loc_writer_new;
+	loc_writer_ref;
+	loc_writer_set_description;
+	loc_writer_set_vendor;
+	loc_writer_unref;
+	loc_writer_write;
 };
 
 LIBLOC_1 {

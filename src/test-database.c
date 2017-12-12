@@ -24,6 +24,7 @@
 #include <unistd.h>
 
 #include <loc/libloc.h>
+#include <loc/writer.h>
 #include "database.h"
 
 const char* DESCRIPTION =
@@ -43,20 +44,20 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 
 	// Create a database
-	struct loc_database* db;
-	err = loc_database_new(ctx, &db, 1024);
+	struct loc_writer* writer;
+	err = loc_writer_new(ctx, &writer);
 	if (err < 0)
 		exit(EXIT_FAILURE);
 
 	// Set the vendor
-	err = loc_database_set_vendor(db, "Test Vendor");
+	err = loc_writer_set_vendor(writer, "Test Vendor");
 	if (err) {
 		fprintf(stderr, "Could not set vendor\n");
 		exit(EXIT_FAILURE);
 	}
 
 	// Retrieve vendor
-	const char* vendor1 = loc_database_get_vendor(db);
+	const char* vendor1 = loc_writer_get_vendor(writer);
 	if (vendor1) {
 		printf("Vendor is: %s\n", vendor1);
 	} else {
@@ -65,14 +66,14 @@ int main(int argc, char** argv) {
 	}
 
 	// Set a description
-	err = loc_database_set_description(db, DESCRIPTION);
+	err = loc_writer_set_description(writer, DESCRIPTION);
 	if (err) {
 		fprintf(stderr, "Could not set description\n");
 		exit(EXIT_FAILURE);
 	}
 
 	// Retrieve description
-	const char* description = loc_database_get_description(db);
+	const char* description = loc_writer_get_description(writer);
 	if (description) {
 		printf("Description is: %s\n", description);
 	} else {
@@ -86,7 +87,7 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	err = loc_database_write(db, f);
+	err = loc_writer_write(writer, f);
 	if (err) {
 		fprintf(stderr, "Could not write database: %s\n", strerror(err));
 		exit(EXIT_FAILURE);
@@ -95,9 +96,6 @@ int main(int argc, char** argv) {
 	// Close the file
 	fclose(f);
 
-	// Close the database
-	//loc_database_unref(db);
-
 	// And open it again from disk
 	f = fopen("test.db", "r");
 	if (!f) {
@@ -105,14 +103,14 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	struct loc_database* db2;
-	err = loc_database_open(ctx, &db2, f);
+	struct loc_database* db;
+	err = loc_database_new(ctx, &db, f);
 	if (err) {
 		fprintf(stderr, "Could not open database: %s\n", strerror(-err));
 		exit(EXIT_FAILURE);
 	}
 
-	const char* vendor2 = loc_database_get_vendor(db2);
+	const char* vendor2 = loc_database_get_vendor(db);
 	if (!vendor2) {
 		fprintf(stderr, "Could not retrieve vendor\n");
 		exit(EXIT_FAILURE);
@@ -122,9 +120,9 @@ int main(int argc, char** argv) {
 	}
 
 	// Close the database
-	loc_database_unref(db2);
-	fclose(f);
+	loc_database_unref(db);
 
+	loc_writer_unref(writer);
 	loc_unref(ctx);
 
 	return EXIT_SUCCESS;

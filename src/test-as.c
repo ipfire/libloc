@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include <loc/libloc.h>
+#include <loc/writer.h>
 #include "database.h"
 
 #define TEST_AS_COUNT 100
@@ -32,14 +33,15 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 
 	// Create a database
-	struct loc_database* db;
-	err = loc_database_new(ctx, &db, 1024);
+	struct loc_writer* writer;
+	err = loc_writer_new(ctx, &writer);
 	if (err < 0)
 		exit(EXIT_FAILURE);
 
 	char name[256];
 	for (unsigned int i = 1; i <= TEST_AS_COUNT; i++) {
-		struct loc_as* as = loc_database_add_as(db, i);
+		struct loc_as* as;
+		int r = loc_writer_add_as(writer, &as, i);
 
 		sprintf(name, "Test AS%u", i);
 		loc_as_set_name(as, name);
@@ -53,14 +55,14 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	err = loc_database_write(db, f);
+	err = loc_writer_write(writer, f);
 	if (err) {
 		fprintf(stderr, "Could not write database: %s\n", strerror(-err));
 		exit(EXIT_FAILURE);
 	}
 	fclose(f);
 
-	loc_database_unref(db);
+	loc_writer_unref(writer);
 
 	// And open it again from disk
 	f = fopen("test.db", "r");
@@ -69,7 +71,8 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	err = loc_database_open(ctx, &db, f);
+	struct loc_database* db;
+	err = loc_database_new(ctx, &db, f);
 	if (err) {
 		fprintf(stderr, "Could not open database: %s\n", strerror(-err));
 		exit(EXIT_FAILURE);
@@ -78,6 +81,13 @@ int main(int argc, char** argv) {
 	size_t as_count = loc_database_count_as(db);
 	if (as_count != TEST_AS_COUNT) {
 		fprintf(stderr, "Could not read all ASes\n");
+		exit(EXIT_FAILURE);
+	}
+
+	struct loc_as* as;
+	err = loc_database_get_as(db, &as, 99);
+	if (err) {
+		fprintf(stderr, "Could not find AS99\n");
 		exit(EXIT_FAILURE);
 	}
 
