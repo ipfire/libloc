@@ -361,6 +361,29 @@ static int loc_database_write_pool(struct loc_database* db, struct loc_database_
 	return 0;
 }
 
+static int loc_database_write_as_section(struct loc_database* db,
+		struct loc_database_header_v0* header, off_t* offset, FILE* f) {
+	DEBUG(db->ctx, "AS section starts at %jd bytes\n", *offset);
+	header->as_offset = htonl(*offset);
+
+	size_t as_length = 0;
+
+	struct loc_database_as_v0 dbas;
+	for (unsigned int i = 0; i < db->as_count; i++) {
+		// Convert AS into database format
+		loc_as_to_database_v0(db->as[i], &dbas);
+
+		// Write to disk
+		offset += fwrite(&dbas, 1, sizeof(dbas), f);
+		as_length += sizeof(dbas);
+	}
+
+	DEBUG(db->ctx, "AS section has a length of %zu bytes\n", as_length);
+	header->as_length = htonl(as_length);
+
+	return 0;
+}
+
 LOC_EXPORT int loc_database_write(struct loc_database* db, FILE* f) {
 	struct loc_database_magic magic;
 	loc_database_make_magic(db, &magic);
@@ -399,17 +422,9 @@ LOC_EXPORT int loc_database_write(struct loc_database* db, FILE* f) {
 		return r;
 
 	// Write all ASes
-	header.as_offset = htonl(offset);
-
-	struct loc_database_as_v0 dbas;
-	for (unsigned int i = 0; i < db->as_count; i++) {
-		// Convert AS into database format
-		loc_as_to_database_v0(db->as[i], &dbas);
-
-		// Write to disk
-		offset += fwrite(&dbas, 1, sizeof(dbas), f);
-	}
-	header.as_length = htonl(db->as_count * sizeof(dbas));
+	r = loc_database_write_as_section(db, &header, &offset, f);
+	if (r)
+		return r;
 
 	// Write the header
 	r = fseek(f, sizeof(magic), SEEK_SET);
