@@ -14,7 +14,6 @@
 	Lesser General Public License for more details.
 */
 
-#include <arpa/inet.h>
 #include <endian.h>
 #include <errno.h>
 #include <stdio.h>
@@ -148,7 +147,7 @@ static void make_magic(struct loc_writer* writer, struct loc_database_magic* mag
 		magic->magic[i] = LOC_DATABASE_MAGIC[i];
 
 	// Set version
-	magic->version = htons(LOC_DATABASE_VERSION);
+	magic->version = htobe16(LOC_DATABASE_VERSION);
 }
 
 static void align_page_boundary(off_t* offset, FILE* f) {
@@ -161,14 +160,14 @@ static int loc_database_write_pool(struct loc_writer* writer,
 		struct loc_database_header_v0* header, off_t* offset, FILE* f) {
 	// Save the offset of the pool section
 	DEBUG(writer->ctx, "Pool starts at %jd bytes\n", *offset);
-	header->pool_offset = htonl(*offset);
+	header->pool_offset = htobe32(*offset);
 
 	// Write the pool
 	size_t pool_length = loc_stringpool_write(writer->pool, f);
 	*offset += pool_length;
 
 	DEBUG(writer->ctx, "Pool has a length of %zu bytes\n", pool_length);
-	header->pool_length = htonl(pool_length);
+	header->pool_length = htobe32(pool_length);
 
 	return 0;
 }
@@ -176,7 +175,7 @@ static int loc_database_write_pool(struct loc_writer* writer,
 static int loc_database_write_as_section(struct loc_writer* writer,
 		struct loc_database_header_v0* header, off_t* offset, FILE* f) {
 	DEBUG(writer->ctx, "AS section starts at %jd bytes\n", *offset);
-	header->as_offset = htonl(*offset);
+	header->as_offset = htobe32(*offset);
 
 	size_t as_length = 0;
 
@@ -191,7 +190,7 @@ static int loc_database_write_as_section(struct loc_writer* writer,
 	}
 
 	DEBUG(writer->ctx, "AS section has a length of %zu bytes\n", as_length);
-	header->as_length = htonl(as_length);
+	header->as_length = htobe32(as_length);
 
 	return 0;
 }
@@ -202,8 +201,8 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f) {
 
 	// Make the header
 	struct loc_database_header_v0 header;
-	header.vendor      = htonl(writer->vendor);
-	header.description = htonl(writer->description);
+	header.vendor      = htobe32(writer->vendor);
+	header.description = htobe32(writer->description);
 
 	time_t now = time(NULL);
 	header.created_at = htobe64(now);

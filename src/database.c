@@ -14,7 +14,7 @@
 	Lesser General Public License for more details.
 */
 
-#include <arpa/inet.h>
+#include <endian.h>
 #include <errno.h>
 #include <stddef.h>
 #include <stdint.h>
@@ -69,7 +69,7 @@ static int loc_database_read_magic(struct loc_database* db) {
 		DEBUG(db->ctx, "Magic value matches\n");
 
 		// Parse version
-		db->version = ntohs(magic.version);
+		db->version = be16toh(magic.version);
 		DEBUG(db->ctx, "Database version is %u\n", db->version);
 
 		return 0;
@@ -113,12 +113,12 @@ static int loc_database_read_header_v0(struct loc_database* db) {
 
 	// Copy over data
 	db->created_at  = be64toh(header.created_at);
-	db->vendor      = ntohl(header.vendor);
-	db->description = ntohl(header.description);
+	db->vendor      = be32toh(header.vendor);
+	db->description = be32toh(header.description);
 
 	// Open pool
-	off_t pool_offset  = ntohl(header.pool_offset);
-	size_t pool_length = ntohl(header.pool_length);
+	off_t pool_offset  = be32toh(header.pool_offset);
+	size_t pool_length = be32toh(header.pool_length);
 
 	int r = loc_stringpool_open(db->ctx, &db->pool,
 		db->file, pool_length, pool_offset);
@@ -126,8 +126,8 @@ static int loc_database_read_header_v0(struct loc_database* db) {
 		return r;
 
 	// AS section
-	off_t as_offset  = ntohl(header.as_offset);
-	size_t as_length = ntohl(header.as_length);
+	off_t as_offset  = be32toh(header.as_offset);
+	size_t as_length = be32toh(header.as_length);
 
 	r = loc_database_read_as_section_v0(db, as_offset, as_length);
 	if (r)

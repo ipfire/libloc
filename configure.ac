@@ -40,6 +40,12 @@ AS_IF([test "x$enable_debug" = "xyes"], [
 ])
 
 AC_CHECK_FUNCS([ \
+        be16toh \
+        be32toh \
+        be64toh \
+        htobe16 \
+        htobe32 \
+        htobe64 \
         mmap \
         munmap \
 	__secure_getenv \
