@@ -22,6 +22,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/types.h>
+#include <unistd.h>
 
 #include <loc/libloc.h>
 #include <loc/format.h>
@@ -35,6 +36,7 @@ struct loc_database {
 	struct loc_ctx* ctx;
 	int refcount;
 
+	FILE* file;
 	unsigned int version;
 	off_t vendor;
 	off_t description;
@@ -95,6 +97,10 @@ static void loc_database_free(struct loc_database* db) {
 	}
 
 	loc_stringpool_unref(db->pool);
+
+	// Close file
+	if (db->file)
+		fclose(db->file);
 
 	loc_unref(db->ctx);
 	free(db);
@@ -192,11 +198,11 @@ LOC_EXPORT struct loc_as* loc_database_add_as(struct loc_database* db, uint32_t 
 	return __loc_database_add_as(db, as);
 }
 
-static int loc_database_read_magic(struct loc_database* db, FILE* f) {
+static int loc_database_read_magic(struct loc_database* db) {
 	struct loc_database_magic magic;
 
 	// Read from file
-	size_t bytes_read = fread(&magic, 1, sizeof(magic), f);
+	size_t bytes_read = fread(&magic, 1, sizeof(magic), db->file);
 
 	// Check if we have been able to read enough data
 	if (bytes_read < sizeof(magic)) {
@@ -223,18 +229,18 @@ static int loc_database_read_magic(struct loc_database* db, FILE* f) {
 }
 
 static int loc_database_read_as_section_v0(struct loc_database* db,
-		off_t as_offset, size_t as_length, FILE* f) {
+		off_t as_offset, size_t as_length) {
 	struct loc_database_as_v0 dbobj;
 
 	// Read from the start of the section
-	int r = fseek(f, as_offset, SEEK_SET);
+	int r = fseek(db->file, as_offset, SEEK_SET);
 	if (r)
 		return r;
 
 	// Read all ASes
 	size_t as_count = as_length / sizeof(dbobj);
 	for (unsigned int i = 0; i < as_count; i++) {
-		size_t bytes_read = fread(&dbobj, 1, sizeof(dbobj), f);
+		size_t bytes_read = fread(&dbobj, 1, sizeof(dbobj), db->file);
 		if (bytes_read < sizeof(dbobj)) {
 			ERROR(db->ctx, "Could not read an AS object\n");
 			return -ENOMSG;
@@ -256,11 +262,11 @@ static int loc_database_read_as_section_v0(struct loc_database* db,
 	return 0;
 }
 
-static int loc_database_read_header_v0(struct loc_database* db, FILE* f) {
+static int loc_database_read_header_v0(struct loc_database* db) {
 	struct loc_database_header_v0 header;
 
 	// Read from file
-	size_t size = fread(&header, 1, sizeof(header), f);
+	size_t size = fread(&header, 1, sizeof(header), db->file);
 
 	if (size < sizeof(header)) {
 		ERROR(db->ctx, "Could not read enough data for header\n");
@@ -275,7 +281,7 @@ static int loc_database_read_header_v0(struct loc_database* db, FILE* f) {
 	off_t pool_offset  = ntohl(header.pool_offset);
 	size_t pool_length = ntohl(header.pool_length);
 
-	int r = loc_stringpool_read(db->pool, f, pool_offset, pool_length);
+	int r = loc_stringpool_read(db->pool, db->file, pool_offset, pool_length);
 	if (r)
 		return r;
 
@@ -283,17 +289,17 @@ static int loc_database_read_header_v0(struct loc_database* db, FILE* f) {
 	off_t as_offset  = ntohl(header.as_offset);
 	size_t as_length = ntohl(header.as_length);
 
-	r = loc_database_read_as_section_v0(db, as_offset, as_length, f);
+	r = loc_database_read_as_section_v0(db, as_offset, as_length);
 	if (r)
 		return r;
 
 	return 0;
 }
 
-static int loc_database_read_header(struct loc_database* db, FILE* f) {
+static int loc_database_read_header(struct loc_database* db) {
 	switch (db->version) {
 		case 0:
-			return loc_database_read_header_v0(db, f);
+			return loc_database_read_header_v0(db);
 
 		default:
 			ERROR(db->ctx, "Incompatible database version: %u\n", db->version);
@@ -302,17 +308,29 @@ static int loc_database_read_header(struct loc_database* db, FILE* f) {
 }
 
 LOC_EXPORT int loc_database_read(struct loc_database* db, FILE* f) {
-	int r = fseek(f, 0, SEEK_SET);
+	// Copy the file pointer and work on that so we don't care if
+	// the calling function closes the file
+	int fd = fileno(f);
+
+	// Make a copy
+	fd = dup(fd);
+
+	// Retrieve a file pointer
+	db->file = fdopen(fd, "r");
+	if (!db->file)
+		return -errno;
+
+	int r = fseek(db->file, 0, SEEK_SET);
 	if (r)
 		return r;
 
 	// Read magic bytes
-	r = loc_database_read_magic(db, f);
+	r = loc_database_read_magic(db);
 	if (r)
 		return r;
 
 	// Read the header
-	r = loc_database_read_header(db, f);
+	r = loc_database_read_header(db);
 	if (r)
 		return r;
 

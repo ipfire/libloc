@@ -215,6 +215,8 @@ LOC_EXPORT int loc_stringpool_read(struct loc_stringpool* pool, FILE* f, off_t o
 	if (r)
 		return r;
 
+	DEBUG(pool->ctx, "Reading string pool from %zu\n", offset);
+
 	// Seek to the right offset
 	r = fseek(f, offset, SEEK_SET);
 	if (r)
