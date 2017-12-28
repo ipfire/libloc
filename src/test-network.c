@@ -14,6 +14,7 @@
 	GNU General Public License for more details.
 */
 
+#include <errno.h>
 #include <stdio.h>
 #include <stddef.h>
 #include <stdlib.h>
@@ -21,6 +22,7 @@
 
 #include <loc/libloc.h>
 #include <loc/network.h>
+#include <loc/writer.h>
 
 int main(int argc, char** argv) {
 	int err;
@@ -64,6 +66,37 @@ int main(int argc, char** argv) {
 		fprintf(stderr, "Error dumping tree: %d\n", err);
 		exit(EXIT_FAILURE);
 	}
+
+	// Create a database
+	struct loc_writer* writer;
+	err = loc_writer_new(ctx, &writer);
+	if (err < 0)
+		exit(EXIT_FAILURE);
+
+	struct loc_network* network2;
+	err = loc_writer_add_network(writer, &network2, "2001:db8:1::/48");
+	if (err) {
+		fprintf(stderr, "Could not add network\n");
+		exit(EXIT_FAILURE);
+	}
+
+	// Set country code
+	loc_network_set_country_code(network2, "XX");
+
+	FILE* f = fopen("test.db", "w");
+	if (!f) {
+		fprintf(stderr, "Could not open file for writing: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	err = loc_writer_write(writer, f);
+	if (err) {
+		fprintf(stderr, "Could not write database: %s\n", strerror(-err));
+		exit(EXIT_FAILURE);
+	}
+	fclose(f);
+
+	loc_writer_unref(writer);
 
 	loc_network_unref(network1);
 	loc_network_tree_unref(tree);

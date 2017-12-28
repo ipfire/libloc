@@ -16,6 +16,7 @@
 
 #include <arpa/inet.h>
 #include <assert.h>
+#include <endian.h>
 #include <errno.h>
 #include <stdlib.h>
 #include <string.h>
@@ -168,6 +169,24 @@ LOC_EXPORT int loc_network_set_country_code(struct loc_network* network, const c
 	return 0;
 }
 
+LOC_EXPORT int loc_network_to_database_v0(struct loc_network* network, struct loc_database_network_v0* dbobj) {
+	dbobj->prefix = htobe16(network->prefix);
+
+	// Add country code
+	for (unsigned int i = 0; i < 2; i++) {
+		dbobj->country_code[i] = network->country_code ? network->country_code[i] : '\0';
+	}
+
+	// Add ASN
+	uint32_t asn = 0;
+	if (network->as) {
+		asn = loc_as_get_number(network->as);
+	}
+	dbobj->asn = htobe32(asn);
+
+	return 0;
+}
+
 struct loc_network_tree {
 	struct loc_ctx* ctx;
 	int refcount;
@@ -239,13 +258,14 @@ static struct loc_network_tree_node* loc_network_tree_get_path(struct loc_networ
 }
 
 static int __loc_network_tree_walk(struct loc_ctx* ctx, struct loc_network_tree_node* node,
-		int(*filter_callback)(struct loc_network* network), int(*callback)(struct loc_network* network)) {
+		int(*filter_callback)(struct loc_network* network, void* data),
+		int(*callback)(struct loc_network* network, void* data), void* data) {
 	int r;
 
 	// Finding a network ends the walk here
 	if (node->network) {
 		if (filter_callback) {
-			int f = filter_callback(node->network);
+			int f = filter_callback(node->network, data);
 			if (f < 0)
 				return f;
 
@@ -254,26 +274,32 @@ static int __loc_network_tree_walk(struct loc_ctx* ctx, struct loc_network_tree_
 				return 0;
 		}
 
-		r = callback(node->network);
+		r = callback(node->network, data);
 		if (r)
 			return r;
 	}
 
 	// Walk down on the left side of the tree first
 	if (node->zero) {
-		r = __loc_network_tree_walk(ctx, node->zero, filter_callback, callback);
+		r = __loc_network_tree_walk(ctx, node->zero, filter_callback, callback, data);
 		if (r)
 			return r;
 	}
 
 	// Then walk on the other side
 	if (node->one) {
-		r = __loc_network_tree_walk(ctx, node->one, filter_callback, callback);
+		r = __loc_network_tree_walk(ctx, node->one, filter_callback, callback, data);
 		if (r)
 			return r;
 	}
 
 	return 0;
+}
+
+LOC_EXPORT int loc_network_tree_walk(struct loc_network_tree* tree,
+		int(*filter_callback)(struct loc_network* network, void* data),
+		int(*callback)(struct loc_network* network, void* data), void* data) {
+	return __loc_network_tree_walk(tree->ctx, tree->root, filter_callback, callback, data);
 }
 
 static void loc_network_tree_free_subtree(struct loc_network_tree_node* node) {
@@ -306,7 +332,7 @@ LOC_EXPORT struct loc_network_tree* loc_network_tree_unref(struct loc_network_tr
 	return NULL;
 }
 
-int __loc_network_tree_dump(struct loc_network* network) {
+int __loc_network_tree_dump(struct loc_network* network, void* data) {
 	DEBUG(network->ctx, "Dumping network at %p\n", network);
 
 	char* s = loc_network_str(network);
@@ -322,7 +348,7 @@ int __loc_network_tree_dump(struct loc_network* network) {
 LOC_EXPORT int loc_network_tree_dump(struct loc_network_tree* tree) {
 	DEBUG(tree->ctx, "Dumping network tree at %p\n", tree);
 
-	return __loc_network_tree_walk(tree->ctx, tree->root, NULL, __loc_network_tree_dump);
+	return loc_network_tree_walk(tree, NULL, __loc_network_tree_dump, NULL);
 }
 
 LOC_EXPORT int loc_network_tree_add_network(struct loc_network_tree* tree, struct loc_network* network) {
@@ -344,4 +370,23 @@ LOC_EXPORT int loc_network_tree_add_network(struct loc_network_tree* tree, struc
 	node->network = loc_network_ref(network);
 
 	return 0;
+}
+
+static int __loc_network_tree_count(struct loc_network* network, void* data) {
+	size_t* counter = (size_t*)data;
+
+	// Increase the counter for each network
+	counter++;
+
+	return 0;
+}
+
+LOC_EXPORT size_t loc_network_tree_count_networks(struct loc_network_tree* tree) {
+	size_t counter = 0;
+
+	int r = loc_network_tree_walk(tree, NULL, __loc_network_tree_count, &counter);
+	if (r)
+		return r;
+
+	return counter;
 }

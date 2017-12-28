@@ -221,6 +221,38 @@ static int loc_database_write_as_section(struct loc_writer* writer,
 	return 0;
 }
 
+static int loc_database_write_network_section(struct loc_network* network, void* data) {
+	FILE* f = (FILE*)data;
+
+	struct loc_database_network_v0 n;
+
+	int r = loc_network_to_database_v0(network, &n);
+	if (r)
+		return r;
+
+	fwrite(&n, 1, sizeof(n), f);
+
+	return 0;
+}
+
+static int loc_database_write_networks_section(struct loc_writer* writer,
+		struct loc_database_header_v0* header, off_t* offset, FILE* f) {
+	DEBUG(writer->ctx, "Networks section starts at %jd bytes\n", *offset);
+	header->networks_offset = htobe32(*offset);
+
+	size_t networks_length = sizeof(struct loc_database_network_v0)
+		* loc_network_tree_count_networks(writer->networks);
+	offset += networks_length;
+
+	int r = loc_network_tree_walk(writer->networks, NULL, loc_database_write_network_section, f);
+	if (r)
+		return r;
+
+	header->networks_length = htobe32(networks_length);
+
+	return 0;
+}
+
 LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f) {
 	struct loc_database_magic magic;
 	make_magic(writer, &magic);
@@ -256,6 +288,13 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f) {
 
 	// Write all ASes
 	r = loc_database_write_as_section(writer, &header, &offset, f);
+	if (r)
+		return r;
+
+	align_page_boundary(&offset, f);
+
+	// Write all networks
+	r = loc_database_write_networks_section(writer, &header, &offset, f);
 	if (r)
 		return r;
 

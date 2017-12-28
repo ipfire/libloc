@@ -45,17 +45,21 @@ struct loc_database_header_v0 {
 	uint32_t as_offset;
 	uint32_t as_length;
 
+	// Tells us where the networks start
+	uint32_t networks_offset;
+	uint32_t networks_length;
+
 	// Tells us where the pool starts
 	uint32_t pool_offset;
 	uint32_t pool_length;
 };
 
-struct loc_database_network_v0 {
+struct loc_database_network_node_v0 {
 	uint32_t zero;
 	uint32_t one;
 };
 
-struct loc_database_network_node_v0 {
+struct loc_database_network_v0 {
 	// The start address will be encoded in the tree
 	uint8_t prefix;
 
