@@ -9,7 +9,6 @@ AM_CPPFLAGS = \
 	-I${top_srcdir}/src
 
 AM_CFLAGS = ${my_CFLAGS} \
-	-fvisibility=hidden \
 	-ffunction-sections \
 	-fdata-sections
 
@@ -30,6 +29,7 @@ SED_PROCESS = \
 	-e 's,@includedir\@,$(includedir),g' \
 	< $< > $@ || rm $@
 
+pythondir    = $(pyexecdir)
 pkgconfigdir = $(libdir)/pkgconfig
 
 %.pc: %.pc.in Makefile
@@ -57,6 +57,10 @@ src_libloc_la_SOURCES =\
 
 EXTRA_DIST += src/libloc.sym
 
+src_libloc_la_CFLAGS = \
+	$(AM_CFLAGS) \
+	-fvisibility=hidden
+
 src_libloc_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	-version-info $(LIBLOC_CURRENT):$(LIBLOC_REVISION):$(LIBLOC_AGE) \
@@ -73,6 +77,26 @@ EXTRA_DIST += \
 
 CLEANFILES += \
 	src/libloc.pc
+
+pkgpyexec_LTLIBRARIES = \
+	src/python/location.la
+
+src_python_location_la_SOURCES = \
+	src/python/locationmodule.c
+
+src_python_location_la_CFLAGS = \
+	$(AM_CFLAGS) \
+	$(PYTHON_CFLAGS)
+
+src_python_location_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	-shared \
+	-module \
+	-avoid-version
+
+src_python_location_la_LIBADD = \
+	src/libloc.la \
+	$(PYTHON_LIBS)
 
 TESTS = \
 	src/test-libloc \

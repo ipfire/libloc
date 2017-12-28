@@ -68,6 +68,10 @@ my_CFLAGS="\
 "
 AC_SUBST([my_CFLAGS])
 
+# Python
+AM_PATH_PYTHON([3.4])
+PKG_CHECK_MODULES([PYTHON], [python-${PYTHON_VERSION}])
+
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_FILES([
         Makefile
