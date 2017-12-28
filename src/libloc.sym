@@ -19,6 +19,19 @@ global:
 	loc_database_ref;
 	loc_database_unref;
 
+	# Network
+	loc_network_get_country_code;
+	loc_network_new;
+	loc_network_new_from_string;
+	loc_network_set_country_code;
+	loc_network_unref;
+
+	# Network Tree
+	loc_network_tree_add_network;
+	loc_network_tree_dump;
+	loc_network_tree_new;
+	loc_network_tree_unref;
+
 	# String Pool
 	loc_stringpool_add;
 	loc_stringpool_dump;
@@ -30,6 +43,7 @@ global:
 
 	# Writer
 	loc_writer_add_as;
+	loc_writer_add_network;
 	loc_writer_get_description;
 	loc_writer_get_vendor;
 	loc_writer_new;

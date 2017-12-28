@@ -8,4 +8,5 @@ libloc.pc
 test-as
 test-libloc
 test-database
+test-network
 test-stringpool

@@ -50,6 +50,22 @@ struct loc_database_header_v0 {
 	uint32_t pool_length;
 };
 
+struct loc_database_network_v0 {
+	uint32_t zero;
+	uint32_t one;
+};
+
+struct loc_database_network_node_v0 {
+	// The start address will be encoded in the tree
+	uint8_t prefix;
+
+	// The country this network is located in
+	char country_code[2];
+
+	// ASN
+	uint32_t asn;
+};
+
 struct loc_database_as_v0 {
 	// The AS number
 	uint32_t number;

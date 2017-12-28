@@ -20,6 +20,7 @@
 #include <stdio.h>
 
 #include <loc/libloc.h>
+#include <loc/network.h>
 
 #include "as.h"
 
@@ -36,6 +37,7 @@ const char* loc_writer_get_description(struct loc_writer* writer);
 int loc_writer_set_description(struct loc_writer* writer, const char* description);
 
 int loc_writer_add_as(struct loc_writer* writer, struct loc_as** as, uint32_t number);
+int loc_writer_add_network(struct loc_writer* writer, struct loc_network** network, const char* string);
 
 int loc_writer_write(struct loc_writer* writer, FILE* f);
 

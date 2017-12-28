@@ -22,6 +22,7 @@
 #include <time.h>
 
 #include <loc/format.h>
+#include <loc/network.h>
 #include <loc/writer.h>
 
 #include "libloc-private.h"
@@ -37,6 +38,8 @@ struct loc_writer {
 
 	struct loc_as** as;
 	size_t as_count;
+
+	struct loc_network_tree* networks;
 };
 
 LOC_EXPORT int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer) {
@@ -48,6 +51,13 @@ LOC_EXPORT int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer) {
 	w->refcount = 1;
 
 	int r = loc_stringpool_new(ctx, &w->pool);
+	if (r) {
+		loc_writer_unref(w);
+		return r;
+	}
+
+	// Initialize the network tree
+	r = loc_network_tree_new(ctx, &w->networks);
 	if (r) {
 		loc_writer_unref(w);
 		return r;
@@ -70,6 +80,10 @@ static void loc_writer_free(struct loc_writer* writer) {
 	for (unsigned int i = 0; i < writer->as_count; i++) {
 		loc_as_unref(writer->as[i]);
 	}
+
+	// Release network tree
+	if (writer->networks)
+		loc_network_tree_unref(writer->networks);
 
 	// Unref the string pool
 	loc_stringpool_unref(writer->pool);
@@ -139,6 +153,18 @@ LOC_EXPORT int loc_writer_add_as(struct loc_writer* writer, struct loc_as** as, 
 	qsort(writer->as, writer->as_count, sizeof(*writer->as), __loc_as_cmp);
 
 	return 0;
+}
+
+LOC_EXPORT int loc_writer_add_network(struct loc_writer* writer, struct loc_network** network, const char* string) {
+	int r;
+
+	// Create a new network object
+	r = loc_network_new_from_string(writer->ctx, network, string);
+	if (r)
+		return r;
+
+	// Add it to the local tree
+	return loc_network_tree_add_network(writer->networks, *network);
 }
 
 static void make_magic(struct loc_writer* writer, struct loc_database_magic* magic) {

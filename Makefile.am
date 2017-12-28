@@ -50,6 +50,7 @@ src_libloc_la_SOURCES =\
 	src/as.h \
 	src/database.c \
 	src/database.h \
+	src/network.c \
 	src/stringpool.c \
 	src/stringpool.h \
 	src/writer.c
@@ -77,13 +78,15 @@ TESTS = \
 	src/test-libloc \
 	src/test-stringpool \
 	src/test-database \
-	src/test-as
+	src/test-as \
+	src/test-network
 
 check_PROGRAMS = \
 	src/test-libloc \
 	src/test-stringpool \
 	src/test-database \
-	src/test-as
+	src/test-as \
+	src/test-network
 
 src_test_libloc_SOURCES = \
 	src/test-libloc.c
@@ -95,6 +98,12 @@ src_test_as_SOURCES = \
 	src/test-as.c
 
 src_test_as_LDADD = \
+	src/libloc.la
+
+src_test_network_SOURCES = \
+	src/test-network.c
+
+src_test_network_LDADD = \
 	src/libloc.la
 
 src_test_stringpool_SOURCES = \
