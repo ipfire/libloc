@@ -63,6 +63,24 @@ static int Writer_set_vendor(WriterObject* self, PyObject* value) {
 	return 0;
 }
 
+static PyObject* Writer_get_description(WriterObject* self) {
+	const char* description = loc_writer_get_description(self->writer);
+
+	return PyUnicode_FromString(description);
+}
+
+static int Writer_set_description(WriterObject* self, PyObject* value) {
+	const char* description = PyUnicode_AsUTF8(value);
+
+	int r = loc_writer_set_description(self->writer, description);
+	if (r) {
+		PyErr_Format(PyExc_ValueError, "Could not set description: %s", description);
+		return r;
+	}
+
+	return 0;
+}
+
 static PyObject* Writer_add_as(WriterObject* self, PyObject* args) {
 	struct loc_as* as;
 	uint32_t number = 0;
@@ -122,6 +140,13 @@ static struct PyMethodDef Writer_methods[] = {
 };
 
 static struct PyGetSetDef Writer_getsetters[] = {
+	{
+		"description",
+		(getter)Writer_get_description,
+		(setter)Writer_set_description,
+		NULL,
+		NULL,
+	},
 	{
 		"vendor",
 		(getter)Writer_get_vendor,
