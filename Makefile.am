@@ -90,6 +90,8 @@ src_python_location_la_SOURCES = \
 	src/python/as.h \
 	src/python/database.c \
 	src/python/database.h \
+	src/python/network.c \
+	src/python/network.h \
 	src/python/writer.c \
 	src/python/writer.h
 
