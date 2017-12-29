@@ -80,11 +80,24 @@ static PyObject* Database_get_vendor(DatabaseObject* self) {
 	return PyUnicode_FromString(vendor);
 }
 
+static PyObject* Database_get_created_at(DatabaseObject* self) {
+	time_t created_at = loc_database_created_at(self->db);
+
+	return PyLong_FromLong(created_at);
+}
+
 static struct PyMethodDef Database_methods[] = {
 	{ NULL },
 };
 
 static struct PyGetSetDef Database_getsetters[] = {
+	{
+		"created_at",
+		(getter)Database_get_created_at,
+		NULL,
+		NULL,
+		NULL,
+	},
 	{
 		"description",
 		(getter)Database_get_description,
@@ -97,7 +110,7 @@ static struct PyGetSetDef Database_getsetters[] = {
 		(getter)Database_get_vendor,
 		NULL,
 		NULL,
-		NULL
+		NULL,
 	},
 	{ NULL },
 };
