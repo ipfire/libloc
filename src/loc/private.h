@@ -17,6 +17,8 @@
 #ifndef LIBLOC_PRIVATE_H
 #define LIBLOC_PRIVATE_H
 
+#ifdef LIBLOC_PRIVATE
+
 #include <stdbool.h>
 #include <syslog.h>
 
@@ -54,4 +56,5 @@ void loc_log(struct loc_ctx *ctx,
 	int priority, const char *file, int line, const char *fn,
 	const char *format, ...) __attribute__((format(printf, 6, 7)));
 
+#endif
 #endif

@@ -60,6 +60,7 @@ EXTRA_DIST += src/libloc.sym
 
 src_libloc_la_CFLAGS = \
 	$(AM_CFLAGS) \
+	-DLIBLOC_PRIVATE \
 	-fvisibility=hidden
 
 src_libloc_la_LDFLAGS = \
