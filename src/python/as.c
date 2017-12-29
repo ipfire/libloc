@@ -80,6 +80,29 @@ static PyObject* AS_get_name(ASObject* self) {
 	return PyUnicode_FromString(name);
 }
 
+static PyObject* AS_richcompare(ASObject* self, ASObject* other, int op) {
+	int r = loc_as_cmp(self->as, other->as);
+
+	switch (op) {
+		case Py_EQ:
+			if (r == 0)
+				Py_RETURN_TRUE;
+
+			Py_RETURN_FALSE;
+
+		case Py_LT:
+			if (r < 0)
+				Py_RETURN_TRUE;
+
+			Py_RETURN_FALSE;
+
+		default:
+			break;
+	}
+
+	Py_RETURN_NOTIMPLEMENTED;
+}
+
 static struct PyGetSetDef AS_getsetters[] = {
 	{
 		"name",
@@ -109,4 +132,5 @@ PyTypeObject ASType = {
 	tp_doc:                 "AS object",
 	tp_getset:              AS_getsetters,
 	tp_repr:                (reprfunc)AS_repr,
+	tp_richcompare:         (richcmpfunc)AS_richcompare,
 };

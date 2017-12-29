@@ -1,6 +1,7 @@
 LIBLOC_PRIVATE {
 global:
 	# AS
+	loc_as_cmp;
 	loc_as_get_name;
 	loc_as_get_number;
 	loc_as_new;
