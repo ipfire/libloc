@@ -81,7 +81,10 @@ LOC_EXPORT uint32_t loc_as_get_number(struct loc_as* as) {
 }
 
 LOC_EXPORT const char* loc_as_get_name(struct loc_as* as) {
-	return loc_stringpool_get(as->pool, as->name);
+	if (as->name)
+		return loc_stringpool_get(as->pool, as->name);
+
+	return NULL;
 }
 
 LOC_EXPORT int loc_as_set_name(struct loc_as* as, const char* name) {
