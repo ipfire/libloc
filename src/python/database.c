@@ -20,6 +20,7 @@
 #include <loc/database.h>
 
 #include "locationmodule.h"
+#include "as.h"
 #include "database.h"
 
 static PyObject* Database_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
@@ -81,7 +82,37 @@ static PyObject* Database_get_created_at(DatabaseObject* self) {
 	return PyLong_FromLong(created_at);
 }
 
+static PyObject* Database_get_as(DatabaseObject* self, PyObject* args) {
+	struct loc_as* as = NULL;
+	uint32_t number = 0;
+
+	if (!PyArg_ParseTuple(args, "i", &number))
+		return NULL;
+
+	// Try to retrieve the AS
+	int r = loc_database_get_as(self->db, &as, number);
+	if (r)
+		return NULL;
+
+	// Create an AS object
+	if (as) {
+		PyObject* obj = new_as(&ASType, as);
+		loc_as_unref(as);
+
+		return obj;
+	}
+
+	// Nothing found
+	Py_RETURN_NONE;
+}
+
 static struct PyMethodDef Database_methods[] = {
+	{
+		"get_as",
+		(PyCFunction)Database_get_as,
+		METH_VARARGS,
+		NULL,
+	},
 	{ NULL },
 };
 

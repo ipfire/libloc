@@ -32,4 +32,6 @@ typedef struct {
 
 extern PyTypeObject ASType;
 
+PyObject* new_as(PyTypeObject* type, struct loc_as* as);
+
 #endif /* PYTHON_LOCATION_AS_H */

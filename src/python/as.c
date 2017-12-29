@@ -23,6 +23,15 @@
 #include "locationmodule.h"
 #include "as.h"
 
+PyObject* new_as(PyTypeObject* type, struct loc_as* as) {
+	ASObject* self = (ASObject*)type->tp_alloc(type, 0);
+	if (self) {
+		self->as = loc_as_ref(as);
+	}
+
+	return (PyObject*)self;
+}
+
 static PyObject* AS_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 	// Create stringpool
 	struct loc_stringpool* pool;
