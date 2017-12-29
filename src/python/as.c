@@ -80,11 +80,8 @@ static PyObject* AS_get_name(ASObject* self) {
 	return PyUnicode_FromString(name);
 }
 
-static int AS_set_name(ASObject* self, PyObject* args) {
-	const char* name = NULL;
-
-	if (!PyArg_ParseTuple(args, "s", &name))
-		return -1;
+static int AS_set_name(ASObject* self, PyObject* value) {
+	const char* name = PyUnicode_AsUTF8(value);
 
 	int r = loc_as_set_name(self->as, name);
 	if (r) {

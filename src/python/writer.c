@@ -51,11 +51,8 @@ static PyObject* Writer_get_vendor(WriterObject* self) {
 	return PyUnicode_FromString(vendor);
 }
 
-static int Writer_set_vendor(WriterObject* self, PyObject* args) {
-	const char* vendor = NULL;
-
-	if (!PyArg_ParseTuple(args, "s", &vendor))
-		return -1;
+static int Writer_set_vendor(WriterObject* self, PyObject* value) {
+	const char* vendor = PyUnicode_AsUTF8(value);
 
 	int r = loc_writer_set_vendor(self->writer, vendor);
 	if (r) {
