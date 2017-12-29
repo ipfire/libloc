@@ -68,7 +68,37 @@ static int Database_init(DatabaseObject* self, PyObject* args, PyObject* kwargs)
 	return 0;
 }
 
+static PyObject* Database_get_description(DatabaseObject* self) {
+	const char* description = loc_database_get_description(self->db);
+
+	return PyUnicode_FromString(description);
+}
+
+static PyObject* Database_get_vendor(DatabaseObject* self) {
+	const char* vendor = loc_database_get_vendor(self->db);
+
+	return PyUnicode_FromString(vendor);
+}
+
 static struct PyMethodDef Database_methods[] = {
+	{ NULL },
+};
+
+static struct PyGetSetDef Database_getsetters[] = {
+	{
+		"description",
+		(getter)Database_get_description,
+		NULL,
+		NULL,
+		NULL,
+	},
+	{
+		"vendor",
+		(getter)Database_get_vendor,
+		NULL,
+		NULL,
+		NULL
+	},
 	{ NULL },
 };
 
@@ -82,4 +112,5 @@ PyTypeObject DatabaseType = {
 	tp_init:                (initproc)Database_init,
 	tp_doc:                 "Database object",
 	tp_methods:             Database_methods,
+	tp_getset:              Database_getsetters,
 };
