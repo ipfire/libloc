@@ -21,12 +21,9 @@
 
 #include <loc/libloc.h>
 #include <loc/as.h>
-#include <loc/stringpool.h>
 
 typedef struct {
 	PyObject_HEAD
-	struct loc_ctx* ctx;
-	struct loc_stringpool* pool;
 	struct loc_as* as;
 } ASObject;
 

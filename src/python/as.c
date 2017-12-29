@@ -18,7 +18,6 @@
 
 #include <loc/libloc.h>
 #include <loc/as.h>
-#include <loc/stringpool.h>
 
 #include "locationmodule.h"
 #include "as.h"
@@ -33,17 +32,7 @@ PyObject* new_as(PyTypeObject* type, struct loc_as* as) {
 }
 
 static PyObject* AS_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
-	// Create stringpool
-	struct loc_stringpool* pool;
-	int r = loc_stringpool_new(loc_ctx, &pool);
-	if (r)
-		return NULL;
-
 	ASObject* self = (ASObject*)type->tp_alloc(type, 0);
-	if (self) {
-		self->ctx = loc_ref(loc_ctx);
-		self->pool = pool;
-	}
 
 	return (PyObject*)self;
 }
@@ -51,12 +40,6 @@ static PyObject* AS_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 static void AS_dealloc(ASObject* self) {
 	if (self->as)
 		loc_as_unref(self->as);
-
-	if (self->pool)
-		loc_stringpool_unref(self->pool);
-
-	if (self->ctx)
-		loc_unref(self->ctx);
 
 	Py_TYPE(self)->tp_free((PyObject* )self);
 }
@@ -68,7 +51,7 @@ static int AS_init(ASObject* self, PyObject* args, PyObject* kwargs) {
 		return -1;
 
 	// Create the AS object
-	int r = loc_as_new(self->ctx, self->pool, &self->as, number);
+	int r = loc_as_new(loc_ctx, NULL, &self->as, number);
 	if (r)
 		return -1;
 
