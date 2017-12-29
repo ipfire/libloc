@@ -82,7 +82,9 @@ pkgpyexec_LTLIBRARIES = \
 	src/python/location.la
 
 src_python_location_la_SOURCES = \
-	src/python/locationmodule.c
+	src/python/locationmodule.c \
+	src/python/database.c \
+	src/python/database.h
 
 src_python_location_la_CFLAGS = \
 	$(AM_CFLAGS) \

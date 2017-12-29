@@ -14,35 +14,17 @@
 	Lesser General Public License for more details.
 */
 
+#ifndef PYTHON_LOCATION_DATABASE_H
+#define PYTHON_LOCATION_DATABASE_H
+
 #include <Python.h>
 
-#include "database.h"
+typedef struct {
+	PyObject_HEAD
+	struct loc_ctx* ctx;
+	struct loc_database* db;
+} DatabaseObject;
 
-PyMODINIT_FUNC PyInit_location(void);
+extern PyTypeObject DatabaseType;
 
-static PyMethodDef location_module_methods[] = {
-	{ NULL },
-};
-
-static struct PyModuleDef location_module = {
-	.m_base = PyModuleDef_HEAD_INIT,
-	.m_name = "location",
-	.m_size = -1,
-	.m_doc = "Python module for libloc",
-	.m_methods = location_module_methods,
-};
-
-PyMODINIT_FUNC PyInit_location(void) {
-	PyObject* m = PyModule_Create(&location_module);
-	if (!m)
-		return NULL;
-
-	// Database
-	if (PyType_Ready(&DatabaseType) < 0)
-		return NULL;
-
-	Py_INCREF(&DatabaseType);
-	PyModule_AddObject(m, "Database", (PyObject *)&DatabaseType);
-
-	return m;
-}
+#endif /* PYTHON_LOCATION_DATABASE_H */
