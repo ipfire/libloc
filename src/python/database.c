@@ -19,18 +19,13 @@
 #include <loc/libloc.h>
 #include <loc/database.h>
 
+#include "locationmodule.h"
 #include "database.h"
 
 static PyObject* Database_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
-	// Create libloc context
-	struct loc_ctx* ctx;
-	int r = loc_new(&ctx);
-	if (r)
-		return NULL;
-
 	DatabaseObject* self = (DatabaseObject*)type->tp_alloc(type, 0);
 	if (self) {
-		self->ctx = ctx;
+		self->ctx = loc_ref(loc_ctx);
 	}
 
 	return (PyObject*)self;

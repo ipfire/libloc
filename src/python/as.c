@@ -20,26 +20,19 @@
 #include <loc/as.h>
 #include <loc/stringpool.h>
 
+#include "locationmodule.h"
 #include "as.h"
 
 static PyObject* AS_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
-	// Create libloc context
-	struct loc_ctx* ctx;
-	int r = loc_new(&ctx);
+	// Create stringpool
+	struct loc_stringpool* pool;
+	int r = loc_stringpool_new(loc_ctx, &pool);
 	if (r)
 		return NULL;
 
-	// Create stringpool
-	struct loc_stringpool* pool;
-	r = loc_stringpool_new(ctx, &pool);
-	if (r) {
-		loc_unref(ctx);
-		return NULL;
-	}
-
 	ASObject* self = (ASObject*)type->tp_alloc(type, 0);
 	if (self) {
-		self->ctx = ctx;
+		self->ctx = loc_ref(loc_ctx);
 		self->pool = pool;
 	}
 
