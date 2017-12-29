@@ -85,6 +85,7 @@ pkgpyexec_LTLIBRARIES = \
 
 src_python_location_la_SOURCES = \
 	src/python/locationmodule.c \
+	src/python/locationmodule.h \
 	src/python/as.c \
 	src/python/as.h \
 	src/python/database.c \

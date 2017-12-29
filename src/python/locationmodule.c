@@ -16,10 +16,17 @@
 
 #include <Python.h>
 
+#include "locationmodule.h"
 #include "as.h"
 #include "database.h"
 
 PyMODINIT_FUNC PyInit_location(void);
+
+static void location_free(void) {
+	// Release context
+	if (loc_ctx)
+		loc_unref(loc_ctx);
+}
 
 static PyMethodDef location_module_methods[] = {
 	{ NULL },
@@ -31,9 +38,15 @@ static struct PyModuleDef location_module = {
 	.m_size = -1,
 	.m_doc = "Python module for libloc",
 	.m_methods = location_module_methods,
+	.m_free = (freefunc)location_free,
 };
 
 PyMODINIT_FUNC PyInit_location(void) {
+	// Initialise loc context
+	int r = loc_new(&loc_ctx);
+	if (r)
+		return NULL;
+
 	PyObject* m = PyModule_Create(&location_module);
 	if (!m)
 		return NULL;
