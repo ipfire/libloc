@@ -20,6 +20,7 @@
 #include <loc/writer.h>
 
 #include "locationmodule.h"
+#include "as.h"
 #include "writer.h"
 
 static PyObject* Writer_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
@@ -65,6 +66,24 @@ static int Writer_set_vendor(WriterObject* self, PyObject* args) {
 	return 0;
 }
 
+static PyObject* Writer_add_as(WriterObject* self, PyObject* args) {
+	struct loc_as* as;
+	uint32_t number = 0;
+
+	if (!PyArg_ParseTuple(args, "i", &number))
+		return NULL;
+
+	// Create AS object
+	int r = loc_writer_add_as(self->writer, &as, number);
+	if (r)
+		return NULL;
+
+	PyObject* obj = new_as(&ASType, as);
+	loc_as_unref(as);
+
+	return obj;
+}
+
 static PyObject* Writer_write(WriterObject* self, PyObject* args) {
 	const char* path = NULL;
 
@@ -90,6 +109,12 @@ static PyObject* Writer_write(WriterObject* self, PyObject* args) {
 }
 
 static struct PyMethodDef Writer_methods[] = {
+	{
+		"add_as",
+		(PyCFunction)Writer_add_as,
+		METH_VARARGS,
+		NULL,
+	},
 	{
 		"write",
 		(PyCFunction)Writer_write,
