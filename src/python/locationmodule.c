@@ -19,6 +19,7 @@
 #include "locationmodule.h"
 #include "as.h"
 #include "database.h"
+#include "writer.h"
 
 PyMODINIT_FUNC PyInit_location(void);
 
@@ -64,6 +65,13 @@ PyMODINIT_FUNC PyInit_location(void) {
 
 	Py_INCREF(&DatabaseType);
 	PyModule_AddObject(m, "Database", (PyObject *)&DatabaseType);
+
+	// Writer
+	if (PyType_Ready(&WriterType) < 0)
+		return NULL;
+
+	Py_INCREF(&WriterType);
+	PyModule_AddObject(m, "Writer", (PyObject *)&WriterType);
 
 	return m;
 }
