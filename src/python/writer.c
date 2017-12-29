@@ -65,6 +65,40 @@ static int Writer_set_vendor(WriterObject* self, PyObject* args) {
 	return 0;
 }
 
+static PyObject* Writer_write(WriterObject* self, PyObject* args) {
+	const char* path = NULL;
+
+	if (!PyArg_ParseTuple(args, "s", &path))
+		return NULL;
+
+	FILE* f = fopen(path, "w");
+	if (!f) {
+		PyErr_Format(PyExc_IOError, strerror(errno));
+		return NULL;
+	}
+
+	int r = loc_writer_write(self->writer, f);
+	fclose(f);
+
+	// Raise any errors
+	if (r) {
+		PyErr_Format(PyExc_IOError, strerror(errno));
+		return NULL;
+	}
+
+	Py_RETURN_NONE;
+}
+
+static struct PyMethodDef Writer_methods[] = {
+	{
+		"write",
+		(PyCFunction)Writer_write,
+		METH_VARARGS,
+		NULL,
+	},
+	{ NULL },
+};
+
 static struct PyGetSetDef Writer_getsetters[] = {
 	{
 		"vendor",
@@ -85,5 +119,6 @@ PyTypeObject WriterType = {
 	tp_dealloc:             (destructor)Writer_dealloc,
 	tp_init:                (initproc)Writer_init,
 	tp_doc:                 "Writer object",
+	tp_methods:             Writer_methods,
 	tp_getset:              Writer_getsetters,
 };
