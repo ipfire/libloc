@@ -211,7 +211,7 @@ static int loc_database_write_as_section(struct loc_writer* writer,
 		loc_as_to_database_v0(writer->as[i], &as);
 
 		// Write to disk
-		offset += fwrite(&as, 1, sizeof(as), f);
+		*offset += fwrite(&as, 1, sizeof(as), f);
 		as_length += sizeof(as);
 	}
 
