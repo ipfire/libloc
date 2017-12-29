@@ -16,6 +16,7 @@
 
 #include <Python.h>
 
+#include "as.h"
 #include "database.h"
 
 PyMODINIT_FUNC PyInit_location(void);
@@ -36,6 +37,13 @@ PyMODINIT_FUNC PyInit_location(void) {
 	PyObject* m = PyModule_Create(&location_module);
 	if (!m)
 		return NULL;
+
+	// AS
+	if (PyType_Ready(&ASType) < 0)
+		return NULL;
+
+	Py_INCREF(&ASType);
+	PyModule_AddObject(m, "AS", (PyObject *)&ASType);
 
 	// Database
 	if (PyType_Ready(&DatabaseType) < 0)
