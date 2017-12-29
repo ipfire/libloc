@@ -82,7 +82,39 @@ static int Network_set_country_code(NetworkObject* self, PyObject* value) {
 	return 0;
 }
 
+static PyObject* Network_get_asn(NetworkObject* self) {
+	uint32_t asn = loc_network_get_asn(self->network);
+
+	if (asn)
+		return PyLong_FromLong(asn);
+
+	Py_RETURN_NONE;
+}
+
+static int Network_set_asn(NetworkObject* self, PyObject* value) {
+	long int asn = PyLong_AsLong(value);
+
+	// Check if the ASN is within the valid range
+	if (asn <= 0 || asn > UINT32_MAX) {
+		PyErr_Format(PyExc_ValueError, "Invalid ASN %ld", asn);
+		return -1;
+	}
+
+	int r = loc_network_set_asn(self->network, asn);
+	if (r)
+		return -1;
+
+	return 0;
+}
+
 static struct PyGetSetDef Network_getsetters[] = {
+	{
+		"asn",
+		(getter)Network_get_asn,
+		(setter)Network_set_asn,
+		NULL,
+		NULL,
+	},
 	{
 		"country_code",
 		(getter)Network_get_country_code,

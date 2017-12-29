@@ -34,6 +34,9 @@ char* loc_network_str(struct loc_network* network);
 const char* loc_network_get_country_code(struct loc_network* network);
 int loc_network_set_country_code(struct loc_network* network, const char* country_code);
 
+uint32_t loc_network_get_asn(struct loc_network* network);
+int loc_network_set_asn(struct loc_network* network, uint32_t asn);
+
 int loc_network_to_database_v0(struct loc_network* network, struct loc_database_network_v0* dbobj);
 
 struct loc_network_tree;

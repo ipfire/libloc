@@ -21,9 +21,11 @@ global:
 	loc_database_unref;
 
 	# Network
+	loc_network_get_asn;
 	loc_network_get_country_code;
 	loc_network_new;
 	loc_network_new_from_string;
+	loc_network_set_asn;
 	loc_network_set_country_code;
 	loc_network_str;
 	loc_network_unref;

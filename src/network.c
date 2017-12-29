@@ -18,11 +18,11 @@
 #include <assert.h>
 #include <endian.h>
 #include <errno.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 #include <loc/libloc.h>
-#include <loc/as.h>
 #include <loc/network.h>
 #include <loc/private.h>
 
@@ -34,8 +34,7 @@ struct loc_network {
 	unsigned int prefix;
 
 	char country_code[3];
-
-	struct loc_as* as;
+	uint32_t asn;
 };
 
 LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network,
@@ -116,9 +115,6 @@ LOC_EXPORT struct loc_network* loc_network_ref(struct loc_network* network) {
 static void loc_network_free(struct loc_network* network) {
 	DEBUG(network->ctx, "Releasing network at %p\n", network);
 
-	if (network->as)
-		loc_as_unref(network->as);
-
 	loc_unref(network->ctx);
 	free(network);
 }
@@ -168,6 +164,16 @@ LOC_EXPORT int loc_network_set_country_code(struct loc_network* network, const c
 	return 0;
 }
 
+LOC_EXPORT uint32_t loc_network_get_asn(struct loc_network* network) {
+	return network->asn;
+}
+
+LOC_EXPORT int loc_network_set_asn(struct loc_network* network, uint32_t asn) {
+	network->asn = asn;
+
+	return 0;
+}
+
 LOC_EXPORT int loc_network_to_database_v0(struct loc_network* network, struct loc_database_network_v0* dbobj) {
 	dbobj->prefix = htobe16(network->prefix);
 
@@ -177,11 +183,7 @@ LOC_EXPORT int loc_network_to_database_v0(struct loc_network* network, struct lo
 	}
 
 	// Add ASN
-	uint32_t asn = 0;
-	if (network->as) {
-		asn = loc_as_get_number(network->as);
-	}
-	dbobj->asn = htobe32(asn);
+	dbobj->asn = htobe32(network->asn);
 
 	return 0;
 }
