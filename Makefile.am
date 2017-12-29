@@ -36,23 +36,24 @@ pkgconfigdir = $(libdir)/pkgconfig
 	$(SED_PROCESS)
 
 pkginclude_HEADERS = \
-	src/loc/format.h \
 	src/loc/libloc.h \
+	src/loc/as.h \
+	src/loc/database.h \
+	src/loc/format.h \
+	src/loc/network.h \
+	src/loc/private.h \
+	src/loc/stringpool.h \
 	src/loc/writer.h
 
 lib_LTLIBRARIES = \
 	src/libloc.la
 
-src_libloc_la_SOURCES =\
-	src/libloc-private.h \
+src_libloc_la_SOURCES = \
 	src/libloc.c \
 	src/as.c \
-	src/as.h \
 	src/database.c \
-	src/database.h \
 	src/network.c \
 	src/stringpool.c \
-	src/stringpool.h \
 	src/writer.c
 
 EXTRA_DIST += src/libloc.sym

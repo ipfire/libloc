@@ -16,7 +16,9 @@
 
 #include <Python.h>
 
-#include "../database.h"
+#include <loc/libloc.h>
+#include <loc/database.h>
+
 #include "database.h"
 
 static PyObject* Database_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {

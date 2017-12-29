@@ -20,11 +20,10 @@
 #include <stdlib.h>
 
 #include <loc/libloc.h>
+#include <loc/as.h>
 #include <loc/format.h>
-
-#include "libloc-private.h"
-#include "as.h"
-#include "stringpool.h"
+#include <loc/private.h>
+#include <loc/stringpool.h>
 
 struct loc_as {
 	struct loc_ctx* ctx;

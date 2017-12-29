@@ -24,8 +24,8 @@
 
 #include <loc/libloc.h>
 #include <loc/format.h>
-#include "libloc-private.h"
-#include "stringpool.h"
+#include <loc/private.h>
+#include <loc/stringpool.h>
 
 enum loc_stringpool_mode {
 	STRINGPOOL_DEFAULT,

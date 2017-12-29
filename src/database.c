@@ -27,12 +27,11 @@
 #include <unistd.h>
 
 #include <loc/libloc.h>
+#include <loc/as.h>
+#include <loc/database.h>
 #include <loc/format.h>
-
-#include "libloc-private.h"
-#include "as.h"
-#include "database.h"
-#include "stringpool.h"
+#include <loc/private.h>
+#include <loc/stringpool.h>
 
 struct loc_database {
 	struct loc_ctx* ctx;

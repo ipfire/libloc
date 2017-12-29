@@ -22,10 +22,9 @@
 #include <string.h>
 
 #include <loc/libloc.h>
+#include <loc/as.h>
 #include <loc/network.h>
-
-#include "libloc-private.h"
-#include "as.h"
+#include <loc/private.h>
 
 struct loc_network {
 	struct loc_ctx* ctx;

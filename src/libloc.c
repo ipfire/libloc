@@ -24,8 +24,8 @@
 #include <ctype.h>
 
 #include <loc/libloc.h>
-#include "libloc-private.h"
-#include "database.h"
+#include <loc/database.h>
+#include <loc/private.h>
 
 struct loc_ctx {
 	int refcount;

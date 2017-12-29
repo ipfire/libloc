@@ -21,8 +21,7 @@
 #include <stdint.h>
 
 #include <loc/libloc.h>
-
-#include "as.h"
+#include <loc/as.h>
 
 struct loc_database;
 int loc_database_new(struct loc_ctx* ctx, struct loc_database** database, FILE* f);

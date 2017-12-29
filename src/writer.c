@@ -21,12 +21,12 @@
 #include <string.h>
 #include <time.h>
 
+#include <loc/libloc.h>
+#include <loc/as.h>
 #include <loc/format.h>
 #include <loc/network.h>
+#include <loc/private.h>
 #include <loc/writer.h>
-
-#include "libloc-private.h"
-#include "as.h"
 
 struct loc_writer {
 	struct loc_ctx* ctx;

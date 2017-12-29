@@ -20,9 +20,8 @@
 #include <stdio.h>
 
 #include <loc/libloc.h>
+#include <loc/as.h>
 #include <loc/network.h>
-
-#include "as.h"
 
 struct loc_writer;
 

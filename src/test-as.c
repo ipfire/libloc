@@ -19,8 +19,8 @@
 #include <string.h>
 
 #include <loc/libloc.h>
+#include <loc/database.h>
 #include <loc/writer.h>
-#include "database.h"
 
 #define TEST_AS_COUNT 5000
 

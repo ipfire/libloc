@@ -24,8 +24,8 @@
 #include <unistd.h>
 
 #include <loc/libloc.h>
+#include <loc/database.h>
 #include <loc/writer.h>
-#include "database.h"
 
 const char* VENDOR = "Test Vendor";
 const char* DESCRIPTION =
