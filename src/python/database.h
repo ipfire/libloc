@@ -19,9 +19,10 @@
 
 #include <Python.h>
 
+#include <loc/database.h>
+
 typedef struct {
 	PyObject_HEAD
-	struct loc_ctx* ctx;
 	struct loc_database* db;
 } DatabaseObject;
 

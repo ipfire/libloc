@@ -25,9 +25,6 @@
 
 static PyObject* Database_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 	DatabaseObject* self = (DatabaseObject*)type->tp_alloc(type, 0);
-	if (self) {
-		self->ctx = loc_ref(loc_ctx);
-	}
 
 	return (PyObject*)self;
 }
@@ -35,9 +32,6 @@ static PyObject* Database_new(PyTypeObject* type, PyObject* args, PyObject* kwds
 static void Database_dealloc(DatabaseObject* self) {
 	if (self->db)
 		loc_database_unref(self->db);
-
-	if (self->ctx)
-		loc_unref(self->ctx);
 
 	Py_TYPE(self)->tp_free((PyObject* )self);
 }
@@ -54,7 +48,7 @@ static int Database_init(DatabaseObject* self, PyObject* args, PyObject* kwargs)
 		return -1;
 
 	// Load the database
-	int r = loc_database_new(self->ctx, &self->db, f);
+	int r = loc_database_new(loc_ctx, &self->db, f);
 	fclose(f);
 
 	// Return on any errors
