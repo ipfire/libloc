@@ -80,6 +80,21 @@ static PyObject* AS_get_name(ASObject* self) {
 	return PyUnicode_FromString(name);
 }
 
+static int AS_set_name(ASObject* self, PyObject* args) {
+	const char* name = NULL;
+
+	if (!PyArg_ParseTuple(args, "s", &name))
+		return -1;
+
+	int r = loc_as_set_name(self->as, name);
+	if (r) {
+		PyErr_Format(PyExc_ValueError, "Could not set name: %s", name);
+		return r;
+	}
+
+	return 0;
+}
+
 static PyObject* AS_richcompare(ASObject* self, ASObject* other, int op) {
 	int r = loc_as_cmp(self->as, other->as);
 
@@ -107,7 +122,7 @@ static struct PyGetSetDef AS_getsetters[] = {
 	{
 		"name",
 		(getter)AS_get_name,
-		NULL,
+		(setter)AS_set_name,
 		NULL,
 		NULL,
 	},
