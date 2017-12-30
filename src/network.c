@@ -78,6 +78,44 @@ LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network
 	return 0;
 }
 
+static int loc_network_address_family(struct loc_network* network) {
+	if (IN6_IS_ADDR_V4MAPPED(&network->start_address))
+		return AF_INET;
+
+	return AF_INET6;
+}
+
+static int parse_address(struct loc_ctx* ctx, const char* string, struct in6_addr* address) {
+	DEBUG(ctx, "Paring IP address %s\n", string);
+
+	// Try parsing this as an IPv6 address
+	int r = inet_pton(AF_INET6, string, address);
+
+	// If inet_pton returns one it has been successful
+	if (r == 1) {
+		DEBUG(ctx, "%s is an IPv6 address\n", string);
+		return 0;
+	}
+
+	// Try parsing this as an IPv4 address
+	struct in_addr ipv4_address;
+	r = inet_pton(AF_INET, string, &ipv4_address);
+	if (r == 1) {
+		DEBUG(ctx, "%s is an IPv4 address\n", string);
+
+		// Convert to IPv6-mapped address
+		address->s6_addr32[0] = htonl(0x0000);
+		address->s6_addr32[1] = htonl(0x0000);
+		address->s6_addr32[2] = htonl(0xffff);
+		address->s6_addr32[3] = ipv4_address.s_addr;
+
+		return 0;
+	}
+
+	DEBUG(ctx, "%s is not an valid IP address\n", string);
+	return 1;
+}
+
 LOC_EXPORT int loc_network_new_from_string(struct loc_ctx* ctx, struct loc_network** network,
 		const char* address_string) {
 	struct in6_addr start_address;
@@ -94,12 +132,12 @@ LOC_EXPORT int loc_network_new_from_string(struct loc_ctx* ctx, struct loc_netwo
 	unsigned int prefix = strtol(prefix_string, NULL, 10);
 
 	// Parse the address
-	int r = inet_pton(AF_INET6, address_string, &start_address);
+	int r = parse_address(ctx, address_string, &start_address);
 
 	// Free temporary buffer
 	free(buffer);
 
-	if (r == 1) {
+	if (r == 0) {
 		r = loc_network_new(ctx, network, start_address, prefix);
 	}
 
@@ -127,18 +165,52 @@ LOC_EXPORT struct loc_network* loc_network_unref(struct loc_network* network) {
 	return NULL;
 }
 
-LOC_EXPORT char* loc_network_str(struct loc_network* network) {
-	const size_t l = INET6_ADDRSTRLEN + 3;
+static int format_ipv6_address(struct loc_network* network, char* string, size_t length) {
+	const char* ret = inet_ntop(AF_INET6, &network->start_address, string, length);
+	if (!ret)
+		return -1;
 
-	char* string = malloc(l);
+	return 0;
+}
+
+static int format_ipv4_address(struct loc_network* network, char* string, size_t length) {
+	struct in_addr ipv4_address;
+	ipv4_address.s_addr = network->start_address.s6_addr32[3];
+
+	const char* ret = inet_ntop(AF_INET, &ipv4_address, string, length);
+	if (!ret)
+		return -1;
+
+	return 0;
+}
+
+LOC_EXPORT char* loc_network_str(struct loc_network* network) {
+	int r;
+	const size_t length = INET6_ADDRSTRLEN + 4;
+
+	char* string = malloc(length);
 	if (!string)
 		return NULL;
 
-	const char* ret = inet_ntop(AF_INET6, &network->start_address, string, l);
-	if (!ret) {
-		ERROR(network->ctx, "Could not convert network to string: %s\n", strerror(errno));
+	int family = loc_network_address_family(network);
+	switch (family) {
+		case AF_INET6:
+			r = format_ipv6_address(network, string, length);
+			break;
 
+		case AF_INET:
+			r = format_ipv4_address(network, string, length);
+			break;
+
+		default:
+			r = -1;
+			break;
+	}
+
+	if (r) {
+		ERROR(network->ctx, "Could not convert network to string: %s\n", strerror(errno));
 		free(string);
+
 		return NULL;
 	}
 
