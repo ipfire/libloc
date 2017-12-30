@@ -51,7 +51,7 @@ static int AS_init(ASObject* self, PyObject* args, PyObject* kwargs) {
 		return -1;
 
 	// Create the AS object
-	int r = loc_as_new(loc_ctx, NULL, &self->as, number);
+	int r = loc_as_new(loc_ctx, &self->as, number);
 	if (r)
 		return -1;
 

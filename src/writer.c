@@ -134,7 +134,7 @@ static int __loc_as_cmp(const void* as1, const void* as2) {
 }
 
 LOC_EXPORT int loc_writer_add_as(struct loc_writer* writer, struct loc_as** as, uint32_t number) {
-	int r = loc_as_new(writer->ctx, writer->pool, as, number);
+	int r = loc_as_new(writer->ctx, as, number);
 	if (r)
 		return r;
 
@@ -208,7 +208,7 @@ static int loc_database_write_as_section(struct loc_writer* writer,
 	struct loc_database_as_v0 as;
 	for (unsigned int i = 0; i < writer->as_count; i++) {
 		// Convert AS into database format
-		loc_as_to_database_v0(writer->as[i], &as);
+		loc_as_to_database_v0(writer->as[i], writer->pool, &as);
 
 		// Write to disk
 		*offset += fwrite(&as, 1, sizeof(as), f);

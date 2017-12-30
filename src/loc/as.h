@@ -24,7 +24,7 @@
 #include <loc/stringpool.h>
 
 struct loc_as;
-int loc_as_new(struct loc_ctx* ctx, struct loc_stringpool* pool, struct loc_as** as, uint32_t number);
+int loc_as_new(struct loc_ctx* ctx, struct loc_as** as, uint32_t number);
 struct loc_as* loc_as_ref(struct loc_as* as);
 struct loc_as* loc_as_unref(struct loc_as* as);
 
@@ -37,6 +37,7 @@ int loc_as_cmp(struct loc_as* as1, struct loc_as* as2);
 
 int loc_as_new_from_database_v0(struct loc_ctx* ctx, struct loc_stringpool* pool,
 		struct loc_as** as, const struct loc_database_as_v0* dbobj);
-int loc_as_to_database_v0(struct loc_as* as, struct loc_database_as_v0* dbobj);
+int loc_as_to_database_v0(struct loc_as* as, struct loc_stringpool* pool,
+		struct loc_database_as_v0* dbobj);
 
 #endif
