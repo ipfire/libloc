@@ -37,6 +37,18 @@ struct loc_network {
 	uint32_t asn;
 };
 
+static int valid_prefix(struct in6_addr* address, unsigned int prefix) {
+	// The prefix cannot be larger than 128 bits
+	if (prefix > 128)
+		return 1;
+
+	// And the prefix cannot be zero
+	if (prefix == 0)
+		return 1;
+
+	return 0;
+}
+
 LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network,
 		struct in6_addr start_address, unsigned int prefix) {
 	// Address cannot be unspecified
@@ -60,6 +72,12 @@ LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network
 	// Address cannot be site-local
 	if (IN6_IS_ADDR_SITELOCAL(&start_address)) {
 		DEBUG(ctx, "Start address cannot be site-local\n");
+		return -EINVAL;
+	}
+
+	// Validate the prefix
+	if (valid_prefix(&start_address, prefix) != 0) {
+		DEBUG(ctx, "Invalid prefix: %u\n", prefix);
 		return -EINVAL;
 	}
 
