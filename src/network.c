@@ -119,7 +119,9 @@ static int parse_address(struct loc_ctx* ctx, const char* string, struct in6_add
 LOC_EXPORT int loc_network_new_from_string(struct loc_ctx* ctx, struct loc_network** network,
 		const char* address_string) {
 	struct in6_addr start_address;
+	unsigned int prefix = 0;
 	char* prefix_string;
+	int r = 1;
 
 	// Make a copy of the string to work on it
 	char* buffer = strdup(address_string);
@@ -128,11 +130,16 @@ LOC_EXPORT int loc_network_new_from_string(struct loc_ctx* ctx, struct loc_netwo
 	// Split address and prefix
 	address_string = strsep(&prefix_string, "/");
 
-	// Convert prefix to integer
-	unsigned int prefix = strtol(prefix_string, NULL, 10);
+	// Did we find a prefix?
+	if (prefix_string) {
+		// Convert prefix to integer
+		prefix = strtol(prefix_string, NULL, 10);
 
-	// Parse the address
-	int r = parse_address(ctx, address_string, &start_address);
+		if (prefix) {
+			// Parse the address
+			r = parse_address(ctx, address_string, &start_address);
+		}
+	}
 
 	// Free temporary buffer
 	free(buffer);
