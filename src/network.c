@@ -46,6 +46,10 @@ static int valid_prefix(struct in6_addr* address, unsigned int prefix) {
 	if (prefix == 0)
 		return 1;
 
+	// For IPv4-mapped addresses the prefix has to be 96 or lager
+	if (IN6_IS_ADDR_V4MAPPED(address) && prefix <= 96)
+		return 1;
+
 	return 0;
 }
 
@@ -156,6 +160,10 @@ LOC_EXPORT int loc_network_new_from_string(struct loc_ctx* ctx, struct loc_netwo
 		if (prefix) {
 			// Parse the address
 			r = parse_address(ctx, address_string, &start_address);
+
+			// Map the prefix to IPv6 if needed
+			if (IN6_IS_ADDR_V4MAPPED(&start_address))
+				prefix += 96;
 		}
 	}
 
@@ -217,6 +225,8 @@ LOC_EXPORT char* loc_network_str(struct loc_network* network) {
 	if (!string)
 		return NULL;
 
+	unsigned int prefix = network->prefix;
+
 	int family = loc_network_address_family(network);
 	switch (family) {
 		case AF_INET6:
@@ -225,6 +235,7 @@ LOC_EXPORT char* loc_network_str(struct loc_network* network) {
 
 		case AF_INET:
 			r = format_ipv4_address(network, string, length);
+			prefix -= 96;
 			break;
 
 		default:
@@ -240,7 +251,7 @@ LOC_EXPORT char* loc_network_str(struct loc_network* network) {
 	}
 
 	// Append prefix
-	sprintf(string + strlen(string), "/%u", network->prefix);
+	sprintf(string + strlen(string), "/%u", prefix);
 
 	return string;
 }
