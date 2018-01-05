@@ -311,7 +311,7 @@ LOC_EXPORT int loc_network_set_asn(struct loc_network* network, uint32_t asn) {
 }
 
 LOC_EXPORT int loc_network_to_database_v0(struct loc_network* network, struct loc_database_network_v0* dbobj) {
-	dbobj->prefix = htobe16(network->prefix);
+	dbobj->prefix = network->prefix;
 
 	// Add country code
 	for (unsigned int i = 0; i < 2; i++) {
