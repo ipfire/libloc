@@ -527,3 +527,19 @@ LOC_EXPORT size_t loc_network_tree_count_networks(struct loc_network_tree* tree)
 
 	return counter;
 }
+
+static size_t __loc_network_tree_count_nodes(struct loc_network_tree_node* node) {
+	size_t counter = 1;
+
+	if (node->zero)
+		counter += __loc_network_tree_count_nodes(node->zero);
+
+	if (node->one)
+		counter += __loc_network_tree_count_nodes(node->one);
+
+	return counter;
+}
+
+LOC_EXPORT size_t loc_network_tree_count_nodes(struct loc_network_tree* tree) {
+	return __loc_network_tree_count_nodes(tree->root);
+}

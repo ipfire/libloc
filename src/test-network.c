@@ -67,6 +67,9 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
+	size_t nodes = loc_network_tree_count_nodes(tree);
+	printf("The tree has %zu nodes\n", nodes);
+
 	// Create a database
 	struct loc_writer* writer;
 	err = loc_writer_new(ctx, &writer);

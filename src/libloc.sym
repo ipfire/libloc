@@ -32,6 +32,8 @@ global:
 
 	# Network Tree
 	loc_network_tree_add_network;
+	loc_network_tree_count_networks;
+	loc_network_tree_count_nodes;
 	loc_network_tree_dump;
 	loc_network_tree_new;
 	loc_network_tree_unref;
