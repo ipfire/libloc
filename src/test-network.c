@@ -116,6 +116,9 @@ int main(int argc, char** argv) {
 	// Set country code
 	loc_network_set_country_code(network4, "XY");
 
+	// Set ASN
+	loc_network_set_asn(network4, 1024);
+
 	FILE* f = fopen("test.db", "w");
 	if (!f) {
 		fprintf(stderr, "Could not open file for writing: %s\n", strerror(errno));
