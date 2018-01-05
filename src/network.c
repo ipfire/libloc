@@ -369,9 +369,9 @@ static struct loc_network_tree_node* loc_network_tree_get_node(struct loc_networ
 	struct loc_network_tree_node** n;
 
 	if (path)
-		n = &node->one;
-	else
 		n = &node->zero;
+	else
+		n = &node->one;
 
 	// If the desired node doesn't exist, yet, we will create it
 	if (*n == NULL) {
