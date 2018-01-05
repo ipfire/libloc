@@ -469,7 +469,7 @@ LOC_EXPORT struct loc_network_tree* loc_network_tree_unref(struct loc_network_tr
 	return NULL;
 }
 
-int __loc_network_tree_dump(struct loc_network* network, void* data) {
+static int __loc_network_tree_dump(struct loc_network* network, void* data) {
 	DEBUG(network->ctx, "Dumping network at %p\n", network);
 
 	char* s = loc_network_str(network);
