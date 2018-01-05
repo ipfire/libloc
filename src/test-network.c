@@ -97,7 +97,7 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 
 	struct loc_network* network3;
-	err = loc_writer_add_network(writer, &network3, "2001:db8:1::/48");
+	err = loc_writer_add_network(writer, &network3, "2001:db8::/64");
 	if (err) {
 		fprintf(stderr, "Could not add network\n");
 		exit(EXIT_FAILURE);
@@ -105,6 +105,16 @@ int main(int argc, char** argv) {
 
 	// Set country code
 	loc_network_set_country_code(network3, "XX");
+
+	struct loc_network* network4;
+	err = loc_writer_add_network(writer, &network4, "2001:db8:ffff::/64");
+	if (err) {
+		fprintf(stderr, "Could not add network\n");
+		exit(EXIT_FAILURE);
+	}
+
+	// Set country code
+	loc_network_set_country_code(network4, "XY");
 
 	FILE* f = fopen("test.db", "w");
 	if (!f) {
@@ -124,6 +134,7 @@ int main(int argc, char** argv) {
 	loc_network_unref(network1);
 	loc_network_unref(network2);
 	loc_network_unref(network3);
+	loc_network_unref(network4);
 	loc_network_tree_unref(tree);
 	loc_unref(ctx);
 
