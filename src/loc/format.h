@@ -49,7 +49,7 @@ struct loc_database_header_v0 {
 	uint32_t network_data_offset;
 	uint32_t network_data_length;
 
-	// Tells us where the network tree starts
+	// Tells us where the network nodes start
 	uint32_t network_tree_offset;
 	uint32_t network_tree_length;
 
