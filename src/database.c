@@ -84,7 +84,10 @@ static int loc_database_read_magic(struct loc_database* db, FILE* f) {
 }
 
 static int loc_database_read_as_section_v0(struct loc_database* db,
-		FILE* f, off_t as_offset, size_t as_length) {
+		FILE* f, const struct loc_database_header_v0* header) {
+	off_t as_offset  = be32toh(header->as_offset);
+	size_t as_length = be32toh(header->as_length);
+
 	DEBUG(db->ctx, "Reading AS section from %jd (%zu bytes)\n", as_offset, as_length);
 
 	if (as_length > 0) {
@@ -103,7 +106,10 @@ static int loc_database_read_as_section_v0(struct loc_database* db,
 }
 
 static int loc_database_read_network_nodes_section_v0(struct loc_database* db,
-		FILE* f, off_t network_nodes_offset, size_t network_nodes_length) {
+		FILE* f, const struct loc_database_header_v0* header) {
+	off_t network_nodes_offset  = be32toh(header->network_tree_offset);
+	size_t network_nodes_length = be32toh(header->network_tree_length);
+
 	DEBUG(db->ctx, "Reading network nodes section from %jd (%zu bytes)\n",
 		network_nodes_offset, network_nodes_length);
 
@@ -148,19 +154,12 @@ static int loc_database_read_header_v0(struct loc_database* db, FILE* f) {
 		return r;
 
 	// AS section
-	off_t as_offset  = be32toh(header.as_offset);
-	size_t as_length = be32toh(header.as_length);
-
-	r = loc_database_read_as_section_v0(db, f, as_offset, as_length);
+	r = loc_database_read_as_section_v0(db, f, &header);
 	if (r)
 		return r;
 
 	// Network Nodes
-	off_t network_nodes_offset  = be32toh(header.network_tree_offset);
-	size_t network_nodes_length = be32toh(header.network_tree_length);
-
-	r = loc_database_read_network_nodes_section_v0(db, f,
-		network_nodes_offset, network_nodes_length);
+	r = loc_database_read_network_nodes_section_v0(db, f, &header);
 	if (r)
 		return r;
 
