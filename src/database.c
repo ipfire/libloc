@@ -50,6 +50,10 @@ struct loc_database {
 	struct loc_database_network_node_v0* network_nodes_v0;
 	size_t network_nodes_count;
 
+	// Networks
+	struct loc_database_network_v0* networks_v0;
+	size_t networks_count;
+
 	struct loc_stringpool* pool;
 };
 
@@ -128,6 +132,29 @@ static int loc_database_read_network_nodes_section_v0(struct loc_database* db,
 	return 0;
 }
 
+static int loc_database_read_networks_section_v0(struct loc_database* db,
+		FILE* f, const struct loc_database_header_v0* header) {
+	off_t networks_offset  = be32toh(header->network_data_offset);
+	size_t networks_length = be32toh(header->network_data_length);
+
+	DEBUG(db->ctx, "Reading networks section from %jd (%zu bytes)\n",
+		networks_offset, networks_length);
+
+	if (networks_length > 0) {
+		db->networks_v0 = mmap(NULL, networks_length, PROT_READ,
+			MAP_SHARED, fileno(f), networks_offset);
+
+		if (db->networks_v0 == MAP_FAILED)
+			return -errno;
+	}
+
+	db->networks_count = networks_length / sizeof(*db->networks_v0);
+
+	INFO(db->ctx, "Read %zu networks from the database\n", db->networks_count);
+
+	return 0;
+}
+
 static int loc_database_read_header_v0(struct loc_database* db, FILE* f) {
 	struct loc_database_header_v0 header;
 
@@ -160,6 +187,11 @@ static int loc_database_read_header_v0(struct loc_database* db, FILE* f) {
 
 	// Network Nodes
 	r = loc_database_read_network_nodes_section_v0(db, f, &header);
+	if (r)
+		return r;
+
+	// Networks
+	r = loc_database_read_networks_section_v0(db, f, &header);
 	if (r)
 		return r;
 
