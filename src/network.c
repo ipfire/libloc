@@ -332,6 +332,9 @@ struct loc_network_tree {
 };
 
 struct loc_network_tree_node {
+	struct loc_ctx* ctx;
+	int refcount;
+
 	struct loc_network_tree_node* zero;
 	struct loc_network_tree_node* one;
 
@@ -347,22 +350,19 @@ LOC_EXPORT int loc_network_tree_new(struct loc_ctx* ctx, struct loc_network_tree
 	t->refcount = 1;
 
 	// Create the root node
-	t->root = calloc(1, sizeof(*t->root));
+	int r = loc_network_tree_node_new(ctx, &t->root);
+	if (r) {
+		loc_network_tree_unref(t);
+		return r;
+	}
 
 	DEBUG(t->ctx, "Network tree allocated at %p\n", t);
 	*tree = t;
 	return 0;
 }
 
-static int loc_network_tree_node_new(struct loc_network_tree_node** node) {
-	struct loc_network_tree_node* n = calloc(1, sizeof(*n));
-	if (!n)
-		return -ENOMEM;
-
-	n->zero = n->one = NULL;
-
-	*node = n;
-	return 0;
+LOC_EXPORT struct loc_network_tree_node* loc_network_tree_get_root(struct loc_network_tree* tree) {
+	return loc_network_tree_node_ref(tree->root);
 }
 
 static struct loc_network_tree_node* loc_network_tree_get_node(struct loc_network_tree_node* node, int path) {
@@ -375,7 +375,7 @@ static struct loc_network_tree_node* loc_network_tree_get_node(struct loc_networ
 
 	// If the desired node doesn't exist, yet, we will create it
 	if (*n == NULL) {
-		int r = loc_network_tree_node_new(n);
+		int r = loc_network_tree_node_new(node->ctx, n);
 		if (r)
 			return NULL;
 	}
@@ -439,23 +439,10 @@ LOC_EXPORT int loc_network_tree_walk(struct loc_network_tree* tree,
 	return __loc_network_tree_walk(tree->ctx, tree->root, filter_callback, callback, data);
 }
 
-static void loc_network_tree_free_subtree(struct loc_network_tree_node* node) {
-	if (node->network)
-		loc_network_unref(node->network);
-
-	if (node->zero)
-		loc_network_tree_free_subtree(node->zero);
-
-	if (node->one)
-		loc_network_tree_free_subtree(node->one);
-
-	free(node);
-}
-
 static void loc_network_tree_free(struct loc_network_tree* tree) {
 	DEBUG(tree->ctx, "Releasing network tree at %p\n", tree);
 
-	loc_network_tree_free_subtree(tree->root);
+	loc_network_tree_node_unref(tree->root);
 
 	loc_unref(tree->ctx);
 	free(tree);
@@ -542,4 +529,73 @@ static size_t __loc_network_tree_count_nodes(struct loc_network_tree_node* node)
 
 LOC_EXPORT size_t loc_network_tree_count_nodes(struct loc_network_tree* tree) {
 	return __loc_network_tree_count_nodes(tree->root);
+}
+
+LOC_EXPORT int loc_network_tree_node_new(struct loc_ctx* ctx, struct loc_network_tree_node** node) {
+	struct loc_network_tree_node* n = calloc(1, sizeof(*n));
+	if (!n)
+		return -ENOMEM;
+
+	n->ctx = loc_ref(ctx);
+	n->refcount = 1;
+
+	n->zero = n->one = NULL;
+
+	DEBUG(n->ctx, "Network node allocated at %p\n", n);
+	*node = n;
+	return 0;
+}
+
+LOC_EXPORT struct loc_network_tree_node* loc_network_tree_node_ref(struct loc_network_tree_node* node) {
+	if (node)
+		node->refcount++;
+
+	return node;
+}
+
+static void loc_network_tree_node_free(struct loc_network_tree_node* node) {
+	DEBUG(node->ctx, "Releasing network node at %p\n", node);
+
+	if (node->network)
+		loc_network_unref(node->network);
+
+	if (node->zero)
+		loc_network_tree_node_unref(node->zero);
+
+	if (node->one)
+		loc_network_tree_node_unref(node->one);
+
+	loc_unref(node->ctx);
+	free(node);
+}
+
+LOC_EXPORT struct loc_network_tree_node* loc_network_tree_node_unref(struct loc_network_tree_node* node) {
+	if (!node)
+		return NULL;
+
+	if (--node->refcount > 0)
+		return node;
+
+	loc_network_tree_node_free(node);
+	return NULL;
+}
+
+LOC_EXPORT struct loc_network_tree_node* loc_network_tree_node_get(struct loc_network_tree_node* node, unsigned int index) {
+	if (index == 0)
+		node = node->zero;
+	else
+		node = node->one;
+
+	if (!node)
+		return NULL;
+
+	return loc_network_tree_node_ref(node);
+}
+
+LOC_EXPORT int loc_network_tree_node_is_leaf(struct loc_network_tree_node* node) {
+	return (!!node->network);
+}
+
+LOC_EXPORT struct loc_network* loc_network_tree_node_get_network(struct loc_network_tree_node* node) {
+	return loc_network_ref(node->network);
 }

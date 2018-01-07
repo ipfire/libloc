@@ -42,6 +42,7 @@ int loc_network_to_database_v0(struct loc_network* network, struct loc_database_
 struct loc_network_tree;
 int loc_network_tree_new(struct loc_ctx* ctx, struct loc_network_tree** tree);
 struct loc_network_tree* loc_network_tree_unref(struct loc_network_tree* tree);
+struct loc_network_tree_node* loc_network_tree_get_root(struct loc_network_tree* tree);
 int loc_network_tree_walk(struct loc_network_tree* tree,
 		int(*filter_callback)(struct loc_network* network, void* data),
 		int(*callback)(struct loc_network* network, void* data), void* data);
@@ -49,5 +50,14 @@ int loc_network_tree_dump(struct loc_network_tree* tree);
 int loc_network_tree_add_network(struct loc_network_tree* tree, struct loc_network* network);
 size_t loc_network_tree_count_networks(struct loc_network_tree* tree);
 size_t loc_network_tree_count_nodes(struct loc_network_tree* tree);
+
+struct loc_network_tree_node;
+int loc_network_tree_node_new(struct loc_ctx* ctx, struct loc_network_tree_node** node);
+struct loc_network_tree_node* loc_network_tree_node_ref(struct loc_network_tree_node* node);
+struct loc_network_tree_node* loc_network_tree_node_unref(struct loc_network_tree_node* node);
+struct loc_network_tree_node* loc_network_tree_node_get(struct loc_network_tree_node* node, unsigned int index);
+
+int loc_network_tree_node_is_leaf(struct loc_network_tree_node* node);
+struct loc_network* loc_network_tree_node_get_network(struct loc_network_tree_node* node);
 
 #endif

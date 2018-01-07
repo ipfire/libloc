@@ -46,8 +46,12 @@ struct loc_database_header_v0 {
 	uint32_t as_length;
 
 	// Tells us where the networks start
-	uint32_t networks_offset;
-	uint32_t networks_length;
+	uint32_t network_data_offset;
+	uint32_t network_data_length;
+
+	// Tells us where the network tree starts
+	uint32_t network_tree_offset;
+	uint32_t network_tree_length;
 
 	// Tells us where the pool starts
 	uint32_t pool_offset;

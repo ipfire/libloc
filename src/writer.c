@@ -19,6 +19,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <sys/queue.h>
 #include <time.h>
 
 #include <loc/libloc.h>
@@ -221,34 +222,169 @@ static int loc_database_write_as_section(struct loc_writer* writer,
 	return 0;
 }
 
-static int loc_database_write_network_section(struct loc_network* network, void* data) {
-	FILE* f = (FILE*)data;
+struct node {
+	TAILQ_ENTRY(node) nodes;
 
-	struct loc_database_network_v0 n;
+	struct loc_network_tree_node* node;
 
-	int r = loc_network_to_database_v0(network, &n);
-	if (r)
-		return r;
+	// Indices of the child nodes
+	uint32_t index_zero;
+	uint32_t index_one;
+};
 
-	fwrite(&n, 1, sizeof(n), f);
+static struct node* make_node(struct loc_network_tree_node* node) {
+	struct node* n = malloc(sizeof(*n));
+	if (!n)
+		return NULL;
 
-	return 0;
+	n->node  = loc_network_tree_node_ref(node);
+	n->index_zero = n->index_one = 0;
+
+	return n;
 }
 
-static int loc_database_write_networks_section(struct loc_writer* writer,
+static void free_node(struct node* node) {
+	loc_network_tree_node_unref(node->node);
+
+	free(node);
+}
+
+struct network {
+	TAILQ_ENTRY(network) networks;
+
+	struct loc_network* network;
+};
+
+static struct network* make_network(struct loc_network* network) {
+	struct network* n = malloc(sizeof(*n));
+	if (!n)
+		return NULL;
+
+	n->network = loc_network_ref(network);
+
+	return n;
+}
+
+static void free_network(struct network* network) {
+	loc_network_unref(network->network);
+
+	free(network);
+}
+
+static int loc_database_write_networks(struct loc_writer* writer,
 		struct loc_database_header_v0* header, off_t* offset, FILE* f) {
-	DEBUG(writer->ctx, "Networks section starts at %jd bytes\n", *offset);
-	header->networks_offset = htobe32(*offset);
+	// Write the network tree
+	DEBUG(writer->ctx, "Network tree starts at %jd bytes\n", *offset);
+	header->network_tree_offset = htobe32(*offset);
 
-	size_t networks_length = sizeof(struct loc_database_network_v0)
-		* loc_network_tree_count_networks(writer->networks);
-	offset += networks_length;
+	size_t network_tree_length = 0;
+	size_t network_data_length = 0;
 
-	int r = loc_network_tree_walk(writer->networks, NULL, loc_database_write_network_section, f);
-	if (r)
-		return r;
+	struct node* node;
+	struct node* child_node;
 
-	header->networks_length = htobe32(networks_length);
+	uint32_t index = 0;
+	uint32_t network_index = 0;
+
+	struct loc_database_network_v0 db_network;
+	struct loc_database_network_node_v0 db_node;
+
+	// Initialize queue for nodes
+	TAILQ_HEAD(node_t, node) nodes;
+	TAILQ_INIT(&nodes);
+
+	// Initialize queue for networks
+	TAILQ_HEAD(network_t, network) networks;
+	TAILQ_INIT(&networks);
+
+	// Add root
+	struct loc_network_tree_node* root = loc_network_tree_get_root(writer->networks);
+	node = make_node(root);
+
+	TAILQ_INSERT_TAIL(&nodes, node, nodes);
+
+	while (!TAILQ_EMPTY(&nodes)) {
+		// Pop first node in list
+		node = TAILQ_FIRST(&nodes);
+		TAILQ_REMOVE(&nodes, node, nodes);
+
+		DEBUG(writer->ctx, "Processing node %p\n", node);
+
+		// Get child nodes
+		struct loc_network_tree_node* node_zero = loc_network_tree_node_get(node->node, 0);
+		if (node_zero) {
+			node->index_zero = ++index;
+
+			child_node = make_node(node_zero);
+			loc_network_tree_node_unref(node_zero);
+
+			TAILQ_INSERT_TAIL(&nodes, child_node, nodes);
+		}
+
+		struct loc_network_tree_node* node_one = loc_network_tree_node_get(node->node, 1);
+		if (node_one) {
+			node->index_one = ++index;
+
+			child_node = make_node(node_one);
+			loc_network_tree_node_unref(node_one);
+
+			TAILQ_INSERT_TAIL(&nodes, child_node, nodes);
+		}
+
+		// Prepare what we are writing to disk
+		if (loc_network_tree_node_is_leaf(node->node)) {
+			struct loc_network* network = loc_network_tree_node_get_network(node->node);
+
+			// Append network to be written out later
+			struct network* nw = make_network(network);
+			TAILQ_INSERT_TAIL(&networks, nw, networks);
+
+			db_node.zero = htobe32(0xffffffff);
+			db_node.one  = htobe32(network_index++);
+
+			loc_network_unref(network);
+		} else {
+			db_node.zero = htobe32(node->index_zero);
+			db_node.one  = htobe32(node->index_one);
+		}
+
+		// Write the current node
+		DEBUG(writer->ctx, "Writing node %p (0 = %d, 1 = %d)\n",
+			node, node->index_zero, node->index_one);
+
+		*offset += fwrite(&db_node, 1, sizeof(db_node), f);
+		network_tree_length += sizeof(db_node);
+
+		free_node(node);
+	}
+
+	loc_network_tree_node_unref(root);
+
+	header->network_tree_length = htobe32(network_tree_length);
+
+	align_page_boundary(offset, f);
+
+	DEBUG(writer->ctx, "Networks data section starts at %jd bytes\n", *offset);
+	header->network_data_offset = htobe32(*offset);
+
+	// We have now written the entire tree and have all networks
+	// in a queue in order as they are indexed
+	while (!TAILQ_EMPTY(&networks)) {
+		struct network* nw = TAILQ_FIRST(&networks);
+		TAILQ_REMOVE(&networks, nw, networks);
+
+		// Prepare what we are writing to disk
+		int r = loc_network_to_database_v0(nw->network, &db_network);
+		if (r)
+			return r;
+
+		*offset += fwrite(&db_network, 1, sizeof(db_network), f);
+		network_data_length += sizeof(db_network);
+
+		free_network(nw);
+	}
+
+	header->network_data_length = htobe32(network_data_length);
 
 	return 0;
 }
@@ -294,7 +430,7 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f) {
 	align_page_boundary(&offset, f);
 
 	// Write all networks
-	r = loc_database_write_networks_section(writer, &header, &offset, f);
+	r = loc_database_write_networks(writer, &header, &offset, f);
 	if (r)
 		return r;
 
