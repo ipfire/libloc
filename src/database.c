@@ -421,14 +421,14 @@ static int loc_database_fetch_network(struct loc_database* db, struct loc_networ
 	return r;
 }
 
-static int __loc_database_lookup_leaf_node(struct loc_database* db, const struct in6_addr* address,
+static int __loc_database_node_is_leaf(const struct loc_database_network_node_v0* node) {
+	return (node->zero == htobe32(0xffffffff));
+}
+
+static int __loc_database_lookup_handle_leaf(struct loc_database* db, const struct in6_addr* address,
 		struct loc_network** network, struct in6_addr* network_address,
 		const struct loc_database_network_node_v0* node) {
-	// Check if this node is a leaf node
-	if (node->zero != htobe32(0xffffffff))
-		return 1;
-
-	DEBUG(db->ctx, "Node is a leaf: %jd\n", node - db->network_nodes_v0);
+	DEBUG(db->ctx, "Handling leaf node at %jd\n", node - db->network_nodes_v0);
 
 	// Fetch the network
 	int r = loc_database_fetch_network(db, network,
@@ -454,12 +454,11 @@ static int __loc_database_lookup_leaf_node(struct loc_database* db, const struct
 static int __loc_database_lookup_max(struct loc_database* db, const struct in6_addr* address,
 		struct loc_network** network, struct in6_addr* network_address,
 		const struct loc_database_network_node_v0* node, int level) {
-
 	// If the node is a leaf node, we end here
-	int r = __loc_database_lookup_leaf_node(db, address, network, network_address, node);
-	if (r <= 0)
-		return r;
+	if (__loc_database_node_is_leaf(node))
+		return __loc_database_lookup_handle_leaf(db, address, network, network_address, node);
 
+	int r;
 	off_t node_index;
 
 	// Try to go down the ones path first
@@ -504,10 +503,10 @@ static int __loc_database_lookup(struct loc_database* db, const struct in6_addr*
 		struct loc_network** network, struct in6_addr* network_address,
 		const struct loc_database_network_node_v0* node, int level) {
 	// If the node is a leaf node, we end here
-	int r = __loc_database_lookup_leaf_node(db, address, network, network_address, node);
-	if (r <= 0)
-		return r;
+	if (__loc_database_node_is_leaf(node))
+		return __loc_database_lookup_handle_leaf(db, address, network, network_address, node);
 
+	int r;
 	off_t node_index;
 
 	// Follow the path
