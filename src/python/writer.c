@@ -21,6 +21,7 @@
 
 #include "locationmodule.h"
 #include "as.h"
+#include "network.h"
 #include "writer.h"
 
 static PyObject* Writer_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
@@ -99,6 +100,24 @@ static PyObject* Writer_add_as(WriterObject* self, PyObject* args) {
 	return obj;
 }
 
+static PyObject* Writer_add_network(WriterObject* self, PyObject* args) {
+	struct loc_network* network;
+	const char* string = NULL;
+
+	if (!PyArg_ParseTuple(args, "s", &string))
+		return NULL;
+
+	// Create network object
+	int r = loc_writer_add_network(self->writer, &network, string);
+	if (r)
+		return NULL;
+
+	PyObject* obj = new_network(&NetworkType, network);
+	loc_network_unref(network);
+
+	return obj;
+}
+
 static PyObject* Writer_write(WriterObject* self, PyObject* args) {
 	const char* path = NULL;
 
@@ -127,6 +146,12 @@ static struct PyMethodDef Writer_methods[] = {
 	{
 		"add_as",
 		(PyCFunction)Writer_add_as,
+		METH_VARARGS,
+		NULL,
+	},
+	{
+		"add_network",
+		(PyCFunction)Writer_add_network,
 		METH_VARARGS,
 		NULL,
 	},
