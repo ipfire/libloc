@@ -16,6 +16,7 @@
 
 #include <endian.h>
 #include <errno.h>
+#include <netinet/in.h>
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
@@ -30,6 +31,7 @@
 #include <loc/as.h>
 #include <loc/database.h>
 #include <loc/format.h>
+#include <loc/network.h>
 #include <loc/private.h>
 #include <loc/stringpool.h>
 
@@ -368,4 +370,30 @@ LOC_EXPORT int loc_database_get_as(struct loc_database* db, struct loc_as** as, 
 	*as = NULL;
 
 	return 1;
+}
+
+// Returns the network at position pos
+static int loc_database_fetch_network(struct loc_database* db, struct loc_network** network, struct in6_addr* address, off_t pos) {
+	if ((size_t)pos >= db->networks_count)
+		return -EINVAL;
+
+	DEBUG(db->ctx, "Fetching network at position %jd\n", pos);
+
+	int r;
+	switch (db->version) {
+		case 0:
+			r = loc_network_new_from_database_v0(db->ctx, network, address, db->networks_v0 + pos);
+			break;
+
+		default:
+			return -1;
+	}
+
+	if (r == 0) {
+		char* string = loc_network_str(*network);
+		DEBUG(db->ctx, "Got network %s\n", string);
+		free(string);
+	}
+
+	return r;
 }

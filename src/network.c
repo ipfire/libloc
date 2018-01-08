@@ -81,7 +81,7 @@ static struct in6_addr make_start_address(struct in6_addr* address, unsigned int
 }
 
 LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network,
-		struct in6_addr address, unsigned int prefix) {
+		struct in6_addr* address, unsigned int prefix) {
 	// Address cannot be unspecified
 	if (IN6_IS_ADDR_UNSPECIFIED(&address)) {
 		DEBUG(ctx, "Start address is unspecified\n");
@@ -107,7 +107,7 @@ LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network
 	}
 
 	// Validate the prefix
-	if (valid_prefix(&address, prefix) != 0) {
+	if (valid_prefix(address, prefix) != 0) {
 		DEBUG(ctx, "Invalid prefix: %u\n", prefix);
 		return -EINVAL;
 	}
@@ -120,7 +120,7 @@ LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network
 	n->refcount = 1;
 
 	// Store the first address in the network
-	n->start_address = make_start_address(&address, prefix);
+	n->start_address = make_start_address(address, prefix);
 	n->prefix = prefix;
 
 	DEBUG(n->ctx, "Network allocated at %p\n", n);
@@ -199,7 +199,7 @@ LOC_EXPORT int loc_network_new_from_string(struct loc_ctx* ctx, struct loc_netwo
 	free(buffer);
 
 	if (r == 0) {
-		r = loc_network_new(ctx, network, start_address, prefix);
+		r = loc_network_new(ctx, network, &start_address, prefix);
 	}
 
 	return r;
@@ -320,6 +320,31 @@ LOC_EXPORT int loc_network_to_database_v0(struct loc_network* network, struct lo
 
 	// Add ASN
 	dbobj->asn = htobe32(network->asn);
+
+	return 0;
+}
+
+LOC_EXPORT int loc_network_new_from_database_v0(struct loc_ctx* ctx, struct loc_network** network,
+		struct in6_addr* address, const struct loc_database_network_v0* dbobj) {
+	int r = loc_network_new(ctx, network, address, dbobj->prefix);
+	if (r)
+		return r;
+
+	// Import country code
+	char country_code[3];
+	for (unsigned int i = 0; i < 2; i++) {
+		country_code[i] = dbobj->country_code[i];
+	}
+	country_code[2] = '\0';
+
+	r = loc_network_set_country_code(*network, country_code);
+	if (r)
+		return r;
+
+	// Import ASN
+	r = loc_network_set_asn(*network, be32toh(dbobj->asn));
+	if (r)
+		return r;
 
 	return 0;
 }
