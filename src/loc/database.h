@@ -37,8 +37,6 @@ const char* loc_database_get_description(struct loc_database* db);
 int loc_database_get_as(struct loc_database* db, struct loc_as** as, uint32_t number);
 size_t loc_database_count_as(struct loc_database* db);
 
-int loc_database_write(struct loc_database* db, FILE* f);
-
 int loc_database_lookup(struct loc_database* db,
 		struct in6_addr* address, struct loc_network** network);
 int loc_database_lookup_from_string(struct loc_database* db,
