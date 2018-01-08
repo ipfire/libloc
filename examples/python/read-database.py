@@ -17,3 +17,6 @@ print(a)
 # Search for an IP address in the database
 n = d.lookup("8.8.8.8")
 print(n)
+
+n = d.lookup("2a07:1c44:5800:1234:1234:1234:1234:1234")
+print(n)

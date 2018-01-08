@@ -453,7 +453,7 @@ static int __loc_database_lookup_handle_leaf(struct loc_database* db, const stru
 // Returns the highest result available
 static int __loc_database_lookup_max(struct loc_database* db, const struct in6_addr* address,
 		struct loc_network** network, struct in6_addr* network_address,
-		const struct loc_database_network_node_v0* node, int level) {
+		const struct loc_database_network_node_v0* node, unsigned int level) {
 	// If the node is a leaf node, we end here
 	if (__loc_database_node_is_leaf(node))
 		return __loc_database_lookup_handle_leaf(db, address, network, network_address, node);
@@ -501,7 +501,7 @@ static int __loc_database_lookup_max(struct loc_database* db, const struct in6_a
 // Searches for an exact match along the path
 static int __loc_database_lookup(struct loc_database* db, const struct in6_addr* address,
 		struct loc_network** network, struct in6_addr* network_address,
-		const struct loc_database_network_node_v0* node, int level) {
+		const struct loc_database_network_node_v0* node, unsigned int level) {
 	// If the node is a leaf node, we end here
 	if (__loc_database_node_is_leaf(node))
 		return __loc_database_lookup_handle_leaf(db, address, network, network_address, node);
