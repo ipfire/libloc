@@ -86,19 +86,21 @@ static PyObject* Database_get_as(DatabaseObject* self, PyObject* args) {
 
 	// Try to retrieve the AS
 	int r = loc_database_get_as(self->db, &as, number);
-	if (r)
-		return NULL;
 
-	// Create an AS object
-	if (as) {
+	// We got an AS
+	if (r == 0) {
 		PyObject* obj = new_as(&ASType, as);
 		loc_as_unref(as);
 
 		return obj;
-	}
 
 	// Nothing found
-	Py_RETURN_NONE;
+	} else if (r == 1) {
+		Py_RETURN_NONE;
+	}
+
+	// Unexpected error
+	return NULL;
 }
 
 static PyObject* Database_lookup(DatabaseObject* self, PyObject* args) {
