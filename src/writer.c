@@ -219,6 +219,8 @@ static int loc_database_write_as_section(struct loc_writer* writer,
 	DEBUG(writer->ctx, "AS section has a length of %zu bytes\n", as_length);
 	header->as_length = htobe32(as_length);
 
+	align_page_boundary(offset, f);
+
 	return 0;
 }
 
@@ -386,6 +388,8 @@ static int loc_database_write_networks(struct loc_writer* writer,
 
 	header->network_data_length = htobe32(network_data_length);
 
+	align_page_boundary(offset, f);
+
 	return 0;
 }
 
@@ -427,14 +431,10 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f) {
 	if (r)
 		return r;
 
-	align_page_boundary(&offset, f);
-
 	// Write all networks
 	r = loc_database_write_networks(writer, &header, &offset, f);
 	if (r)
 		return r;
-
-	align_page_boundary(&offset, f);
 
 	// Write pool
 	r = loc_database_write_pool(writer, &header, &offset, f);
