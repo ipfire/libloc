@@ -29,7 +29,6 @@ SED_PROCESS = \
 	-e 's,@includedir\@,$(includedir),g' \
 	< $< > $@ || rm $@
 
-pythondir    = $(pyexecdir)
 pkgconfigdir = $(libdir)/pkgconfig
 
 %.pc: %.pc.in Makefile
@@ -80,7 +79,7 @@ EXTRA_DIST += \
 CLEANFILES += \
 	src/libloc.pc
 
-pkgpyexec_LTLIBRARIES = \
+pyexec_LTLIBRARIES = \
 	src/python/location.la
 
 src_python_location_la_SOURCES = \
