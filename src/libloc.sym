@@ -26,7 +26,6 @@ global:
 	loc_unref;
 	loc_set_log_priority;
 	loc_new;
-	loc_load;
 
 	# AS
 	loc_as_cmp;

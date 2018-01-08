@@ -26,7 +26,6 @@
 #include <ctype.h>
 
 #include <loc/libloc.h>
-#include <loc/database.h>
 #include <loc/private.h>
 
 struct loc_ctx {
@@ -35,8 +34,6 @@ struct loc_ctx {
 		int priority, const char *file, int line, const char *fn,
 		const char *format, va_list args);
 	int log_priority;
-
-	struct loc_database* db;
 };
 
 void loc_log(struct loc_ctx* ctx,
@@ -85,8 +82,6 @@ LOC_EXPORT int loc_new(struct loc_ctx** ctx) {
 	c->log_fn = log_stderr;
 	c->log_priority = LOG_ERR;
 
-	c->db = NULL;
-
 	const char* env = secure_getenv("LOC_LOG");
 	if (env)
 		loc_set_log_priority(c, log_priority(env));
@@ -114,10 +109,6 @@ LOC_EXPORT struct loc_ctx* loc_unref(struct loc_ctx* ctx) {
 	if (--ctx->refcount > 0)
 		return NULL;
 
-	// Release any loaded databases
-	if (ctx->db)
-		loc_database_unref(ctx->db);
-
 	INFO(ctx, "context %p released\n", ctx);
 	free(ctx);
 
@@ -137,26 +128,6 @@ LOC_EXPORT int loc_get_log_priority(struct loc_ctx* ctx) {
 
 LOC_EXPORT void loc_set_log_priority(struct loc_ctx* ctx, int priority) {
 	ctx->log_priority = priority;
-}
-
-LOC_EXPORT int loc_load(struct loc_ctx* ctx, const char* path) {
-	FILE* f = fopen(path, "r");
-	if (!f)
-		return -errno;
-
-	// Release any previously openend database
-	if (ctx->db)
-		loc_database_unref(ctx->db);
-
-	// Open the new database
-	int r = loc_database_new(ctx, &ctx->db, f);
-	if (r)
-		return r;
-
-	// Close the file
-	fclose(f);
-
-	return 0;
 }
 
 LOC_EXPORT int loc_parse_address(struct loc_ctx* ctx, const char* string, struct in6_addr* address) {
