@@ -35,9 +35,13 @@ int loc_as_set_name(struct loc_as* as, const char* name);
 
 int loc_as_cmp(struct loc_as* as1, struct loc_as* as2);
 
+#ifdef LIBLOC_PRIVATE
+
 int loc_as_new_from_database_v0(struct loc_ctx* ctx, struct loc_stringpool* pool,
 		struct loc_as** as, const struct loc_database_as_v0* dbobj);
 int loc_as_to_database_v0(struct loc_as* as, struct loc_stringpool* pool,
 		struct loc_database_as_v0* dbobj);
+
+#endif
 
 #endif

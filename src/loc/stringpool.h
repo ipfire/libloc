@@ -17,6 +17,8 @@
 #ifndef LIBLOC_STRINGPOOL_H
 #define LIBLOC_STRINGPOOL_H
 
+#ifdef LIBLOC_PRIVATE
+
 #include <stddef.h>
 #include <stdio.h>
 
@@ -38,4 +40,5 @@ void loc_stringpool_dump(struct loc_stringpool* pool);
 
 size_t loc_stringpool_write(struct loc_stringpool* pool, FILE* f);
 
+#endif
 #endif

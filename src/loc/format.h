@@ -20,6 +20,9 @@
 #include <stdint.h>
 
 #define LOC_DATABASE_MAGIC      "LOCDBXX"
+
+#ifdef LIBLOC_PRIVATE
+
 #define LOC_DATABASE_VERSION    0
 
 #define LOC_DATABASE_PAGE_SIZE  4096
@@ -82,4 +85,5 @@ struct loc_database_as_v0 {
 	uint32_t name;
 };
 
+#endif
 #endif

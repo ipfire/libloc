@@ -38,6 +38,8 @@ int loc_network_set_country_code(struct loc_network* network, const char* countr
 uint32_t loc_network_get_asn(struct loc_network* network);
 int loc_network_set_asn(struct loc_network* network, uint32_t asn);
 
+#ifdef LIBLOC_PRIVATE
+
 int loc_network_to_database_v0(struct loc_network* network, struct loc_database_network_v0* dbobj);
 int loc_network_new_from_database_v0(struct loc_ctx* ctx, struct loc_network** network,
 		struct in6_addr* address, const struct loc_database_network_v0* dbobj);
@@ -63,4 +65,5 @@ struct loc_network_tree_node* loc_network_tree_node_get(struct loc_network_tree_
 int loc_network_tree_node_is_leaf(struct loc_network_tree_node* node);
 struct loc_network* loc_network_tree_node_get_network(struct loc_network_tree_node* node);
 
+#endif
 #endif

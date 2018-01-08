@@ -109,6 +109,10 @@ src_python_location_la_LIBADD = \
 	src/libloc.la \
 	$(PYTHON_LIBS)
 
+TESTS_CFLAGS = \
+	$(AM_CFLAGS) \
+	-DLIBLOC_PRIVATE
+
 TESTS = \
 	src/test-libloc \
 	src/test-stringpool \
@@ -126,11 +130,17 @@ check_PROGRAMS = \
 src_test_libloc_SOURCES = \
 	src/test-libloc.c
 
+src_test_libloc_CFLAGS = \
+	$(TESTS_CFLAGS)
+
 src_test_libloc_LDADD = \
 	src/libloc.la
 
 src_test_as_SOURCES = \
 	src/test-as.c
+
+src_test_as_CFLAGS = \
+	$(TESTS_CFLAGS)
 
 src_test_as_LDADD = \
 	src/libloc.la
@@ -138,17 +148,26 @@ src_test_as_LDADD = \
 src_test_network_SOURCES = \
 	src/test-network.c
 
+src_test_network_CFLAGS = \
+	$(TESTS_CFLAGS)
+
 src_test_network_LDADD = \
 	src/libloc.la
 
 src_test_stringpool_SOURCES = \
 	src/test-stringpool.c
 
+src_test_stringpool_CFLAGS = \
+	$(TESTS_CFLAGS)
+
 src_test_stringpool_LDADD = \
 	src/libloc.la
 
 src_test_database_SOURCES = \
 	src/test-database.c
+
+src_test_database_CFLAGS = \
+	$(TESTS_CFLAGS)
 
 src_test_database_LDADD = \
 	src/libloc.la

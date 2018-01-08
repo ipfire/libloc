@@ -1,5 +1,33 @@
 LIBLOC_PRIVATE {
 global:
+	# Network Tree
+	loc_network_tree_add_network;
+	loc_network_tree_count_networks;
+	loc_network_tree_count_nodes;
+	loc_network_tree_dump;
+	loc_network_tree_new;
+	loc_network_tree_unref;
+
+	# String Pool
+	loc_stringpool_add;
+	loc_stringpool_dump;
+	loc_stringpool_get;
+	loc_stringpool_get_size;
+	loc_stringpool_new;
+	loc_stringpool_ref;
+	loc_stringpool_unref;
+};
+
+LIBLOC_1 {
+global:
+	loc_ref;
+	loc_get_log_priority;
+	loc_set_log_fn;
+	loc_unref;
+	loc_set_log_priority;
+	loc_new;
+	loc_load;
+
 	# AS
 	loc_as_cmp;
 	loc_as_get_name;
@@ -33,23 +61,6 @@ global:
 	loc_network_str;
 	loc_network_unref;
 
-	# Network Tree
-	loc_network_tree_add_network;
-	loc_network_tree_count_networks;
-	loc_network_tree_count_nodes;
-	loc_network_tree_dump;
-	loc_network_tree_new;
-	loc_network_tree_unref;
-
-	# String Pool
-	loc_stringpool_add;
-	loc_stringpool_dump;
-	loc_stringpool_get;
-	loc_stringpool_get_size;
-	loc_stringpool_new;
-	loc_stringpool_ref;
-	loc_stringpool_unref;
-
 	# Writer
 	loc_writer_add_as;
 	loc_writer_add_network;
@@ -61,17 +72,6 @@ global:
 	loc_writer_set_vendor;
 	loc_writer_unref;
 	loc_writer_write;
-};
-
-LIBLOC_1 {
-global:
-	loc_ref;
-	loc_get_log_priority;
-	loc_set_log_fn;
-	loc_unref;
-	loc_set_log_priority;
-	loc_new;
-	loc_load;
 local:
 	*;
 };
