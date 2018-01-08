@@ -39,6 +39,13 @@ AS_IF([test "x$enable_debug" = "xyes"], [
         AC_DEFINE(ENABLE_DEBUG, [1], [Debug messages.])
 ])
 
+AC_CHECK_HEADERS_ONCE([
+	arpa/inet.h \
+	endian.h \
+	netinet/in.h \
+	string.h \
+])
+
 AC_CHECK_FUNCS([ \
         be16toh \
         be32toh \
