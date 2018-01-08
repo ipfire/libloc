@@ -34,6 +34,10 @@ pkgconfigdir = $(libdir)/pkgconfig
 %.pc: %.pc.in Makefile
 	$(SED_PROCESS)
 
+EXTRA_DIST += \
+	examples/python/create-database.py \
+	examples/python/read-database.py
+
 pkginclude_HEADERS = \
 	src/loc/libloc.h \
 	src/loc/as.h \
