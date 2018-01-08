@@ -16,6 +16,8 @@ global:
 	loc_database_get_as;
 	loc_database_get_description;
 	loc_database_get_vendor;
+	loc_database_lookup;
+	loc_database_lookup_from_string;
 	loc_database_new;
 	loc_database_ref;
 	loc_database_unref;

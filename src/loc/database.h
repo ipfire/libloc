@@ -17,10 +17,12 @@
 #ifndef LIBLOC_DATABASE_H
 #define LIBLOC_DATABASE_H
 
+#include <netinet/in.h>
 #include <stdio.h>
 #include <stdint.h>
 
 #include <loc/libloc.h>
+#include <loc/network.h>
 #include <loc/as.h>
 
 struct loc_database;
@@ -36,5 +38,10 @@ int loc_database_get_as(struct loc_database* db, struct loc_as** as, uint32_t nu
 size_t loc_database_count_as(struct loc_database* db);
 
 int loc_database_write(struct loc_database* db, FILE* f);
+
+int loc_database_lookup(struct loc_database* db,
+		struct in6_addr* address, struct loc_network** network);
+int loc_database_lookup_from_string(struct loc_database* db,
+		const char* string, struct loc_network** network);
 
 #endif

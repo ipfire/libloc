@@ -19,6 +19,7 @@
 
 #ifdef LIBLOC_PRIVATE
 
+#include <netinet/in.h>
 #include <stdbool.h>
 #include <syslog.h>
 
@@ -55,6 +56,18 @@ loc_log_null(struct loc_ctx *ctx, const char *format, ...) {}
 void loc_log(struct loc_ctx *ctx,
 	int priority, const char *file, int line, const char *fn,
 	const char *format, ...) __attribute__((format(printf, 6, 7)));
+
+static inline int in6_addr_cmp(const struct in6_addr* a1, const struct in6_addr* a2) {
+	return memcmp(&a1->s6_addr, &a1->s6_addr, sizeof(a1->s6_addr));
+}
+
+static inline int in6_addr_get_bit(const struct in6_addr* address, unsigned int i) {
+	return ((address->s6_addr[i / 8] >> (i % 8)) & 1);
+}
+
+static inline void in6_addr_set_bit(struct in6_addr* address, unsigned int i, unsigned int val) {
+	address->s6_addr[i / 8] ^= (-val ^ address->s6_addr[i / 8]) & (1 << (i % 8));
+}
 
 #endif
 #endif

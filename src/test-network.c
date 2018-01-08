@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include <loc/libloc.h>
+#include <loc/database.h>
 #include <loc/network.h>
 #include <loc/writer.h>
 
@@ -139,6 +140,37 @@ int main(int argc, char** argv) {
 	loc_network_unref(network3);
 	loc_network_unref(network4);
 	loc_network_tree_unref(tree);
+
+	// And open it again from disk
+	f = fopen("test.db", "r");
+	if (!f) {
+		fprintf(stderr, "Could not open file for reading: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	struct loc_database* db;
+	err = loc_database_new(ctx, &db, f);
+	if (err) {
+		fprintf(stderr, "Could not open database: %s\n", strerror(-err));
+		exit(EXIT_FAILURE);
+	}
+
+	// Lookup an exact match
+	err = loc_database_lookup_from_string(db, "2001:db8::", &network1);
+	if (err) {
+		fprintf(stderr, "Could not look up the given IP address\n");
+		exit(EXIT_FAILURE);
+	}
+	loc_network_unref(network1);
+
+	// Lookup a non-exact match
+	err = loc_database_lookup_from_string(db, "2001:db8:fffe:1::", &network1);
+	if (err) {
+		fprintf(stderr, "Could not look up the given IP address\n");
+		exit(EXIT_FAILURE);
+	}
+	loc_network_unref(network1);
+
 	loc_unref(ctx);
 
 	return EXIT_SUCCESS;

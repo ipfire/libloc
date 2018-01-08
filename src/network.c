@@ -69,13 +69,24 @@ static struct in6_addr prefix_to_bitmask(unsigned int prefix) {
 	return bitmask;
 }
 
-static struct in6_addr make_start_address(struct in6_addr* address, unsigned int prefix) {
+static struct in6_addr make_start_address(const struct in6_addr* address, unsigned int prefix) {
 	struct in6_addr a;
 	struct in6_addr bitmask = prefix_to_bitmask(prefix);
 
 	// Perform bitwise AND
 	for (unsigned int i = 0; i < 4; i++)
 		a.s6_addr32[i] = address->s6_addr32[i] & bitmask.s6_addr32[i];
+
+	return a;
+}
+
+static struct in6_addr make_last_address(const struct in6_addr* address, unsigned int prefix) {
+	struct in6_addr a;
+	struct in6_addr bitmask = prefix_to_bitmask(prefix);
+
+	// Perform bitwise OR
+	for (unsigned int i = 0; i < 4; i++)
+		a.s6_addr32[i] = address->s6_addr[i] | ~bitmask.s6_addr32[i];
 
 	return a;
 }
@@ -135,37 +146,6 @@ static int loc_network_address_family(struct loc_network* network) {
 	return AF_INET6;
 }
 
-static int parse_address(struct loc_ctx* ctx, const char* string, struct in6_addr* address) {
-	DEBUG(ctx, "Paring IP address %s\n", string);
-
-	// Try parsing this as an IPv6 address
-	int r = inet_pton(AF_INET6, string, address);
-
-	// If inet_pton returns one it has been successful
-	if (r == 1) {
-		DEBUG(ctx, "%s is an IPv6 address\n", string);
-		return 0;
-	}
-
-	// Try parsing this as an IPv4 address
-	struct in_addr ipv4_address;
-	r = inet_pton(AF_INET, string, &ipv4_address);
-	if (r == 1) {
-		DEBUG(ctx, "%s is an IPv4 address\n", string);
-
-		// Convert to IPv6-mapped address
-		address->s6_addr32[0] = htonl(0x0000);
-		address->s6_addr32[1] = htonl(0x0000);
-		address->s6_addr32[2] = htonl(0xffff);
-		address->s6_addr32[3] = ipv4_address.s_addr;
-
-		return 0;
-	}
-
-	DEBUG(ctx, "%s is not an valid IP address\n", string);
-	return 1;
-}
-
 LOC_EXPORT int loc_network_new_from_string(struct loc_ctx* ctx, struct loc_network** network,
 		const char* address_string) {
 	struct in6_addr start_address;
@@ -187,7 +167,7 @@ LOC_EXPORT int loc_network_new_from_string(struct loc_ctx* ctx, struct loc_netwo
 
 		if (prefix) {
 			// Parse the address
-			r = parse_address(ctx, address_string, &start_address);
+			r = loc_parse_address(ctx, address_string, &start_address);
 
 			// Map the prefix to IPv6 if needed
 			if (IN6_IS_ADDR_V4MAPPED(&start_address))
@@ -219,6 +199,9 @@ static void loc_network_free(struct loc_network* network) {
 }
 
 LOC_EXPORT struct loc_network* loc_network_unref(struct loc_network* network) {
+	if (!network)
+		return NULL;
+
 	if (--network->refcount > 0)
 		return network;
 
@@ -282,6 +265,22 @@ LOC_EXPORT char* loc_network_str(struct loc_network* network) {
 	sprintf(string + strlen(string), "/%u", prefix);
 
 	return string;
+}
+
+LOC_EXPORT int loc_network_match_address(struct loc_network* network, const struct in6_addr* address) {
+	// Address must be larger then the start address
+	if (in6_addr_cmp(&network->start_address, address) > 0)
+		return 1;
+
+	// Determine the last address in this network
+	struct in6_addr last_address = make_last_address(&network->start_address, network->prefix);
+
+	// Address must be smaller than the last address
+	if (in6_addr_cmp(&last_address, address) > 0)
+		return 1;
+
+	// The address is inside this network
+	return 0;
 }
 
 LOC_EXPORT const char* loc_network_get_country_code(struct loc_network* network) {
@@ -393,7 +392,7 @@ LOC_EXPORT struct loc_network_tree_node* loc_network_tree_get_root(struct loc_ne
 static struct loc_network_tree_node* loc_network_tree_get_node(struct loc_network_tree_node* node, int path) {
 	struct loc_network_tree_node** n;
 
-	if (path)
+	if (path == 0)
 		n = &node->zero;
 	else
 		n = &node->one;
@@ -411,9 +410,9 @@ static struct loc_network_tree_node* loc_network_tree_get_node(struct loc_networ
 static struct loc_network_tree_node* loc_network_tree_get_path(struct loc_network_tree* tree, const struct in6_addr* address) {
 	struct loc_network_tree_node* node = tree->root;
 
-	for (unsigned int i = 127; i > 0; i--) {
+	for (unsigned int i = 0; i < 128; i++) {
 		// Check if the ith bit is one or zero
-		node = loc_network_tree_get_node(node, ((address->s6_addr32[i / 32] & (1 << (i % 32))) == 0));
+		node = loc_network_tree_get_node(node, in6_addr_get_bit(address, i));
 	}
 
 	return node;

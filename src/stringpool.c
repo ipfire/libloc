@@ -90,9 +90,11 @@ LOC_EXPORT int loc_stringpool_open(struct loc_ctx* ctx, struct loc_stringpool** 
 		return r;
 
 	// Map data into memory
-	r = loc_stringpool_mmap(*pool, f, length, offset);
-	if (r)
-		return r;
+	if (length > 0) {
+		r = loc_stringpool_mmap(*pool, f, length, offset);
+		if (r)
+			return r;
+	}
 
 	return 0;
 }

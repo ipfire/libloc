@@ -14,6 +14,7 @@
 	Lesser General Public License for more details.
 */
 
+#include <arpa/inet.h>
 #include <endian.h>
 #include <errno.h>
 #include <netinet/in.h>
@@ -396,4 +397,163 @@ static int loc_database_fetch_network(struct loc_database* db, struct loc_networ
 	}
 
 	return r;
+}
+
+static int __loc_database_lookup_leaf_node(struct loc_database* db, const struct in6_addr* address,
+		struct loc_network** network, struct in6_addr* network_address,
+		const struct loc_database_network_node_v0* node) {
+	// Check if this node is a leaf node
+	if (node->zero != htobe32(0xffffffff))
+		return 1;
+
+	DEBUG(db->ctx, "Node is a leaf: %jd\n", node - db->network_nodes_v0);
+
+	// Fetch the network
+	int r = loc_database_fetch_network(db, network,
+		network_address, be32toh(node->one));
+	if (r)
+		return r;
+
+	// Check if the given IP address is inside the network
+	r = loc_network_match_address(*network, address);
+	if (r) {
+		DEBUG(db->ctx, "Searched address is not part of the network\n");
+
+		loc_network_unref(*network);
+		*network = NULL;
+		return 1;
+	}
+
+	// A network was found and the IP address matches
+	return 0;
+}
+
+// Returns the highest result available
+static int __loc_database_lookup_max(struct loc_database* db, const struct in6_addr* address,
+		struct loc_network** network, struct in6_addr* network_address,
+		const struct loc_database_network_node_v0* node, int level) {
+
+	// If the node is a leaf node, we end here
+	int r = __loc_database_lookup_leaf_node(db, address, network, network_address, node);
+	if (r <= 0)
+		return r;
+
+	off_t node_index;
+
+	// Try to go down the ones path first
+	if (node->one) {
+		node_index = be32toh(node->one);
+		in6_addr_set_bit(network_address, level, 1);
+
+		// Check boundaries
+		if (node_index > 0 && (size_t)node_index <= db->network_nodes_count) {
+			r = __loc_database_lookup_max(db, address, network, network_address,
+				db->network_nodes_v0 + node_index, level + 1);
+
+			// Abort when match was found or error
+			if (r <= 0)
+				return r;
+		}
+	}
+
+	// ... and if that fails, we try to go down one step on a zero
+	// branch and then try the ones again...
+	if (node->zero) {
+		node_index = be32toh(node->zero);
+		in6_addr_set_bit(network_address, level, 0);
+
+		// Check boundaries
+		if (node_index > 0 && (size_t)node_index <= db->network_nodes_count) {
+			r = __loc_database_lookup_max(db, address, network, network_address,
+				db->network_nodes_v0 + node_index, level + 1);
+
+			// Abort when match was found or error
+			if (r <= 0)
+				return r;
+		}
+	}
+
+	// End of path
+	return 1;
+}
+
+// Searches for an exact match along the path
+static int __loc_database_lookup(struct loc_database* db, const struct in6_addr* address,
+		struct loc_network** network, struct in6_addr* network_address,
+		const struct loc_database_network_node_v0* node, int level) {
+	// If the node is a leaf node, we end here
+	int r = __loc_database_lookup_leaf_node(db, address, network, network_address, node);
+	if (r <= 0)
+		return r;
+
+	off_t node_index;
+
+	// Follow the path
+	int bit = in6_addr_get_bit(address, level);
+	in6_addr_set_bit(network_address, level, bit);
+
+	if (bit == 0)
+		node_index = be32toh(node->zero);
+	else
+		node_index = be32toh(node->one);
+
+	// If we point back to root, the path ends here
+	if (node_index == 0) {
+		DEBUG(db->ctx, "Tree ends here\n");
+		return 1;
+	}
+
+	// Check boundaries
+	if ((size_t)node_index >= db->network_nodes_count)
+		return -EINVAL;
+
+	// Move on to the next node
+	r = __loc_database_lookup(db, address, network, network_address,
+		db->network_nodes_v0 + node_index, level + 1);
+
+	// End here if a result was found
+	if (r == 0)
+		return r;
+
+	// Raise any errors
+	else if (r < 0)
+		return r;
+
+	DEBUG(db->ctx, "Could not find an exact match at %u\n", level);
+
+	// If nothing was found, we have to search for an inexact match
+	return __loc_database_lookup_max(db, address, network, network_address, node, level);
+}
+
+LOC_EXPORT int loc_database_lookup(struct loc_database* db,
+		struct in6_addr* address, struct loc_network** network) {
+	struct in6_addr network_address;
+	memset(&network_address, 0, sizeof(network_address));
+
+	*network = NULL;
+
+	// Save start time
+	clock_t start = clock();
+
+	int r = __loc_database_lookup(db, address, network, &network_address,
+		db->network_nodes_v0, 0);
+
+	clock_t end = clock();
+
+	// Log how fast this has been
+	DEBUG(db->ctx, "Executed network search in %.8fs\n",
+		(double)(end - start) / CLOCKS_PER_SEC);
+
+	return r;
+}
+
+LOC_EXPORT int loc_database_lookup_from_string(struct loc_database* db,
+		const char* string, struct loc_network** network) {
+	struct in6_addr address;
+
+	int r = loc_parse_address(db->ctx, string, &address);
+	if (r)
+		return r;
+
+	return loc_database_lookup(db, &address, network);
 }
