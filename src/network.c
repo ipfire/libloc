@@ -209,17 +209,17 @@ LOC_EXPORT struct loc_network* loc_network_unref(struct loc_network* network) {
 	return NULL;
 }
 
-static int format_ipv6_address(struct loc_network* network, char* string, size_t length) {
-	const char* ret = inet_ntop(AF_INET6, &network->start_address, string, length);
+static int format_ipv6_address(const struct in6_addr* address, char* string, size_t length) {
+	const char* ret = inet_ntop(AF_INET6, address, string, length);
 	if (!ret)
 		return -1;
 
 	return 0;
 }
 
-static int format_ipv4_address(struct loc_network* network, char* string, size_t length) {
+static int format_ipv4_address(const struct in6_addr* address, char* string, size_t length) {
 	struct in_addr ipv4_address;
-	ipv4_address.s_addr = network->start_address.s6_addr32[3];
+	ipv4_address.s_addr = address->s6_addr32[3];
 
 	const char* ret = inet_ntop(AF_INET, &ipv4_address, string, length);
 	if (!ret)
@@ -241,11 +241,11 @@ LOC_EXPORT char* loc_network_str(struct loc_network* network) {
 	int family = loc_network_address_family(network);
 	switch (family) {
 		case AF_INET6:
-			r = format_ipv6_address(network, string, length);
+			r = format_ipv6_address(&network->start_address, string, length);
 			break;
 
 		case AF_INET:
-			r = format_ipv4_address(network, string, length);
+			r = format_ipv4_address(&network->start_address, string, length);
 			prefix -= 96;
 			break;
 
