@@ -24,6 +24,7 @@
 typedef struct {
 	PyObject_HEAD
 	struct loc_database* db;
+	char* path;
 } DatabaseObject;
 
 extern PyTypeObject DatabaseType;

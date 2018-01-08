@@ -34,6 +34,9 @@ static void Database_dealloc(DatabaseObject* self) {
 	if (self->db)
 		loc_database_unref(self->db);
 
+	if (self->path)
+		free(self->path);
+
 	Py_TYPE(self)->tp_free((PyObject* )self);
 }
 
@@ -43,8 +46,10 @@ static int Database_init(DatabaseObject* self, PyObject* args, PyObject* kwargs)
 	if (!PyArg_ParseTuple(args, "s", &path))
 		return -1;
 
+	self->path = strdup(path);
+
 	// Open the file for reading
-	FILE* f = fopen(path, "r");
+	FILE* f = fopen(self->path, "r");
 	if (!f)
 		return -1;
 
@@ -57,6 +62,10 @@ static int Database_init(DatabaseObject* self, PyObject* args, PyObject* kwargs)
 		return -1;
 
 	return 0;
+}
+
+static PyObject* Database_repr(DatabaseObject* self) {
+	return PyUnicode_FromFormat("<Database %s>", self->path);
 }
 
 static PyObject* Database_get_description(DatabaseObject* self) {
@@ -181,4 +190,5 @@ PyTypeObject DatabaseType = {
 	tp_doc:                 "Database object",
 	tp_methods:             Database_methods,
 	tp_getset:              Database_getsetters,
+	tp_repr:                (reprfunc)Database_repr,
 };
