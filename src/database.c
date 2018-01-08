@@ -266,13 +266,29 @@ LOC_EXPORT struct loc_database* loc_database_ref(struct loc_database* db) {
 }
 
 static void loc_database_free(struct loc_database* db) {
+	int r;
+
 	DEBUG(db->ctx, "Releasing database %p\n", db);
 
 	// Removing all ASes
 	if (db->as_v0) {
-		int r = munmap(db->as_v0, db->as_count * sizeof(*db->as_v0));
+		r = munmap(db->as_v0, db->as_count * sizeof(*db->as_v0));
 		if (r)
 			ERROR(db->ctx, "Could not unmap AS section: %s\n", strerror(errno));
+	}
+
+	// Remove mapped network sections
+	if (db->networks_v0) {
+		r = munmap(db->networks_v0, db->networks_count * sizeof(*db->networks_v0));
+		if (r)
+			ERROR(db->ctx, "Could not unmap networks section: %s\n", strerror(errno));
+	}
+
+	// Remove mapped network nodes section
+	if (db->network_nodes_v0) {
+		r = munmap(db->network_nodes_v0, db->network_nodes_count * sizeof(*db->network_nodes_v0));
+		if (r)
+			ERROR(db->ctx, "Could not unmap network nodes section: %s\n", strerror(errno));
 	}
 
 	loc_stringpool_unref(db->pool);
