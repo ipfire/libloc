@@ -138,6 +138,11 @@ static PyObject* Database_lookup(DatabaseObject* self, PyObject* args) {
 	// Nothing found
 	} else if (r == 1) {
 		Py_RETURN_NONE;
+
+	// Invalid input
+	} else if (r == -EINVAL) {
+		PyErr_Format(PyExc_ValueError, "Invalid IP address: %s", address);
+		return NULL;
 	}
 
 	// Unexpected error

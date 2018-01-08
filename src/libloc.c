@@ -158,5 +158,5 @@ LOC_EXPORT int loc_parse_address(struct loc_ctx* ctx, const char* string, struct
 	}
 
 	DEBUG(ctx, "%s is not an valid IP address\n", string);
-	return 1;
+	return -EINVAL;
 }
