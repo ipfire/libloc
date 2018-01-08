@@ -131,7 +131,7 @@ LOC_EXPORT void loc_set_log_priority(struct loc_ctx* ctx, int priority) {
 }
 
 LOC_EXPORT int loc_parse_address(struct loc_ctx* ctx, const char* string, struct in6_addr* address) {
-	DEBUG(ctx, "Paring IP address %s\n", string);
+	DEBUG(ctx, "Parsing IP address %s\n", string);
 
 	// Try parsing this as an IPv6 address
 	int r = inet_pton(AF_INET6, string, address);
