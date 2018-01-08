@@ -86,7 +86,7 @@ static struct in6_addr make_last_address(const struct in6_addr* address, unsigne
 
 	// Perform bitwise OR
 	for (unsigned int i = 0; i < 4; i++)
-		a.s6_addr32[i] = address->s6_addr[i] | ~bitmask.s6_addr32[i];
+		a.s6_addr32[i] = address->s6_addr32[i] | ~bitmask.s6_addr32[i];
 
 	return a;
 }
