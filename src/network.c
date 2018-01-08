@@ -268,7 +268,7 @@ LOC_EXPORT char* loc_network_str(struct loc_network* network) {
 }
 
 LOC_EXPORT int loc_network_match_address(struct loc_network* network, const struct in6_addr* address) {
-	// Address must be larger then the start address
+	// Address must be larger than the start address
 	if (in6_addr_cmp(&network->start_address, address) > 0)
 		return 1;
 
