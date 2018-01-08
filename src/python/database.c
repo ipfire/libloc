@@ -22,6 +22,7 @@
 #include "locationmodule.h"
 #include "as.h"
 #include "database.h"
+#include "network.h"
 
 static PyObject* Database_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 	DatabaseObject* self = (DatabaseObject*)type->tp_alloc(type, 0);
@@ -100,10 +101,42 @@ static PyObject* Database_get_as(DatabaseObject* self, PyObject* args) {
 	Py_RETURN_NONE;
 }
 
+static PyObject* Database_lookup(DatabaseObject* self, PyObject* args) {
+	struct loc_network* network = NULL;
+	const char* address = NULL;
+
+	if (!PyArg_ParseTuple(args, "s", &address))
+		return NULL;
+
+	// Try to retrieve a matching network
+	int r = loc_database_lookup_from_string(self->db, address, &network);
+
+	// We got a network
+	if (r == 0) {
+		PyObject* obj = new_network(&NetworkType, network);
+		loc_network_unref(network);
+
+		return obj;
+
+	// Nothing found
+	} else if (r == 1) {
+		Py_RETURN_NONE;
+	}
+
+	// Unexpected error
+	return NULL;
+}
+
 static struct PyMethodDef Database_methods[] = {
 	{
 		"get_as",
 		(PyCFunction)Database_get_as,
+		METH_VARARGS,
+		NULL,
+	},
+	{
+		"lookup",
+		(PyCFunction)Database_lookup,
 		METH_VARARGS,
 		NULL,
 	},

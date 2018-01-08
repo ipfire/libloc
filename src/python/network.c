@@ -24,6 +24,15 @@
 #include "locationmodule.h"
 #include "network.h"
 
+PyObject* new_network(PyTypeObject* type, struct loc_network* network) {
+	NetworkObject* self = (NetworkObject*)type->tp_alloc(type, 0);
+	if (self) {
+		self->network = loc_network_ref(network);
+	}
+
+	return (PyObject*)self;
+}
+
 static PyObject* Network_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
 	NetworkObject* self = (NetworkObject*)type->tp_alloc(type, 0);
 

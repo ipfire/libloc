@@ -28,4 +28,6 @@ typedef struct {
 
 extern PyTypeObject NetworkType;
 
+PyObject* new_network(PyTypeObject* type, struct loc_network* network);
+
 #endif /* PYTHON_LOCATION_NETWORK_H */
