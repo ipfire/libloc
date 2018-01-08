@@ -123,6 +123,9 @@ TESTS = \
 	src/test-as \
 	src/test-network
 
+CLEANFILES += \
+	test.db
+
 check_PROGRAMS = \
 	src/test-libloc \
 	src/test-stringpool \
