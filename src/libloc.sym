@@ -42,6 +42,7 @@ global:
 	loc_database_created_at;
 	loc_database_get_as;
 	loc_database_get_description;
+	loc_database_get_license;
 	loc_database_get_vendor;
 	loc_database_lookup;
 	loc_database_lookup_from_string;
@@ -64,10 +65,12 @@ global:
 	loc_writer_add_as;
 	loc_writer_add_network;
 	loc_writer_get_description;
+	loc_writer_get_license;
 	loc_writer_get_vendor;
 	loc_writer_new;
 	loc_writer_ref;
 	loc_writer_set_description;
+	loc_writer_set_license;
 	loc_writer_set_vendor;
 	loc_writer_unref;
 	loc_writer_write;

@@ -80,6 +80,12 @@ static PyObject* Database_get_vendor(DatabaseObject* self) {
 	return PyUnicode_FromString(vendor);
 }
 
+static PyObject* Database_get_license(DatabaseObject* self) {
+	const char* license = loc_database_get_license(self->db);
+
+	return PyUnicode_FromString(license);
+}
+
 static PyObject* Database_get_created_at(DatabaseObject* self) {
 	time_t created_at = loc_database_created_at(self->db);
 
@@ -165,6 +171,13 @@ static struct PyGetSetDef Database_getsetters[] = {
 	{
 		"description",
 		(getter)Database_get_description,
+		NULL,
+		NULL,
+		NULL,
+	},
+	{
+		"license",
+		(getter)Database_get_license,
 		NULL,
 		NULL,
 		NULL,

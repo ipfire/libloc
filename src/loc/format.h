@@ -44,6 +44,9 @@ struct loc_database_header_v0 {
 	// Description of the database
 	uint32_t description;
 
+	// License of the database
+	uint32_t license;
+
 	// Tells us where the ASes start
 	uint32_t as_offset;
 	uint32_t as_length;

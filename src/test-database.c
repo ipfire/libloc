@@ -35,6 +35,7 @@ const char* DESCRIPTION =
 	"tempor felis enim. Integer congue nisi in maximus pretium. "
 	"Pellentesque et turpis elementum, luctus mi at, interdum erat. "
 	"Maecenas ut venenatis nunc.";
+const char* LICENSE = "CC";
 
 int main(int argc, char** argv) {
 	int err;
@@ -79,6 +80,22 @@ int main(int argc, char** argv) {
 		printf("Description is: %s\n", description);
 	} else {
 		fprintf(stderr, "Could not retrieve description\n");
+		exit(EXIT_FAILURE);
+	}
+
+	// Set a license
+	err = loc_writer_set_license(writer, LICENSE);
+	if (err) {
+		fprintf(stderr, "Could not set license\n");
+		exit(EXIT_FAILURE);
+	}
+
+	// Retrieve license
+	const char* license = loc_writer_get_license(writer);
+	if (license) {
+		printf("License is: %s\n", license);
+	} else {
+		fprintf(stderr, "Could not retrieve license\n");
 		exit(EXIT_FAILURE);
 	}
 

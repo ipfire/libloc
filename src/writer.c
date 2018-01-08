@@ -36,6 +36,7 @@ struct loc_writer {
 	struct loc_stringpool* pool;
 	off_t vendor;
 	off_t description;
+	off_t license;
 
 	struct loc_as** as;
 	size_t as_count;
@@ -127,6 +128,20 @@ LOC_EXPORT int loc_writer_set_description(struct loc_writer* writer, const char*
 		return offset;
 
 	writer->description = offset;
+	return 0;
+}
+
+LOC_EXPORT const char* loc_writer_get_license(struct loc_writer* writer) {
+	return loc_stringpool_get(writer->pool, writer->license);
+}
+
+LOC_EXPORT int loc_writer_set_license(struct loc_writer* writer, const char* license) {
+	// Add the string to the string pool
+	off_t offset = loc_stringpool_add(writer->pool, license);
+	if (offset < 0)
+		return offset;
+
+	writer->license = offset;
 	return 0;
 }
 
@@ -401,6 +416,7 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f) {
 	struct loc_database_header_v0 header;
 	header.vendor      = htobe32(writer->vendor);
 	header.description = htobe32(writer->description);
+	header.license     = htobe32(writer->license);
 
 	time_t now = time(NULL);
 	header.created_at = htobe64(now);

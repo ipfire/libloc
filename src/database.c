@@ -44,6 +44,7 @@ struct loc_database {
 	time_t created_at;
 	off_t vendor;
 	off_t description;
+	off_t license;
 
 	// ASes in the database
 	struct loc_database_as_v0* as_v0;
@@ -173,6 +174,7 @@ static int loc_database_read_header_v0(struct loc_database* db, FILE* f) {
 	db->created_at  = be64toh(header.created_at);
 	db->vendor      = be32toh(header.vendor);
 	db->description = be32toh(header.description);
+	db->license     = be32toh(header.license);
 
 	// Open pool
 	off_t pool_offset  = be32toh(header.pool_offset);
@@ -315,6 +317,10 @@ LOC_EXPORT const char* loc_database_get_vendor(struct loc_database* db) {
 
 LOC_EXPORT const char* loc_database_get_description(struct loc_database* db) {
 	return loc_stringpool_get(db->pool, db->description);
+}
+
+LOC_EXPORT const char* loc_database_get_license(struct loc_database* db) {
+	return loc_stringpool_get(db->pool, db->license);
 }
 
 LOC_EXPORT size_t loc_database_count_as(struct loc_database* db) {

@@ -82,6 +82,24 @@ static int Writer_set_description(WriterObject* self, PyObject* value) {
 	return 0;
 }
 
+static PyObject* Writer_get_license(WriterObject* self) {
+	const char* license = loc_writer_get_license(self->writer);
+
+	return PyUnicode_FromString(license);
+}
+
+static int Writer_set_license(WriterObject* self, PyObject* value) {
+	const char* license = PyUnicode_AsUTF8(value);
+
+	int r = loc_writer_set_license(self->writer, license);
+	if (r) {
+		PyErr_Format(PyExc_ValueError, "Could not set license: %s", license);
+		return r;
+	}
+
+	return 0;
+}
+
 static PyObject* Writer_add_as(WriterObject* self, PyObject* args) {
 	struct loc_as* as;
 	uint32_t number = 0;
@@ -169,6 +187,13 @@ static struct PyGetSetDef Writer_getsetters[] = {
 		"description",
 		(getter)Writer_get_description,
 		(setter)Writer_set_description,
+		NULL,
+		NULL,
+	},
+	{
+		"license",
+		(getter)Writer_get_license,
+		(setter)Writer_set_license,
 		NULL,
 		NULL,
 	},

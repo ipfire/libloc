@@ -33,6 +33,7 @@ struct loc_database* loc_database_unref(struct loc_database* db);
 time_t loc_database_created_at(struct loc_database* db);
 const char* loc_database_get_vendor(struct loc_database* db);
 const char* loc_database_get_description(struct loc_database* db);
+const char* loc_database_get_license(struct loc_database* db);
 
 int loc_database_get_as(struct loc_database* db, struct loc_as** as, uint32_t number);
 size_t loc_database_count_as(struct loc_database* db);
