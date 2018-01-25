@@ -29,4 +29,11 @@ typedef struct {
 
 extern PyTypeObject DatabaseType;
 
+typedef struct {
+	PyObject_HEAD
+	struct loc_database_enumerator* enumerator;
+} DatabaseEnumeratorObject;
+
+extern PyTypeObject DatabaseEnumeratorType;
+
 #endif /* PYTHON_LOCATION_DATABASE_H */

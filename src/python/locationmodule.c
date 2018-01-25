@@ -67,6 +67,13 @@ PyMODINIT_FUNC PyInit_location(void) {
 	Py_INCREF(&DatabaseType);
 	PyModule_AddObject(m, "Database", (PyObject *)&DatabaseType);
 
+	// Database Enumerator
+	if (PyType_Ready(&DatabaseEnumeratorType) < 0)
+		return NULL;
+
+	Py_INCREF(&DatabaseEnumeratorType);
+	//PyModule_AddObject(m, "DatabaseEnumerator", (PyObject *)&DatabaseEnumeratorType);
+
 	// Network
 	if (PyType_Ready(&NetworkType) < 0)
 		return NULL;
