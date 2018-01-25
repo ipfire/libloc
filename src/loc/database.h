@@ -43,4 +43,9 @@ int loc_database_lookup(struct loc_database* db,
 int loc_database_lookup_from_string(struct loc_database* db,
 		const char* string, struct loc_network** network);
 
+struct loc_database_enumerator;
+int loc_database_enumerator_new(struct loc_database_enumerator** enumerator, struct loc_database* db);
+struct loc_database_enumerator* loc_database_enumerator_ref(struct loc_database_enumerator* enumerator);
+struct loc_database_enumerator* loc_database_enumerator_unref(struct loc_database_enumerator* enumerator);
+
 #endif

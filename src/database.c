@@ -61,6 +61,12 @@ struct loc_database {
 	struct loc_stringpool* pool;
 };
 
+struct loc_database_enumerator {
+	struct loc_ctx* ctx;
+	struct loc_database* db;
+	int refcount;
+};
+
 static int loc_database_read_magic(struct loc_database* db, FILE* f) {
 	struct loc_database_magic magic;
 
@@ -577,4 +583,49 @@ LOC_EXPORT int loc_database_lookup_from_string(struct loc_database* db,
 		return r;
 
 	return loc_database_lookup(db, &address, network);
+}
+
+// Enumerator
+
+LOC_EXPORT int loc_database_enumerator_new(struct loc_database_enumerator** enumerator, struct loc_database* db) {
+	struct loc_database_enumerator* e = calloc(1, sizeof(*e));
+	if (!e)
+		return -ENOMEM;
+
+	// Reference context
+	e->ctx = loc_ref(db->ctx);
+	e->db = loc_database_ref(db);
+	e->refcount = 1;
+
+	DEBUG(e->ctx, "Database enumerator object allocated at %p\n", e);
+
+	*enumerator = e;
+	return 0;
+}
+
+LOC_EXPORT struct loc_database_enumerator* loc_database_enumerator_ref(struct loc_database_enumerator* enumerator) {
+	enumerator->refcount++;
+
+	return enumerator;
+}
+
+static void loc_database_enumerator_free(struct loc_database_enumerator* enumerator) {
+	DEBUG(enumerator->ctx, "Releasing database enumerator %p\n", enumerator);
+
+	// Release all references
+	loc_database_unref(enumerator->db);
+	loc_unref(enumerator->ctx);
+
+	free(enumerator);
+}
+
+LOC_EXPORT struct loc_database_enumerator* loc_database_enumerator_unref(struct loc_database_enumerator* enumerator) {
+	if (!enumerator)
+		return NULL;
+
+	if (--enumerator->refcount > 0)
+		return enumerator;
+
+	loc_database_enumerator_free(enumerator);
+	return NULL;
 }
