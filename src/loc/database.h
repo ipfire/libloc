@@ -48,4 +48,7 @@ int loc_database_enumerator_new(struct loc_database_enumerator** enumerator, str
 struct loc_database_enumerator* loc_database_enumerator_ref(struct loc_database_enumerator* enumerator);
 struct loc_database_enumerator* loc_database_enumerator_unref(struct loc_database_enumerator* enumerator);
 
+int loc_database_enumerator_set_string(struct loc_database_enumerator* enumerator, const char* string);
+struct loc_as* loc_database_enumerator_next_as(struct loc_database_enumerator* enumerator);
+
 #endif

@@ -42,6 +42,8 @@ int loc_as_new_from_database_v0(struct loc_ctx* ctx, struct loc_stringpool* pool
 int loc_as_to_database_v0(struct loc_as* as, struct loc_stringpool* pool,
 		struct loc_database_as_v0* dbobj);
 
+int loc_as_match_string(struct loc_as* as, const char* string);
+
 #endif
 
 #endif

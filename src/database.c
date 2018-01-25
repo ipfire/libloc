@@ -15,6 +15,7 @@
 */
 
 #include <arpa/inet.h>
+#include <ctype.h>
 #include <endian.h>
 #include <errno.h>
 #include <netinet/in.h>
@@ -65,6 +66,12 @@ struct loc_database_enumerator {
 	struct loc_ctx* ctx;
 	struct loc_database* db;
 	int refcount;
+
+	// Search string
+	char* string;
+
+	// Index of the AS we are looking at
+	unsigned int as_index;
 };
 
 static int loc_database_read_magic(struct loc_database* db, FILE* f) {
@@ -616,6 +623,9 @@ static void loc_database_enumerator_free(struct loc_database_enumerator* enumera
 	loc_database_unref(enumerator->db);
 	loc_unref(enumerator->ctx);
 
+	if (enumerator->string)
+		free(enumerator->string);
+
 	free(enumerator);
 }
 
@@ -627,5 +637,44 @@ LOC_EXPORT struct loc_database_enumerator* loc_database_enumerator_unref(struct 
 		return enumerator;
 
 	loc_database_enumerator_free(enumerator);
+	return NULL;
+}
+
+LOC_EXPORT int loc_database_enumerator_set_string(struct loc_database_enumerator* enumerator, const char* string) {
+	enumerator->string = strdup(string);
+
+	// Make the string lowercase
+	for (char *p = enumerator->string; *p; p++)
+		*p = tolower(*p);
+
+	return 0;
+}
+
+LOC_EXPORT struct loc_as* loc_database_enumerator_next_as(struct loc_database_enumerator* enumerator) {
+	struct loc_database* db = enumerator->db;
+	struct loc_as* as;
+
+	while (enumerator->as_index < db->as_count) {
+		// Fetch the next AS
+		int r = loc_database_fetch_as(db, &as, enumerator->as_index++);
+		if (r)
+			return NULL;
+
+		r = loc_as_match_string(as, enumerator->string);
+		if (r == 0) {
+			DEBUG(enumerator->ctx, "AS%d (%s) matches %s\n",
+				loc_as_get_number(as), loc_as_get_name(as), enumerator->string);
+
+			return as;
+		}
+
+		// No match
+		loc_as_unref(as);
+	}
+
+	// Reset the index
+	enumerator->as_index = 0;
+
+	// We have searched through all of them
 	return NULL;
 }

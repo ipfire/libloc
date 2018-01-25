@@ -95,6 +95,25 @@ int main(int argc, char** argv) {
 		loc_as_unref(as);
 	}
 
+	// Enumerator
+
+	struct loc_database_enumerator* enumerator;
+	err = loc_database_enumerator_new(&enumerator, db);
+	if (err) {
+		fprintf(stderr, "Could not create a database enumerator\n");
+		exit(EXIT_FAILURE);
+	}
+
+	loc_database_enumerator_set_string(enumerator, "10");
+
+	as = loc_database_enumerator_next_as(enumerator);
+	while (as) {
+		printf("Found AS%d: %s\n", loc_as_get_number(as), loc_as_get_name(as));
+
+		as = loc_database_enumerator_next_as(enumerator);
+	}
+
+	loc_database_enumerator_unref(enumerator);
 	loc_database_unref(db);
 	loc_unref(ctx);
 

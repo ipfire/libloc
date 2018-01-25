@@ -14,6 +14,7 @@
 	Lesser General Public License for more details.
 */
 
+#include <ctype.h>
 #include <endian.h>
 #include <errno.h>
 #include <stdint.h>
@@ -127,4 +128,21 @@ int loc_as_to_database_v0(struct loc_as* as, struct loc_stringpool* pool,
 	dbobj->name = htobe32(name);
 
 	return 0;
+}
+
+int loc_as_match_string(struct loc_as* as, const char* string) {
+	int r = 1;
+
+	char* name = strdup(as->name);
+
+	// Convert string to lowercase
+	for (char* p = name; *p; p++)
+		*p = tolower(*p);
+
+	// Search if string is in name
+	if (strstr(as->name, string) != NULL)
+		r = 0;
+
+	free(name);
+	return r;
 }
