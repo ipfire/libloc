@@ -450,12 +450,10 @@ static int __loc_database_lookup_handle_leaf(struct loc_database* db, const stru
 	// Fetch the network
 	int r = loc_database_fetch_network(db, network,
 		network_address, prefix, network_index);
-	if (r)
+	if (r) {
+		ERROR(db->ctx, "Could not fetch network %jd from database\n", network_index);
 		return r;
-
-	char* s = loc_network_str(*network);
-	DEBUG(db->ctx, "Got network %s\n", s);
-	free(s);
+	}
 
 	// Check if the given IP address is inside the network
 	r = loc_network_match_address(*network, address);
