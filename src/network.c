@@ -59,7 +59,7 @@ static struct in6_addr prefix_to_bitmask(unsigned int prefix) {
 	for (unsigned int i = 0; i < 16; i++)
 		bitmask.s6_addr[i] = 0;
 
-	for (unsigned int i = prefix, j = 0; i > 0; i -= 8, j++) {
+	for (int i = prefix, j = 0; i > 0; i -= 8, j++) {
 		if (i >= 8)
 			bitmask.s6_addr[j] = 0xff;
 		else
