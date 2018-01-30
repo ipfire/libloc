@@ -349,6 +349,9 @@ static int loc_database_write_networks(struct loc_writer* writer,
 		}
 
 		// Prepare what we are writing to disk
+		db_node.zero = htobe32(node->index_zero);
+		db_node.one  = htobe32(node->index_one);
+
 		if (loc_network_tree_node_is_leaf(node->node)) {
 			struct loc_network* network = loc_network_tree_node_get_network(node->node);
 
@@ -356,13 +359,10 @@ static int loc_database_write_networks(struct loc_writer* writer,
 			struct network* nw = make_network(network);
 			TAILQ_INSERT_TAIL(&networks, nw, networks);
 
-			db_node.zero = htobe32(0xffffffff);
-			db_node.one  = htobe32(network_index++);
-
+			db_node.network = htobe32(network_index++);
 			loc_network_unref(network);
 		} else {
-			db_node.zero = htobe32(node->index_zero);
-			db_node.one  = htobe32(node->index_one);
+			db_node.network = htobe32(0xffffffff);
 		}
 
 		// Write the current node

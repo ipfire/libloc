@@ -42,7 +42,7 @@ int loc_network_set_asn(struct loc_network* network, uint32_t asn);
 
 int loc_network_to_database_v0(struct loc_network* network, struct loc_database_network_v0* dbobj);
 int loc_network_new_from_database_v0(struct loc_ctx* ctx, struct loc_network** network,
-		struct in6_addr* address, const struct loc_database_network_v0* dbobj);
+		struct in6_addr* address, unsigned int prefix, const struct loc_database_network_v0* dbobj);
 
 struct loc_network_tree;
 int loc_network_tree_new(struct loc_ctx* ctx, struct loc_network_tree** tree);

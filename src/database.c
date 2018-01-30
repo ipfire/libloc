@@ -409,7 +409,8 @@ LOC_EXPORT int loc_database_get_as(struct loc_database* db, struct loc_as** as, 
 }
 
 // Returns the network at position pos
-static int loc_database_fetch_network(struct loc_database* db, struct loc_network** network, struct in6_addr* address, off_t pos) {
+static int loc_database_fetch_network(struct loc_database* db, struct loc_network** network,
+		struct in6_addr* address, unsigned int prefix, off_t pos) {
 	if ((size_t)pos >= db->networks_count)
 		return -EINVAL;
 
@@ -418,7 +419,8 @@ static int loc_database_fetch_network(struct loc_database* db, struct loc_networ
 	int r;
 	switch (db->version) {
 		case 0:
-			r = loc_network_new_from_database_v0(db->ctx, network, address, db->networks_v0 + pos);
+			r = loc_network_new_from_database_v0(db->ctx, network,
+				address, prefix, db->networks_v0 + pos);
 			break;
 
 		default:
@@ -435,19 +437,25 @@ static int loc_database_fetch_network(struct loc_database* db, struct loc_networ
 }
 
 static int __loc_database_node_is_leaf(const struct loc_database_network_node_v0* node) {
-	return (node->zero == htobe32(0xffffffff));
+	return (node->network != htobe32(0xffffffff));
 }
 
 static int __loc_database_lookup_handle_leaf(struct loc_database* db, const struct in6_addr* address,
-		struct loc_network** network, struct in6_addr* network_address,
+		struct loc_network** network, struct in6_addr* network_address, unsigned int prefix,
 		const struct loc_database_network_node_v0* node) {
-	DEBUG(db->ctx, "Handling leaf node at %jd\n", node - db->network_nodes_v0);
+	off_t network_index = be32toh(node->network);
+
+	DEBUG(db->ctx, "Handling leaf node at %jd (%jd)\n", node - db->network_nodes_v0, network_index);
 
 	// Fetch the network
 	int r = loc_database_fetch_network(db, network,
-		network_address, be32toh(node->one));
+		network_address, prefix, network_index);
 	if (r)
 		return r;
+
+	char* s = loc_network_str(*network);
+	DEBUG(db->ctx, "Got network %s\n", s);
+	free(s);
 
 	// Check if the given IP address is inside the network
 	r = loc_network_match_address(*network, address);
@@ -467,12 +475,15 @@ static int __loc_database_lookup_handle_leaf(struct loc_database* db, const stru
 static int __loc_database_lookup_max(struct loc_database* db, const struct in6_addr* address,
 		struct loc_network** network, struct in6_addr* network_address,
 		const struct loc_database_network_node_v0* node, unsigned int level) {
-	// If the node is a leaf node, we end here
-	if (__loc_database_node_is_leaf(node))
-		return __loc_database_lookup_handle_leaf(db, address, network, network_address, node);
-
 	int r;
 	off_t node_index;
+
+	// If the node is a leaf node, we end here
+	if (__loc_database_node_is_leaf(node)) {
+		r = __loc_database_lookup_handle_leaf(db, address, network, network_address, level, node);
+		if (r <= 0)
+			return r;
+	}
 
 	// Try to go down the ones path first
 	if (node->one) {
@@ -515,12 +526,15 @@ static int __loc_database_lookup_max(struct loc_database* db, const struct in6_a
 static int __loc_database_lookup(struct loc_database* db, const struct in6_addr* address,
 		struct loc_network** network, struct in6_addr* network_address,
 		const struct loc_database_network_node_v0* node, unsigned int level) {
-	// If the node is a leaf node, we end here
-	if (__loc_database_node_is_leaf(node))
-		return __loc_database_lookup_handle_leaf(db, address, network, network_address, node);
-
 	int r;
 	off_t node_index;
+
+	// If the node is a leaf node, we end here
+	if (__loc_database_node_is_leaf(node)) {
+		r = __loc_database_lookup_handle_leaf(db, address, network, network_address, level, node);
+		if (r <= 0)
+			return r;
+	}
 
 	// Follow the path
 	int bit = in6_addr_get_bit(address, level);

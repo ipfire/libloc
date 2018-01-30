@@ -316,8 +316,6 @@ LOC_EXPORT int loc_network_set_asn(struct loc_network* network, uint32_t asn) {
 }
 
 LOC_EXPORT int loc_network_to_database_v0(struct loc_network* network, struct loc_database_network_v0* dbobj) {
-	dbobj->prefix = network->prefix;
-
 	// Add country code
 	for (unsigned int i = 0; i < 2; i++) {
 		dbobj->country_code[i] = network->country_code ? network->country_code[i] : '\0';
@@ -330,8 +328,8 @@ LOC_EXPORT int loc_network_to_database_v0(struct loc_network* network, struct lo
 }
 
 LOC_EXPORT int loc_network_new_from_database_v0(struct loc_ctx* ctx, struct loc_network** network,
-		struct in6_addr* address, const struct loc_database_network_v0* dbobj) {
-	int r = loc_network_new(ctx, network, address, dbobj->prefix);
+		struct in6_addr* address, unsigned int prefix, const struct loc_database_network_v0* dbobj) {
+	int r = loc_network_new(ctx, network, address, prefix);
 	if (r)
 		return r;
 
@@ -413,10 +411,10 @@ static struct loc_network_tree_node* loc_network_tree_get_node(struct loc_networ
 	return *n;
 }
 
-static struct loc_network_tree_node* loc_network_tree_get_path(struct loc_network_tree* tree, const struct in6_addr* address) {
+static struct loc_network_tree_node* loc_network_tree_get_path(struct loc_network_tree* tree, const struct in6_addr* address, unsigned int prefix) {
 	struct loc_network_tree_node* node = tree->root;
 
-	for (unsigned int i = 0; i < 128; i++) {
+	for (unsigned int i = 0; i < prefix; i++) {
 		// Check if the ith bit is one or zero
 		node = loc_network_tree_get_node(node, in6_addr_get_bit(address, i));
 	}
@@ -508,7 +506,8 @@ LOC_EXPORT int loc_network_tree_dump(struct loc_network_tree* tree) {
 LOC_EXPORT int loc_network_tree_add_network(struct loc_network_tree* tree, struct loc_network* network) {
 	DEBUG(tree->ctx, "Adding network %p to tree %p\n", network, tree);
 
-	struct loc_network_tree_node* node = loc_network_tree_get_path(tree, &network->start_address);
+	struct loc_network_tree_node* node = loc_network_tree_get_path(tree,
+			&network->start_address, network->prefix);
 	if (!node) {
 		ERROR(tree->ctx, "Could not find a node\n");
 		return -ENOMEM;
