@@ -288,6 +288,12 @@ LOC_EXPORT const char* loc_network_get_country_code(struct loc_network* network)
 }
 
 LOC_EXPORT int loc_network_set_country_code(struct loc_network* network, const char* country_code) {
+	// Set empty country code
+	if (!country_code || !*country_code) {
+		*network->country_code = '\0';
+		return 0;
+	}
+
 	// Country codes must be two characters
 	if (strlen(country_code) != 2)
 		return -EINVAL;
