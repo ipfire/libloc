@@ -83,7 +83,8 @@ static int Network_set_country_code(NetworkObject* self, PyObject* value) {
 	int r = loc_network_set_country_code(self->network, country_code);
 	if (r) {
 		if (r == -EINVAL)
-			PyErr_SetString(PyExc_ValueError, "Invalid country code");
+			PyErr_Format(PyExc_ValueError,
+				"Invalid country code: %s", country_code);
 
 		return -1;
 	}
