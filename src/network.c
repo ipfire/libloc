@@ -511,7 +511,7 @@ LOC_EXPORT int loc_network_tree_add_network(struct loc_network_tree* tree, struc
 	// Check if node has not been set before
 	if (node->network) {
 		DEBUG(tree->ctx, "There is already a network at this path\n");
-		return 1;
+		return -EBUSY;
 	}
 
 	// Point node to the network

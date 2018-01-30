@@ -128,8 +128,15 @@ static PyObject* Writer_add_network(WriterObject* self, PyObject* args) {
 	// Create network object
 	int r = loc_writer_add_network(self->writer, &network, string);
 	if (r) {
-		if (r == -EINVAL)
-			PyErr_SetString(PyExc_ValueError, "Invalid network");
+		switch (r) {
+			case -EINVAL:
+				PyErr_SetString(PyExc_ValueError, "Invalid network");
+				break;
+
+			case -EBUSY:
+				PyErr_SetString(PyExc_IndexError, "A network already exists here");
+				break;
+		}
 
 		return NULL;
 	}
