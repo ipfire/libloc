@@ -527,13 +527,6 @@ static int __loc_database_lookup(struct loc_database* db, const struct in6_addr*
 	int r;
 	off_t node_index;
 
-	// If the node is a leaf node, we end here
-	if (__loc_database_node_is_leaf(node)) {
-		r = __loc_database_lookup_handle_leaf(db, address, network, network_address, level, node);
-		if (r <= 0)
-			return r;
-	}
-
 	// Follow the path
 	int bit = in6_addr_get_bit(address, level);
 	in6_addr_set_bit(network_address, level, bit);
@@ -543,27 +536,32 @@ static int __loc_database_lookup(struct loc_database* db, const struct in6_addr*
 	else
 		node_index = be32toh(node->one);
 
-	// If we point back to root, the path ends here
-	if (node_index == 0) {
-		DEBUG(db->ctx, "Tree ends here\n");
-		return 1;
+	// If the node index is zero, the tree ends here
+	// and we cannot descend any further
+	if (node_index > 0) {
+		// Check boundaries
+		if ((size_t)node_index >= db->network_nodes_count)
+			return -EINVAL;
+
+		// Move on to the next node
+		r = __loc_database_lookup(db, address, network, network_address,
+			db->network_nodes_v0 + node_index, level + 1);
+
+		// End here if a result was found
+		if (r == 0)
+			return r;
+
+		// Raise any errors
+		else if (r < 0)
+			return r;
 	}
 
-	// Check boundaries
-	if ((size_t)node_index >= db->network_nodes_count)
-		return -EINVAL;
-
-	// Move on to the next node
-	r = __loc_database_lookup(db, address, network, network_address,
-		db->network_nodes_v0 + node_index, level + 1);
-
-	// End here if a result was found
-	if (r == 0)
-		return r;
-
-	// Raise any errors
-	else if (r < 0)
-		return r;
+	// If this node has a leaf, we will check if it matches
+	if (__loc_database_node_is_leaf(node)) {
+		r = __loc_database_lookup_handle_leaf(db, address, network, network_address, level, node);
+		if (r <= 0)
+			return r;
+	}
 
 	DEBUG(db->ctx, "Could not find an exact match at %u\n", level);
 
