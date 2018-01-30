@@ -276,7 +276,7 @@ LOC_EXPORT int loc_network_match_address(struct loc_network* network, const stru
 	struct in6_addr last_address = make_last_address(&network->start_address, network->prefix);
 
 	// Address must be smaller than the last address
-	if (in6_addr_cmp(&last_address, address) > 0)
+	if (in6_addr_cmp(address, &last_address) > 0)
 		return 1;
 
 	// The address is inside this network
