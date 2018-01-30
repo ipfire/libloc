@@ -58,7 +58,15 @@ void loc_log(struct loc_ctx *ctx,
 	const char *format, ...) __attribute__((format(printf, 6, 7)));
 
 static inline int in6_addr_cmp(const struct in6_addr* a1, const struct in6_addr* a2) {
-	return memcmp(&a1->s6_addr, &a2->s6_addr, sizeof(a1->s6_addr));
+	for (unsigned int i = 0; i < 16; i++) {
+		if (a1->s6_addr[i] > a2->s6_addr[i])
+			return 1;
+
+		else if (a1->s6_addr[i] < a2->s6_addr[i])
+			return -1;
+	}
+
+	return 0;
 }
 
 static inline int in6_addr_get_bit(const struct in6_addr* address, unsigned int i) {
