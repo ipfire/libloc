@@ -469,57 +469,6 @@ static int __loc_database_lookup_handle_leaf(struct loc_database* db, const stru
 	return 0;
 }
 
-// Returns the highest result available
-static int __loc_database_lookup_max(struct loc_database* db, const struct in6_addr* address,
-		struct loc_network** network, struct in6_addr* network_address,
-		const struct loc_database_network_node_v0* node, unsigned int level) {
-	int r;
-	off_t node_index;
-
-	// If the node is a leaf node, we end here
-	if (__loc_database_node_is_leaf(node)) {
-		r = __loc_database_lookup_handle_leaf(db, address, network, network_address, level, node);
-		if (r <= 0)
-			return r;
-	}
-
-	// Try to go down the ones path first
-	if (node->one) {
-		node_index = be32toh(node->one);
-		in6_addr_set_bit(network_address, level, 1);
-
-		// Check boundaries
-		if (node_index > 0 && (size_t)node_index <= db->network_nodes_count) {
-			r = __loc_database_lookup_max(db, address, network, network_address,
-				db->network_nodes_v0 + node_index, level + 1);
-
-			// Abort when match was found or error
-			if (r <= 0)
-				return r;
-		}
-	}
-
-	// ... and if that fails, we try to go down one step on a zero
-	// branch and then try the ones again...
-	if (node->zero) {
-		node_index = be32toh(node->zero);
-		in6_addr_set_bit(network_address, level, 0);
-
-		// Check boundaries
-		if (node_index > 0 && (size_t)node_index <= db->network_nodes_count) {
-			r = __loc_database_lookup_max(db, address, network, network_address,
-				db->network_nodes_v0 + node_index, level + 1);
-
-			// Abort when match was found or error
-			if (r <= 0)
-				return r;
-		}
-	}
-
-	// End of path
-	return 1;
-}
-
 // Searches for an exact match along the path
 static int __loc_database_lookup(struct loc_database* db, const struct in6_addr* address,
 		struct loc_network** network, struct in6_addr* network_address,
@@ -554,6 +503,10 @@ static int __loc_database_lookup(struct loc_database* db, const struct in6_addr*
 		// Raise any errors
 		else if (r < 0)
 			return r;
+
+		DEBUG(db->ctx, "No match found below level %u\n", level);
+	} else {
+		DEBUG(db->ctx, "Tree ended at level %u\n", level);
 	}
 
 	// If this node has a leaf, we will check if it matches
@@ -563,10 +516,7 @@ static int __loc_database_lookup(struct loc_database* db, const struct in6_addr*
 			return r;
 	}
 
-	DEBUG(db->ctx, "Could not find an exact match at %u\n", level);
-
-	// If nothing was found, we have to search for an inexact match
-	return __loc_database_lookup_max(db, address, network, network_address, node, level);
+	return 1;
 }
 
 LOC_EXPORT int loc_database_lookup(struct loc_database* db,
