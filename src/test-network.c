@@ -155,18 +155,18 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	// Lookup an exact match
+	// Lookup an address in the subnet
 	err = loc_database_lookup_from_string(db, "2001:db8::", &network1);
 	if (err) {
-		fprintf(stderr, "Could not look up the given IP address\n");
+		fprintf(stderr, "Could not look up 2001:db8::\n");
 		exit(EXIT_FAILURE);
 	}
 	loc_network_unref(network1);
 
-	// Lookup a non-exact match
+	// Lookup an address outside the subnet
 	err = loc_database_lookup_from_string(db, "2001:db8:fffe:1::", &network1);
-	if (err) {
-		fprintf(stderr, "Could not look up the given IP address\n");
+	if (err == 0) {
+		fprintf(stderr, "Could look up 2001:db8:fffe:1::, but I shouldn't\n");
 		exit(EXIT_FAILURE);
 	}
 	loc_network_unref(network1);
