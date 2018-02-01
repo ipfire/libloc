@@ -65,6 +65,13 @@ class CLI(object):
 		get_as.add_argument("asn", nargs="+")
 		get_as.set_defaults(func=self.handle_get_as)
 
+		# Search for AS
+		search_as = subparsers.add_parser("search-as",
+			help=_("Search for Autonomous Systems that match the string"),
+		)
+		search_as.add_argument("query", nargs=1)
+		search_as.set_defaults(func=self.handle_search_as)
+
 		return parser.parse_args()
 
 	def run(self):
@@ -147,6 +154,12 @@ class CLI(object):
 			print(_("AS%(asn)s belongs to %(name)s") % { "asn" : a.number, "name" : a.name })
 
 		return ret
+
+	def handle_search_as(self, ns):
+		for query in ns.query:
+			# Print all matches ASes
+			for a in self.db.search_as(query):
+				print(a)
 
 def main():
 	# Run the command line interface
