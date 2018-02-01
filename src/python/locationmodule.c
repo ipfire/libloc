@@ -15,6 +15,7 @@
 */
 
 #include <Python.h>
+#include <syslog.h>
 
 #include "locationmodule.h"
 #include "as.h"
@@ -30,7 +31,24 @@ static void location_free(void) {
 		loc_unref(loc_ctx);
 }
 
+static PyObject* set_log_level(PyObject* m, PyObject* args) {
+	int priority = LOG_INFO;
+
+	if (!PyArg_ParseTuple(args, "i", &priority))
+		return NULL;
+
+	loc_set_log_priority(loc_ctx, priority);
+
+	Py_RETURN_NONE;
+}
+
 static PyMethodDef location_module_methods[] = {
+	{
+		"set_log_level",
+		(PyCFunction)set_log_level,
+		METH_VARARGS,
+		NULL,
+	},
 	{ NULL },
 };
 
