@@ -3,6 +3,8 @@ CLEANFILES =
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 AM_MAKEFLAGS = --no-print-directory
 
+SUBDIRS = . po
+
 AM_CPPFLAGS = \
 	-include $(top_builddir)/config.h \
 	-DSYSCONFDIR=\""$(sysconfdir)"\" \
@@ -35,6 +37,12 @@ pkgconfigdir = $(libdir)/pkgconfig
 
 %: %.in Makefile
 	$(SED_PROCESS)
+
+@INTLTOOL_POLICY_RULE@
+
+.PHONY: update-po
+update-po:
+	$(MAKE) -C po update-po
 
 EXTRA_DIST += \
 	examples/python/create-database.py \

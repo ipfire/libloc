@@ -8,6 +8,7 @@ if [ -f .git/hooks/pre-commit.sample -a ! -f .git/hooks/pre-commit ] ; then
         echo "Activated pre-commit hook."
 fi
 
+intltoolize --force --automake
 autoreconf --install --symlink
 
 libdir() {

@@ -18,6 +18,7 @@
 ###############################################################################
 
 import argparse
+import gettext
 import sys
 import syslog
 
@@ -25,7 +26,11 @@ import syslog
 import location
 
 # i18n
-_ = lambda x: x
+def _(singular, plural=None, n=None):
+	if plural:
+		return gettext.dngettext("libloc", singular, plural, n)
+
+	return gettext.dgettext("libloc", singular)
 
 class CLI(object):
 	def __init__(self):

@@ -1,0 +1,6 @@
+/POTFILES
+/Makefile.in.in
+/.intltool-merge-cache
+/Makefile
+/stamp-it
+*.pot
