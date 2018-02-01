@@ -71,6 +71,15 @@ static PyObject* Network_repr(NetworkObject* self) {
 	return obj;
 }
 
+static PyObject* Network_str(NetworkObject* self) {
+	char* network = loc_network_str(self->network);
+
+	PyObject* obj = PyUnicode_FromString(network);
+	free(network);
+
+	return obj;
+}
+
 static PyObject* Network_get_country_code(NetworkObject* self) {
 	const char* country_code = loc_network_get_country_code(self->network);
 
@@ -146,4 +155,5 @@ PyTypeObject NetworkType = {
 	tp_doc:                 "Network object",
 	tp_getset:              Network_getsetters,
 	tp_repr:                (reprfunc)Network_repr,
+	tp_str:                 (reprfunc)Network_str,
 };

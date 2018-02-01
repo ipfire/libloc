@@ -68,6 +68,16 @@ static PyObject* AS_repr(ASObject* self) {
 	return PyUnicode_FromFormat("<AS %d>", number);
 }
 
+static PyObject* AS_str(ASObject* self) {
+	uint32_t number = loc_as_get_number(self->as);
+	const char* name = loc_as_get_name(self->as);
+
+	if (name)
+		return PyUnicode_FromFormat("AS%d (%s)", number, name);
+
+	return PyUnicode_FromFormat("AS%d", number);
+}
+
 static PyObject* AS_get_number(ASObject* self) {
 	uint32_t number = loc_as_get_number(self->as);
 
@@ -144,5 +154,6 @@ PyTypeObject ASType = {
 	tp_doc:                 "AS object",
 	tp_getset:              AS_getsetters,
 	tp_repr:                (reprfunc)AS_repr,
+	tp_str:                 (reprfunc)AS_str,
 	tp_richcompare:         (richcmpfunc)AS_richcompare,
 };

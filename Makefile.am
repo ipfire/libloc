@@ -112,6 +112,9 @@ src_python_location_la_LIBADD = \
 	src/libloc.la \
 	$(PYTHON_LIBS)
 
+bin_SCRIPTS = \
+	src/python/location-query
+
 TESTS_CFLAGS = \
 	$(AM_CFLAGS) \
 	-DLIBLOC_PRIVATE

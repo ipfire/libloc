@@ -1,0 +1,114 @@
+#!/usr/bin/python3
+###############################################################################
+#                                                                             #
+# libloc - A library to determine the location of someone on the Internet     #
+#                                                                             #
+# Copyright (C) 2017 IPFire Development Team <info@ipfire.org>                #
+#                                                                             #
+# This library is free software; you can redistribute it and/or               #
+# modify it under the terms of the GNU Lesser General Public                  #
+# License as published by the Free Software Foundation; either                #
+# version 2.1 of the License, or (at your option) any later version.          #
+#                                                                             #
+# This library is distributed in the hope that it will be useful,             #
+# but WITHOUT ANY WARRANTY; without even the implied warranty of              #
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU           #
+# Lesser General Public License for more details.                             #
+#                                                                             #
+###############################################################################
+
+import argparse
+import sys
+import syslog
+
+# Load our location module
+import location
+
+# i18n
+_ = lambda x: x
+
+class CLI(object):
+	def __init__(self):
+		# Open database
+		self.db = location.Database("test.db")
+
+	def parse_cli(self):
+		parser = argparse.ArgumentParser(
+			description=_("Location Database Command Line Interface"),
+		)
+		subparsers = parser.add_subparsers()
+
+		# Global configuration flags
+		parser.add_argument("--debug", action="store_true",
+			help=_("Enable debug output"))
+
+		# lookup an IP address
+		lookup = subparsers.add_parser("lookup",
+			help=_("Lookup one or multiple IP addresses"),
+		)
+		lookup.add_argument("address", nargs="+")
+		lookup.set_defaults(func=self.handle_lookup)
+
+		return parser.parse_args()
+
+	def run(self):
+		# Parse command line arguments
+		args = self.parse_cli()
+
+		# Callback function must be defined
+		assert args.func, "Callback function not defined"
+
+		# Call function
+		ret = args.func(args)
+
+		# Return with exit code
+		if ret:
+			sys.exit(ret)
+
+		# Otherwise just exit
+		sys.exit(0)
+
+	def handle_lookup(self, ns):
+		ret = 0
+
+		for address in ns.address:
+			try:
+				n = self.db.lookup(address)
+			except ValueError:
+				sys.stderr.write(_("Invalid IP address: %s") % address)
+
+			args = {
+				"address" : address,
+				"network" : n,
+			}
+
+			# Nothing found?
+			if not n:
+				print(_("Nothing found for %(address)s") % args)
+				ret = 1
+				continue
+
+			# Try to retrieve the AS if we have an AS number
+			if n.asn:
+				a = self.db.get_as(n.asn)
+
+				# If we have found an AS we will print it in the message
+				if a:
+					args.update({
+						"as" : a,
+					})
+
+					print(_("%(address)s belongs to %(network)s which is a part of %(as)s") % args)
+					continue
+
+			print(_("%(address)s belongs to %(network)s") % args)
+
+		return ret
+
+
+def main():
+	# Run the command line interface
+	c = CLI()
+	c.run()
+
+main()
