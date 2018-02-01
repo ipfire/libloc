@@ -58,6 +58,13 @@ class CLI(object):
 		lookup.add_argument("address", nargs="+")
 		lookup.set_defaults(func=self.handle_lookup)
 
+		# Get AS
+		get_as = subparsers.add_parser("get-as",
+			help=_("Get information about one or multiple Autonomous Systems"),
+		)
+		get_as.add_argument("asn", nargs="+")
+		get_as.set_defaults(func=self.handle_get_as)
+
 		return parser.parse_args()
 
 	def run(self):
@@ -114,6 +121,32 @@ class CLI(object):
 
 		return ret
 
+	def handle_get_as(self, ns):
+		"""
+			Gets information about Autonomous Systems
+		"""
+		ret = 0
+
+		for asn in ns.asn:
+			try:
+				asn = int(asn)
+			except ValueError:
+				sys.stderr.write("Invalid ASN: %s" %asn)
+				ret = 1
+				continue
+
+			# Fetch AS from database
+			a = self.db.get_as(asn)
+
+			# Nothing found
+			if not a:
+				print(_("Could not find AS%s") % asn)
+				ret = 1
+				continue
+
+			print(_("AS%(asn)s belongs to %(name)s") % { "asn" : a.number, "name" : a.name })
+
+		return ret
 
 def main():
 	# Run the command line interface
