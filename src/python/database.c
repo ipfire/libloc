@@ -50,8 +50,10 @@ static int Database_init(DatabaseObject* self, PyObject* args, PyObject* kwargs)
 
 	// Open the file for reading
 	FILE* f = fopen(self->path, "r");
-	if (!f)
+	if (!f) {
+		PyErr_SetFromErrno(PyExc_IOError);
 		return -1;
+	}
 
 	// Load the database
 	int r = loc_database_new(loc_ctx, &self->db, f);
