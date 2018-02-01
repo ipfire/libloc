@@ -131,18 +131,9 @@ int loc_as_to_database_v0(struct loc_as* as, struct loc_stringpool* pool,
 }
 
 int loc_as_match_string(struct loc_as* as, const char* string) {
-	int r = 1;
-
-	char* name = strdup(as->name);
-
-	// Convert string to lowercase
-	for (char* p = name; *p; p++)
-		*p = tolower(*p);
-
 	// Search if string is in name
-	if (strstr(as->name, string) != NULL)
-		r = 0;
+	if (strcasestr(as->name, string) != NULL)
+		return 1;
 
-	free(name);
-	return r;
+	return 0;
 }

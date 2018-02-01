@@ -621,7 +621,7 @@ LOC_EXPORT struct loc_as* loc_database_enumerator_next_as(struct loc_database_en
 			return NULL;
 
 		r = loc_as_match_string(as, enumerator->string);
-		if (r == 0) {
+		if (r == 1) {
 			DEBUG(enumerator->ctx, "AS%d (%s) matches %s\n",
 				loc_as_get_number(as), loc_as_get_name(as), enumerator->string);
 
