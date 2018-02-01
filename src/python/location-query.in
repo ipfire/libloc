@@ -98,7 +98,7 @@ class CLI(object):
 			try:
 				n = self.db.lookup(address)
 			except ValueError:
-				sys.stderr.write(_("Invalid IP address: %s") % address)
+				print(_("Invalid IP address: %s") % address, file=sys.stderr)
 
 			args = {
 				"address" : address,
@@ -107,7 +107,7 @@ class CLI(object):
 
 			# Nothing found?
 			if not n:
-				print(_("Nothing found for %(address)s") % args)
+				print(_("Nothing found for %(address)s") % args, file=sys.stderr)
 				ret = 1
 				continue
 
@@ -138,7 +138,7 @@ class CLI(object):
 			try:
 				asn = int(asn)
 			except ValueError:
-				sys.stderr.write("Invalid ASN: %s" %asn)
+				print(_("Invalid ASN: %s") % asn, file=sys.stderr)
 				ret = 1
 				continue
 
@@ -147,7 +147,7 @@ class CLI(object):
 
 			# Nothing found
 			if not a:
-				print(_("Could not find AS%s") % asn)
+				print(_("Could not find AS%s") % asn, file=sys.stderr)
 				ret = 1
 				continue
 
