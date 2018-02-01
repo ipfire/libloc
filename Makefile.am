@@ -27,11 +27,13 @@ SED_PROCESS = \
 	-e 's,@exec_prefix\@,$(exec_prefix),g' \
 	-e 's,@libdir\@,$(libdir),g' \
 	-e 's,@includedir\@,$(includedir),g' \
+	-e 's,@databasedir\@,$(databasedir),g' \
 	< $< > $@ || rm $@
 
+databasedir = $(datadir)/location
 pkgconfigdir = $(libdir)/pkgconfig
 
-%.pc: %.pc.in Makefile
+%: %.in Makefile
 	$(SED_PROCESS)
 
 EXTRA_DIST += \
@@ -113,6 +115,12 @@ src_python_location_la_LIBADD = \
 	$(PYTHON_LIBS)
 
 bin_SCRIPTS = \
+	src/python/location-query
+
+EXTRA_DIST += \
+	src/python/location-query.in
+
+CLEANFILES += \
 	src/python/location-query
 
 TESTS_CFLAGS = \

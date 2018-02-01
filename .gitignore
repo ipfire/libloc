@@ -12,4 +12,5 @@ Makefile.in
 /configure
 /libtool
 /stamp-h1
+/src/python/location-query
 /test.db

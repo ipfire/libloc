@@ -30,7 +30,7 @@ _ = lambda x: x
 class CLI(object):
 	def __init__(self):
 		# Open database
-		self.db = location.Database("test.db")
+		self.db = location.Database("@databasedir@/database.db")
 
 	def parse_cli(self):
 		parser = argparse.ArgumentParser(
