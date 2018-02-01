@@ -3,4 +3,5 @@
 /.intltool-merge-cache
 /Makefile
 /stamp-it
+*.gmo
 *.pot
