@@ -106,5 +106,11 @@ PyMODINIT_FUNC PyInit_location(void) {
 	Py_INCREF(&WriterType);
 	PyModule_AddObject(m, "Writer", (PyObject *)&WriterType);
 
+	// Add constants
+	PyObject* d = PyModule_GetDict(m);
+
+	// Version
+	PyDict_SetItemString(d, "__version__", PyUnicode_FromString(VERSION));
+
 	return m;
 }

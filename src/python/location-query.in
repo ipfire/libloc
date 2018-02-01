@@ -42,6 +42,10 @@ class CLI(object):
 		parser.add_argument("--debug", action="store_true",
 			help=_("Enable debug output"))
 
+		# version
+		parser.add_argument("--version", action="version",
+			version="%%(prog)s %s" % location.__version__)
+
 		# lookup an IP address
 		lookup = subparsers.add_parser("lookup",
 			help=_("Lookup one or multiple IP addresses"),
