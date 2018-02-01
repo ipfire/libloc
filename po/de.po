@@ -1,0 +1,47 @@
+# German translations for libloc package.
+# Copyright (C) 2018 THE libloc'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the libloc package.
+# root <michael.tremer@ipfire.org>, 2018.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libloc 0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2018-02-01 14:04+0000\n"
+"PO-Revision-Date: 2018-02-01 14:05+0000\n"
+"Last-Translator: Michael Tremer <michael.tremer@ipfire.org>\n"
+"Language-Team: German\n"
+"Language: de\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ASCII\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: ../src/python/location-query.in:42
+msgid "Location Database Command Line Interface"
+msgstr ""
+
+#: ../src/python/location-query.in:48
+msgid "Enable debug output"
+msgstr ""
+
+#: ../src/python/location-query.in:56
+msgid "Lookup one or multiple IP addresses"
+msgstr ""
+
+#: ../src/python/location-query.in:87
+#, c-format
+msgid "Invalid IP address: %s"
+msgstr ""
+
+#: ../src/python/location-query.in:96
+msgid "Nothing found for %(address)s"
+msgstr ""
+
+#: ../src/python/location-query.in:110
+msgid "%(address)s belongs to %(network)s which is a part of %(as)s"
+msgstr ""
+
+#: ../src/python/location-query.in:113
+msgid "%(address)s belongs to %(network)s"
+msgstr ""
