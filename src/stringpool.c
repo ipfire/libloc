@@ -68,7 +68,7 @@ static int loc_stringpool_mmap(struct loc_stringpool* pool, FILE* f, size_t leng
 	if (pool->mode != STRINGPOOL_MMAP)
 		return -EINVAL;
 
-	DEBUG(pool->ctx, "Reading string pool starting from %zu (%zu bytes)\n", offset, length);
+	DEBUG(pool->ctx, "Reading string pool starting from %jd (%zu bytes)\n", (intmax_t)offset, length);
 
 	// Map file content into memory
 	pool->data = pool->pos = mmap(NULL, length, PROT_READ,
@@ -236,7 +236,7 @@ static off_t loc_stringpool_append(struct loc_stringpool* pool, const char* stri
 LOC_EXPORT off_t loc_stringpool_add(struct loc_stringpool* pool, const char* string) {
 	off_t offset = loc_stringpool_find(pool, string);
 	if (offset >= 0) {
-		DEBUG(pool->ctx, "Found '%s' at position %jd\n", string, offset);
+		DEBUG(pool->ctx, "Found '%s' at position %jd\n", string, (intmax_t)offset);
 		return offset;
 	}
 
@@ -251,7 +251,7 @@ LOC_EXPORT void loc_stringpool_dump(struct loc_stringpool* pool) {
 		if (!string)
 			break;
 
-		printf("%jd (%zu): %s\n", offset, strlen(string), string);
+		printf("%jd (%zu): %s\n", (intmax_t)offset, strlen(string), string);
 
 		offset = loc_stringpool_get_next_offset(pool, offset);
 	}

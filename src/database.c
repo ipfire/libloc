@@ -136,7 +136,7 @@ static int loc_database_read_as_section_v0(struct loc_database* db,
 	off_t as_offset  = be32toh(header->as_offset);
 	size_t as_length = be32toh(header->as_length);
 
-	DEBUG(db->ctx, "Reading AS section from %jd (%zu bytes)\n", as_offset, as_length);
+	DEBUG(db->ctx, "Reading AS section from %jd (%zu bytes)\n", (intmax_t)as_offset, as_length);
 
 	if (as_length > 0) {
 		db->as_v0 = mmap(NULL, as_length, PROT_READ,
@@ -159,7 +159,7 @@ static int loc_database_read_network_nodes_section_v0(struct loc_database* db,
 	size_t network_nodes_length = be32toh(header->network_tree_length);
 
 	DEBUG(db->ctx, "Reading network nodes section from %jd (%zu bytes)\n",
-		network_nodes_offset, network_nodes_length);
+		(intmax_t)network_nodes_offset, network_nodes_length);
 
 	if (network_nodes_length > 0) {
 		db->network_nodes_v0 = mmap(NULL, network_nodes_length, PROT_READ,
@@ -182,7 +182,7 @@ static int loc_database_read_networks_section_v0(struct loc_database* db,
 	size_t networks_length = be32toh(header->network_data_length);
 
 	DEBUG(db->ctx, "Reading networks section from %jd (%zu bytes)\n",
-		networks_offset, networks_length);
+		(intmax_t)networks_offset, networks_length);
 
 	if (networks_length > 0) {
 		db->networks_v0 = mmap(NULL, networks_length, PROT_READ,
@@ -401,7 +401,7 @@ static int loc_database_fetch_as(struct loc_database* db, struct loc_as** as, of
 	if ((size_t)pos >= db->as_count)
 		return -EINVAL;
 
-	DEBUG(db->ctx, "Fetching AS at position %jd\n", pos);
+	DEBUG(db->ctx, "Fetching AS at position %jd\n", (intmax_t)pos);
 
 	int r;
 	switch (db->version) {
@@ -470,7 +470,7 @@ static int loc_database_fetch_network(struct loc_database* db, struct loc_networ
 	if ((size_t)pos >= db->networks_count)
 		return -EINVAL;
 
-	DEBUG(db->ctx, "Fetching network at position %jd\n", pos);
+	DEBUG(db->ctx, "Fetching network at position %jd\n", (intmax_t)pos);
 
 	int r;
 	switch (db->version) {
@@ -501,13 +501,13 @@ static int __loc_database_lookup_handle_leaf(struct loc_database* db, const stru
 		const struct loc_database_network_node_v0* node) {
 	off_t network_index = be32toh(node->network);
 
-	DEBUG(db->ctx, "Handling leaf node at %jd (%jd)\n", node - db->network_nodes_v0, network_index);
+	DEBUG(db->ctx, "Handling leaf node at %jd (%jd)\n", (intmax_t)(node - db->network_nodes_v0), (intmax_t)network_index);
 
 	// Fetch the network
 	int r = loc_database_fetch_network(db, network,
 		network_address, prefix, network_index);
 	if (r) {
-		ERROR(db->ctx, "Could not fetch network %jd from database\n", network_index);
+		ERROR(db->ctx, "Could not fetch network %jd from database\n", (intmax_t)network_index);
 		return r;
 	}
 
