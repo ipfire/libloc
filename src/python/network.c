@@ -146,14 +146,14 @@ static struct PyGetSetDef Network_getsetters[] = {
 
 PyTypeObject NetworkType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	tp_name:                "location.Network",
-	tp_basicsize:           sizeof(NetworkObject),
-	tp_flags:               Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
-	tp_new:                 Network_new,
-	tp_dealloc:             (destructor)Network_dealloc,
-	tp_init:                (initproc)Network_init,
-	tp_doc:                 "Network object",
-	tp_getset:              Network_getsetters,
-	tp_repr:                (reprfunc)Network_repr,
-	tp_str:                 (reprfunc)Network_str,
+	.tp_name =               "location.Network",
+	.tp_basicsize =          sizeof(NetworkObject),
+	.tp_flags =              Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
+	.tp_new =                Network_new,
+	.tp_dealloc =            (destructor)Network_dealloc,
+	.tp_init =               (initproc)Network_init,
+	.tp_doc =                "Network object",
+	.tp_getset =             Network_getsetters,
+	.tp_repr =               (reprfunc)Network_repr,
+	.tp_str =                (reprfunc)Network_str,
 };

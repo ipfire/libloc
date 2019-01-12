@@ -145,15 +145,15 @@ static struct PyGetSetDef AS_getsetters[] = {
 
 PyTypeObject ASType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	tp_name:                "location.AS",
-	tp_basicsize:           sizeof(ASObject),
-	tp_flags:               Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
-	tp_new:                 AS_new,
-	tp_dealloc:             (destructor)AS_dealloc,
-	tp_init:                (initproc)AS_init,
-	tp_doc:                 "AS object",
-	tp_getset:              AS_getsetters,
-	tp_repr:                (reprfunc)AS_repr,
-	tp_str:                 (reprfunc)AS_str,
-	tp_richcompare:         (richcmpfunc)AS_richcompare,
+	.tp_name =               "location.AS",
+	.tp_basicsize =          sizeof(ASObject),
+	.tp_flags =              Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
+	.tp_new =                AS_new,
+	.tp_dealloc =            (destructor)AS_dealloc,
+	.tp_init =               (initproc)AS_init,
+	.tp_doc =                "AS object",
+	.tp_getset =             AS_getsetters,
+	.tp_repr =               (reprfunc)AS_repr,
+	.tp_str =                (reprfunc)AS_str,
+	.tp_richcompare =        (richcmpfunc)AS_richcompare,
 };

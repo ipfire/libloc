@@ -220,13 +220,13 @@ static struct PyGetSetDef Writer_getsetters[] = {
 
 PyTypeObject WriterType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	tp_name:                "location.Writer",
-	tp_basicsize:           sizeof(WriterObject),
-	tp_flags:               Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
-	tp_new:                 Writer_new,
-	tp_dealloc:             (destructor)Writer_dealloc,
-	tp_init:                (initproc)Writer_init,
-	tp_doc:                 "Writer object",
-	tp_methods:             Writer_methods,
-	tp_getset:              Writer_getsetters,
+	.tp_name =               "location.Writer",
+	.tp_basicsize =          sizeof(WriterObject),
+	.tp_flags =              Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
+	.tp_new =                Writer_new,
+	.tp_dealloc =            (destructor)Writer_dealloc,
+	.tp_init =               (initproc)Writer_init,
+	.tp_doc =                "Writer object",
+	.tp_methods =            Writer_methods,
+	.tp_getset =             Writer_getsetters,
 };

@@ -239,16 +239,16 @@ static struct PyGetSetDef Database_getsetters[] = {
 
 PyTypeObject DatabaseType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	tp_name:                "location.Database",
-	tp_basicsize:           sizeof(DatabaseObject),
-	tp_flags:               Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
-	tp_new:                 Database_new,
-	tp_dealloc:             (destructor)Database_dealloc,
-	tp_init:                (initproc)Database_init,
-	tp_doc:                 "Database object",
-	tp_methods:             Database_methods,
-	tp_getset:              Database_getsetters,
-	tp_repr:                (reprfunc)Database_repr,
+	.tp_name =               "location.Database",
+	.tp_basicsize =          sizeof(DatabaseObject),
+	.tp_flags =              Py_TPFLAGS_DEFAULT|Py_TPFLAGS_BASETYPE,
+	.tp_new =                Database_new,
+	.tp_dealloc =            (destructor)Database_dealloc,
+	.tp_init =               (initproc)Database_init,
+	.tp_doc =                "Database object",
+	.tp_methods =            Database_methods,
+	.tp_getset =             Database_getsetters,
+	.tp_repr =               (reprfunc)Database_repr,
 };
 
 static PyObject* DatabaseEnumerator_new(PyTypeObject* type, PyObject* args, PyObject* kwds) {
@@ -279,12 +279,12 @@ static PyObject* DatabaseEnumerator_next(DatabaseEnumeratorObject* self) {
 
 PyTypeObject DatabaseEnumeratorType = {
 	PyVarObject_HEAD_INIT(NULL, 0)
-	tp_name:                "location.DatabaseEnumerator",
-	tp_basicsize:           sizeof(DatabaseEnumeratorObject),
-	tp_flags:               Py_TPFLAGS_DEFAULT,
-	tp_alloc:               PyType_GenericAlloc,
-	tp_new:                 DatabaseEnumerator_new,
-	tp_dealloc:             (destructor)DatabaseEnumerator_dealloc,
-	tp_iter:                PyObject_SelfIter,
-	tp_iternext:            (iternextfunc)DatabaseEnumerator_next,
+	.tp_name =               "location.DatabaseEnumerator",
+	.tp_basicsize =          sizeof(DatabaseEnumeratorObject),
+	.tp_flags =              Py_TPFLAGS_DEFAULT,
+	.tp_alloc =              PyType_GenericAlloc,
+	.tp_new =                DatabaseEnumerator_new,
+	.tp_dealloc =            (destructor)DatabaseEnumerator_dealloc,
+	.tp_iter =               PyObject_SelfIter,
+	.tp_iternext =           (iternextfunc)DatabaseEnumerator_next,
 };
