@@ -318,7 +318,7 @@ LOC_EXPORT int loc_network_set_asn(struct loc_network* network, uint32_t asn) {
 LOC_EXPORT int loc_network_to_database_v0(struct loc_network* network, struct loc_database_network_v0* dbobj) {
 	// Add country code
 	for (unsigned int i = 0; i < 2; i++) {
-		dbobj->country_code[i] = network->country_code ? network->country_code[i] : '\0';
+		dbobj->country_code[i] = network->country_code[i] ? network->country_code[i] : '\0';
 	}
 
 	// Add ASN
