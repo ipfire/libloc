@@ -68,6 +68,7 @@ EXTRA_DIST += \
 pkginclude_HEADERS = \
 	src/loc/libloc.h \
 	src/loc/as.h \
+	src/loc/compat.h \
 	src/loc/country.h \
 	src/loc/database.h \
 	src/loc/format.h \

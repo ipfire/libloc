@@ -16,13 +16,17 @@
 
 #include <arpa/inet.h>
 #include <assert.h>
-#include <endian.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef HAVE_ENDIAN_H
+#  include <endian.h>
+#endif
+
 #include <loc/libloc.h>
+#include <loc/compat.h>
 #include <loc/country.h>
 #include <loc/network.h>
 #include <loc/private.h>

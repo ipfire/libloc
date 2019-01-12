@@ -14,7 +14,6 @@
 	Lesser General Public License for more details.
 */
 
-#include <endian.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,8 +21,13 @@
 #include <sys/queue.h>
 #include <time.h>
 
+#ifdef HAVE_ENDIAN_H
+#  include <endian.h>
+#endif
+
 #include <loc/libloc.h>
 #include <loc/as.h>
+#include <loc/compat.h>
 #include <loc/country.h>
 #include <loc/format.h>
 #include <loc/network.h>

@@ -16,7 +16,6 @@
 
 #include <arpa/inet.h>
 #include <ctype.h>
-#include <endian.h>
 #include <errno.h>
 #include <netinet/in.h>
 #include <stddef.h>
@@ -29,8 +28,13 @@
 #include <time.h>
 #include <unistd.h>
 
+#ifdef HAVE_ENDIAN_H
+#  include <endian.h>
+#endif
+
 #include <loc/libloc.h>
 #include <loc/as.h>
+#include <loc/compat.h>
 #include <loc/country.h>
 #include <loc/database.h>
 #include <loc/format.h>

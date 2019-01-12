@@ -15,14 +15,18 @@
 */
 
 #include <ctype.h>
-#include <endian.h>
 #include <errno.h>
 #include <stdint.h>
 #include <stdlib.h>
 #include <string.h>
 
+#ifdef HAVE_ENDIAN_H
+#  include <endian.h>
+#endif
+
 #include <loc/libloc.h>
 #include <loc/as.h>
+#include <loc/compat.h>
 #include <loc/format.h>
 #include <loc/private.h>
 #include <loc/stringpool.h>
