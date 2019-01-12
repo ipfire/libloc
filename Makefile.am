@@ -98,8 +98,13 @@ src_libloc_la_CFLAGS = \
 
 src_libloc_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
-	-version-info $(LIBLOC_CURRENT):$(LIBLOC_REVISION):$(LIBLOC_AGE) \
-	-Wl,--version-script=$(top_srcdir)/src/libloc.sym
+	-version-info $(LIBLOC_CURRENT):$(LIBLOC_REVISION):$(LIBLOC_AGE)
+
+if HAVE_LD_VERSION_SCRIPT
+	src_libloc_la_LDFLAGS += -Wl,--version-script=$(top_srcdir)/src/libloc.sym
+else
+	src_libloc_la_LDFLAGS += -export-symbols $(top_srcdir)/src/libloc.sym
+endif
 
 src_libloc_la_DEPENDENCIES = \
 	${top_srcdir}/src/libloc.sym
