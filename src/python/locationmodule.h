@@ -20,6 +20,6 @@
 #include <loc/libloc.h>
 #include <loc/as.h>
 
-struct loc_ctx* loc_ctx;
+extern struct loc_ctx* loc_ctx;
 
 #endif /* PYTHON_LOCATION_MODULE_H */

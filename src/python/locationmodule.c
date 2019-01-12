@@ -23,6 +23,9 @@
 #include "network.h"
 #include "writer.h"
 
+/* Declare global context */
+struct loc_ctx* loc_ctx;
+
 PyMODINIT_FUNC PyInit_location(void);
 
 static void location_free(void) {
