@@ -94,25 +94,25 @@ static struct in6_addr make_last_address(const struct in6_addr* address, unsigne
 LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network,
 		struct in6_addr* address, unsigned int prefix) {
 	// Address cannot be unspecified
-	if (IN6_IS_ADDR_UNSPECIFIED(&address)) {
+	if (IN6_IS_ADDR_UNSPECIFIED(address)) {
 		DEBUG(ctx, "Start address is unspecified\n");
 		return -EINVAL;
 	}
 
 	// Address cannot be loopback
-	if (IN6_IS_ADDR_LOOPBACK(&address)) {
+	if (IN6_IS_ADDR_LOOPBACK(address)) {
 		DEBUG(ctx, "Start address is loopback address\n");
 		return -EINVAL;
 	}
 
 	// Address cannot be link-local
-	if (IN6_IS_ADDR_LINKLOCAL(&address)) {
+	if (IN6_IS_ADDR_LINKLOCAL(address)) {
 		DEBUG(ctx, "Start address cannot be link-local\n");
 		return -EINVAL;
 	}
 
 	// Address cannot be site-local
-	if (IN6_IS_ADDR_SITELOCAL(&address)) {
+	if (IN6_IS_ADDR_SITELOCAL(address)) {
 		DEBUG(ctx, "Start address cannot be site-local\n");
 		return -EINVAL;
 	}
