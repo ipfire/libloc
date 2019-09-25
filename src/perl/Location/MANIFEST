@@ -1,9 +1,7 @@
-Changes
 Location.xs
 Makefile.PL
 MANIFEST
 ppport.h
-README
 typemap
 t/Location.t
 lib/Location.pm

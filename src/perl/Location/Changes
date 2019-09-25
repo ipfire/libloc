@@ -1,5 +1,0 @@
-Revision history for Perl extension Location.
-
-0.01  Mon Sep 23 19:59:15 2019
-	- original version; created by h2xs 1.23 with options
-		-O -A -n Location loc/libloc.h loc/database.h
