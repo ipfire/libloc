@@ -23,17 +23,18 @@ init(file)
 
 		int err = loc_new(&ctx);
 		if (err < 0)
-			croak("Error");
+			croak("Could not initialize libloc context: %d\n", err);
 
 		FILE* f = fopen(file, "r");
 		if (!f) {
-			croak("Could not open file for reading: %s\n", file);
+			croak("Could not open file for reading: %s: %s\n",
+				file, strerror(errno));
 		}
 
 		struct loc_database *db = NULL;
 		err = loc_database_new(ctx, &db, f);
 		if (err) {
-			croak("Could not open database: %s\n", file);
+			croak("Could not read database: %s\n", file);
 		}
 
 		RETVAL = db;
@@ -59,7 +60,7 @@ get_country_code(db, address)
 		loc_network_unref(network);
 
 		if (!country_code) {
-			croak("Could not get the country code\n");
+			croak("Could not get the country code for %s\n", address);
 		}
 
 		RETVAL = strdup(country_code);
