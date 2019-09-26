@@ -16,7 +16,7 @@ MODULE = Location		PACKAGE = Location
 
 struct loc_database *
 init(file)
-	char* file = NULL;
+	char* file;
 
 	CODE:
 		struct loc_ctx* ctx = NULL;
@@ -53,8 +53,8 @@ init(file)
 
 char*
 get_country_code(db, address)
-	struct loc_database* db = NULL;
-	char* address = NULL;
+	struct loc_database* db;
+	char* address;
 
 	CODE:
 		int err;
@@ -82,7 +82,7 @@ get_country_code(db, address)
 
 char*
 database_get_vendor(db)
-	struct loc_database* db = NULL;
+	struct loc_database* db;
 
 	CODE:
 		const char* vendor = NULL;
