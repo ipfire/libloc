@@ -6,7 +6,6 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "ppport.h"
 
 #include <loc/libloc.h>
 #include <loc/database.h>
