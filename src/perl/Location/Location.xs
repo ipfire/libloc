@@ -62,17 +62,15 @@ get_country_code(db, address)
 	char* address;
 
 	CODE:
-		int err;
-		const char* country_code = NULL;
-
 		// Lookup network
 		struct loc_network *network;
-		err = loc_database_lookup_from_string(db, address, &network);
+		int err = loc_database_lookup_from_string(db, address, &network);
 		if (err) {
 			croak("Could not look up for %s\n", address);
 		}
 
-		country_code = loc_network_get_country_code(network);
+		// Extract the country code
+		const char* country_code = loc_network_get_country_code(network);
 		loc_network_unref(network);
 
 		if (!country_code) {
@@ -90,10 +88,8 @@ database_get_vendor(db)
 	struct loc_database* db;
 
 	CODE:
-		const char* vendor = NULL;
-
 		// Get vendor
-		vendor = loc_database_get_vendor(db);
+		const char* vendor = loc_database_get_vendor(db);
 		if (!vendor) {
 			croak("Could not retrieve vendor\n");
 		}
