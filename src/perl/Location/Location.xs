@@ -16,7 +16,7 @@ MODULE = Location		PACKAGE = Location
 
 struct loc_database *
 init(file)
-	char * file;
+	char* file = NULL;
 
 	CODE:
 		struct loc_ctx* ctx = NULL;
@@ -29,16 +29,23 @@ init(file)
 		// Open the database file for reading
 		FILE* f = fopen(file, "r");
 		if (!f) {
+			loc_unref(ctx);
+
 			croak("Could not open file for reading: %s: %s\n",
 				file, strerror(errno));
 		}
 
 		// Parse the database
-		struct loc_database *db = NULL;
+		struct loc_database* db = NULL;
 		err = loc_database_new(ctx, &db, f);
 		if (err) {
+			loc_unref(ctx);
+
 			croak("Could not read database: %s\n", file);
 		}
+
+		// Cleanup
+		loc_unref(ctx);
 
 		RETVAL = db;
 	OUTPUT:
