@@ -38,6 +38,11 @@ init(file)
 		// Parse the database
 		struct loc_database* db = NULL;
 		err = loc_database_new(ctx, &db, f);
+
+		// We can close the database file straight away
+		// because loc_database_new creates a copy of the file descriptor
+		fclose(f);
+
 		if (err) {
 			loc_unref(ctx);
 
