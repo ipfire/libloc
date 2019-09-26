@@ -83,18 +83,13 @@ get_country_code(db, address)
 
 
 
-char*
+const char*
 database_get_vendor(db)
 	struct loc_database* db;
 
 	CODE:
 		// Get vendor
-		const char* vendor = loc_database_get_vendor(db);
-		if (!vendor) {
-			croak("Could not retrieve vendor\n");
-		}
-
-		RETVAL = strdup(vendor);
+		RETVAL = loc_database_get_vendor(db);
 	OUTPUT:
 		RETVAL
 
