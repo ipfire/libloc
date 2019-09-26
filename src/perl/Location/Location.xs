@@ -21,16 +21,19 @@ init(file)
 	CODE:
 		struct loc_ctx* ctx = NULL;
 
+		// Initialise location context
 		int err = loc_new(&ctx);
 		if (err < 0)
 			croak("Could not initialize libloc context: %d\n", err);
 
+		// Open the database file for reading
 		FILE* f = fopen(file, "r");
 		if (!f) {
 			croak("Could not open file for reading: %s: %s\n",
 				file, strerror(errno));
 		}
 
+		// Parse the database
 		struct loc_database *db = NULL;
 		err = loc_database_new(ctx, &db, f);
 		if (err) {
@@ -50,6 +53,7 @@ get_country_code(db, address)
 		int err;
 		const char* country_code = NULL;
 
+		// Lookup network
 		struct loc_network *network;
 		err = loc_database_lookup_from_string(db, address, &network);
 		if (err) {
@@ -76,6 +80,7 @@ database_get_vendor(db)
 	CODE:
 		const char* vendor = NULL;
 
+		// Get vendor
 		vendor = loc_database_get_vendor(db);
 		if (!vendor) {
 			croak("Could not retrieve vendor\n");
@@ -90,4 +95,5 @@ DESTROY(db)
 	struct loc_database* db = NULL;
 
 	CODE:
+		// Close database
 		loc_database_unref(db);
