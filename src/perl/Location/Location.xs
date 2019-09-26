@@ -19,10 +19,9 @@ init(file)
 	char * file;
 
 	CODE:
-		int err;
+		struct loc_ctx* ctx = NULL;
 
-		struct loc_ctx *ctx;
-		err = loc_new(&ctx);
+		int err = loc_new(&ctx);
 		if (err < 0)
 			croak("Error");
 
@@ -31,7 +30,7 @@ init(file)
 			croak("Could not open file for reading: %s\n", file);
 		}
 
-		struct loc_database *db;
+		struct loc_database *db = NULL;
 		err = loc_database_new(ctx, &db, f);
 		if (err) {
 			croak("Could not open database: %s\n", file);
@@ -43,12 +42,12 @@ init(file)
 
 char*
 get_country_code(db, address)
-	struct loc_database *db;
-	char * address;
+	struct loc_database* db = NULL;
+	char* address = NULL;
 
 	CODE:
 		int err;
-		const char * country_code;
+		const char* country_code = NULL;
 
 		struct loc_network *network;
 		err = loc_database_lookup_from_string(db, address, &network);
@@ -57,7 +56,6 @@ get_country_code(db, address)
 		}
 
 		country_code = loc_network_get_country_code(network);
-
 		loc_network_unref(network);
 
 		if (!country_code) {
@@ -72,13 +70,12 @@ get_country_code(db, address)
 
 char*
 database_get_vendor(db)
-	struct loc_database *db;
+	struct loc_database* db = NULL;
 
 	CODE:
-		const char * vendor;
+		const char* vendor = NULL;
 
 		vendor = loc_database_get_vendor(db);
-
 		if (!vendor) {
 			croak("Could not retrieve vendor\n");
 		}
@@ -89,6 +86,7 @@ database_get_vendor(db)
 
 void
 DESTROY(db)
-	struct loc_database *db ;
+	struct loc_database* db = NULL;
+
 	CODE:
 		loc_database_unref(db);
