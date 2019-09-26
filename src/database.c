@@ -306,7 +306,8 @@ static void loc_database_free(struct loc_database* db) {
 			ERROR(db->ctx, "Could not unmap network nodes section: %s\n", strerror(errno));
 	}
 
-	loc_stringpool_unref(db->pool);
+	if (db->pool)
+		loc_stringpool_unref(db->pool);
 
 	loc_unref(db->ctx);
 	free(db);
