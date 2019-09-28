@@ -84,7 +84,7 @@ get_country_code(db, address)
 
 
 const char*
-database_get_vendor(db)
+get_vendor(db)
 	struct loc_database* db;
 
 	CODE:
