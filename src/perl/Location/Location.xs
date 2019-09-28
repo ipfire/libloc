@@ -95,7 +95,7 @@ database_get_vendor(db)
 
 void
 DESTROY(db)
-	struct loc_database* db = NULL;
+	struct loc_database* db;
 
 	CODE:
 		// Close database
