@@ -73,11 +73,11 @@ get_country_code(db, address)
 		const char* country_code = loc_network_get_country_code(network);
 		loc_network_unref(network);
 
-		if (!country_code) {
-			croak("Could not get the country code for %s\n", address);
+		if (country_code) {
+			RETVAL = strdup(country_code);
+		} else {
+			RETVAL = NULL;
 		}
-
-		RETVAL = strdup(country_code);
 	OUTPUT:
 		RETVAL
 
