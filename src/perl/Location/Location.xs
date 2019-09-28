@@ -56,6 +56,22 @@ init(file)
 	OUTPUT:
 		RETVAL
 
+/*
+ * Database functions
+ */
+const char*
+get_vendor(db)
+	struct loc_database* db;
+
+	CODE:
+		// Get vendor
+		RETVAL = loc_database_get_vendor(db);
+	OUTPUT:
+		RETVAL
+
+/*
+ * Lookup functions
+ */
 char*
 lookup_country_code(db, address)
 	struct loc_database* db;
@@ -78,18 +94,6 @@ lookup_country_code(db, address)
 		} else {
 			RETVAL = NULL;
 		}
-	OUTPUT:
-		RETVAL
-
-
-
-const char*
-get_vendor(db)
-	struct loc_database* db;
-
-	CODE:
-		// Get vendor
-		RETVAL = loc_database_get_vendor(db);
 	OUTPUT:
 		RETVAL
 
