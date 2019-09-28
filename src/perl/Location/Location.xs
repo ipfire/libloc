@@ -57,7 +57,7 @@ init(file)
 		RETVAL
 
 char*
-get_country_code(db, address)
+lookup_country_code(db, address)
 	struct loc_database* db;
 	char* address;
 
