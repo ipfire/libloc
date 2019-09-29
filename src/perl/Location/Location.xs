@@ -69,6 +69,16 @@ get_vendor(db)
 	OUTPUT:
 		RETVAL
 
+const char*
+get_description(db)
+	struct loc_database* db;
+
+	CODE:
+		// Get database description
+		RETVAL = loc_database_get_description(db);
+	OUTPUT:
+		RETVAL
+
 #
 # Lookup functions
 #
