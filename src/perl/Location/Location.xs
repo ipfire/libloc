@@ -79,6 +79,16 @@ get_description(db)
 	OUTPUT:
 		RETVAL
 
+const char*
+get_license(db)
+	struct loc_database* db;
+
+	CODE:
+		// Get database license
+		RETVAL = loc_database_get_license(db);
+	OUTPUT:
+		RETVAL
+
 #
 # Lookup functions
 #
