@@ -83,6 +83,15 @@ AC_SUBST([my_CFLAGS])
 AM_PATH_PYTHON([3.4])
 PKG_CHECK_MODULES([PYTHON], [python-${PYTHON_VERSION}])
 
+# Perl
+AC_PATH_PROG(PERL, perl, no)
+AC_SUBST(PERL)
+
+AX_PROG_PERL_MODULES(ExtUtils::MakeMaker,, AC_MSG_WARN(Need some Perl modules))
+
+AC_ARG_ENABLE(perl, AS_HELP_STRING([--disable-perl], [do not build the perl modules]), [],[enable_perl=yes])
+AM_CONDITIONAL(ENABLE_PERL, test "$enable_perl" = "yes")
+
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_FILES([
         Makefile
@@ -104,4 +113,7 @@ AC_MSG_RESULT([
         ldflags:                ${LDFLAGS}
 
         debug:                  ${enable_debug}
+
+	Bindings:
+	  perl:			${enable_perl}
 ])

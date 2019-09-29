@@ -4,6 +4,11 @@ ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 AM_MAKEFLAGS = --no-print-directory
 
 SUBDIRS = . po
+BINDINGS =
+
+if ENABLE_PERL
+BINDINGS += perl
+endif
 
 AM_CPPFLAGS = \
 	-include $(top_builddir)/config.h \
@@ -121,6 +126,57 @@ src_python_location_la_LDFLAGS = \
 src_python_location_la_LIBADD = \
 	src/libloc.la \
 	$(PYTHON_LIBS)
+
+# Compile & install bindings
+all-local: $(foreach binding,$(BINDINGS),build-$(binding))
+check-local: $(foreach binding,$(BINDINGS),check-$(binding))
+install-exec-local: $(foreach binding,$(BINDINGS),install-$(binding))
+clean-local: $(foreach binding,$(BINDINGS),clean-$(binding))
+uninstall-local: $(foreach binding,$(BINDINGS),uninstall-$(binding))
+
+# Perl Bindings
+EXTRA_DIST += \
+	src/perl/.gitignore \
+	src/perl/Location.xs \
+	src/perl/MANIFEST \
+	src/perl/Makefile.PL \
+	src/perl/lib/Location.pm \
+	src/perl/t/Location.t \
+	src/perl/typemap
+
+.PHONY: build-perl
+build-perl:
+	@mkdir -p $(builddir)/src/perl/{lib,t}
+	@test -e $(builddir)/src/perl/Location.xs || ln -s --relative $(srcdir)/src/perl/Location.xs $(builddir)/src/perl/
+	@test -e $(builddir)/src/perl/MANIFEST || ln -s --relative $(srcdir)/src/perl/MANIFEST $(builddir)/src/perl/
+	@test -e $(builddir)/src/perl/Makefile.PL || ln -s --relative $(srcdir)/src/perl/Makefile.PL $(builddir)/src/perl/
+	@test -e $(builddir)/src/perl/lib/Location.pm || ln -s --relative $(srcdir)/src/perl/lib/Location.pm $(builddir)/src/perl/lib/
+	@test -e $(builddir)/src/perl/t/Location.t || ln -s --relative $(srcdir)/src/perl/t/Location.t $(builddir)/src/perl/t/
+	@test -e $(builddir)/src/perl/typemap || ln -s --relative $(srcdir)/src/perl/typemap $(builddir)/src/perl/
+
+	cd $(builddir)/src/perl && $(PERL) Makefile.PL PREFIX="$(prefix)" \
+		INC="-I$(abs_srcdir)/src" LIBS="-L$(abs_builddir)/src/.libs -lloc"
+	cd $(builddir)/src/perl && $(MAKE)
+
+.PHONY: check-perl
+check-perl:
+	cd $(builddir)/src/perl && $(MAKE) test
+
+.PHONY: install-perl
+install-perl:
+	cd $(builddir)/src/perl && $(MAKE) install
+
+.PHONY: clean-perl
+clean-perl:
+	cd $(builddir)/src/perl && $(MAKE) distclean
+
+.PHONY: uninstall-perl
+uninstall-perl:
+	rm -rvf \
+		$(DESTDIR)/$(prefix)/lib/*/perl/*/Location.pm \
+		$(DESTDIR)/$(prefix)/lib/*/perl/*/auto/Location \
+		$(DESTDIR)/$(prefix)/lib/*/perl/*/perllocal.pod \
+		$(DESTDIR)/$(prefix)/man/man3/Location.3pm
 
 bin_SCRIPTS = \
 	src/python/location-query
