@@ -201,6 +201,9 @@ TESTS = \
 CLEANFILES += \
 	test.db
 
+EXTRA_DIST += \
+	testdata/test.db
+
 check_PROGRAMS = \
 	src/test-libloc \
 	src/test-stringpool \
