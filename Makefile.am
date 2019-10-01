@@ -160,7 +160,7 @@ build-perl:
 
 .PHONY: check-perl
 check-perl:
-	cd $(builddir)/src/perl && $(MAKE) test
+	cd $(builddir)/src/perl && $(MAKE) test srcdir=$(abs_srcdir)
 
 .PHONY: install-perl
 install-perl:
