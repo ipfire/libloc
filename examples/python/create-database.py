@@ -10,6 +10,9 @@ w.vendor = "IPFire Project"
 # Set a description
 w.description = "This is a geo location database"
 
+# Set a license
+w.license = "CC"
+
 # Add an AS
 a = w.add_as(204867)
 a.name = "Lightning Wire Labs GmbH"
