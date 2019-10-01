@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import location
+import sys
 
 w = location.Writer()
 
@@ -27,4 +28,5 @@ n.asn = a.number
 print(n)
 
 # Write the database to disk
-w.write("test.db")
+for f in sys.argv[1:]:
+    w.write(f)

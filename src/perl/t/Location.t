@@ -9,7 +9,7 @@ use strict;
 use warnings;
 
 # Where to find the test database.
-my $testdb = "$ENV{'srcdir'}/testdata/test.db";
+my $testdb = $ENV{'database'};
 
 use Test::More tests => 5;
 BEGIN { use_ok('Location') };

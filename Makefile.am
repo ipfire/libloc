@@ -159,8 +159,8 @@ build-perl:
 	cd $(builddir)/src/perl && $(MAKE)
 
 .PHONY: check-perl
-check-perl:
-	cd $(builddir)/src/perl && $(MAKE) test srcdir=$(abs_srcdir)
+check-perl: testdata.db
+	cd $(builddir)/src/perl && $(MAKE) test database="../../$<"
 
 .PHONY: install-perl
 install-perl:
@@ -199,10 +199,11 @@ TESTS = \
 	src/test-network
 
 CLEANFILES += \
-	test.db
+	test.db \
+	testdata.db
 
-EXTRA_DIST += \
-	testdata/test.db
+testdata.db: examples/python/create-database.py
+	PYTHONPATH=$(abs_builddir)/src/python/.libs $(PYTHON) $< $@
 
 check_PROGRAMS = \
 	src/test-libloc \
