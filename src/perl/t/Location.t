@@ -36,3 +36,9 @@ ok($description eq "This is a geo location database", "Test 3 - Get Database Des
 
 my $country_code = &Location::lookup_country_code($db, $address);
 ok($country_code eq "DE", "Test 4 - Lookup country code for $address");
+
+$country_code = &Location::lookup_country_code($db, "1.1.1.1");
+if(defined($country_code)) { fail("Test 5 - Lookup country code for address not in Database."); }
+
+$country_code = &Location::lookup_country_code($db, "a.b.c.d");
+if(defined($country_code)) { fail("Test 6 - Lookup country code for invalid address.") }
