@@ -11,7 +11,7 @@ use warnings;
 # Where to find the test database.
 my $testdb = $ENV{'database'};
 
-use Test::More tests => 5;
+use Test::More tests => 6;
 BEGIN { use_ok('Location') };
 
 #########################
@@ -42,3 +42,12 @@ if(defined($country_code)) { fail("Test 5 - Lookup country code for address not 
 
 $country_code = &Location::lookup_country_code($db, "a.b.c.d");
 if(defined($country_code)) { fail("Test 6 - Lookup country code for invalid address.") }
+
+my $as_number = &Location::lookup_asn($db, $address);
+ok($as_number eq "204867", "Test 7 - Lookup Autonomous System Number for $address.");
+
+$as_number = &Location::lookup_asn($db, "1.1.1.1");
+if(defined($as_number)) { fail("Test 8 - Lookup Autonomous System Number for address not in Database.") }
+
+$as_number = &Location::lookup_asn($db, "a.b.c.d");
+if(defined($as_number)) { fail("Test 9 - Lookup Autonomous System Number for invalid address.") }
