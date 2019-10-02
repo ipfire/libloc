@@ -92,27 +92,23 @@ get_license(db)
 #
 # Lookup functions
 #
-char*
+SV*
 lookup_country_code(db, address)
 	struct loc_database* db;
 	char* address;
 
 	CODE:
+		RETVAL = &PL_sv_undef;
+
 		// Lookup network
 		struct loc_network *network;
 		int err = loc_database_lookup_from_string(db, address, &network);
-		if (err) {
-			croak("Could not look up for %s\n", address);
-		}
+		if (!err) {
+			// Extract the country code
+			const char* country_code = loc_network_get_country_code(network);
+			RETVAL = newSVpv(country_code, strlen(country_code));
 
-		// Extract the country code
-		const char* country_code = loc_network_get_country_code(network);
-		loc_network_unref(network);
-
-		if (country_code) {
-			RETVAL = strdup(country_code);
-		} else {
-			RETVAL = NULL;
+			loc_network_unref(network);
 		}
 	OUTPUT:
 		RETVAL
