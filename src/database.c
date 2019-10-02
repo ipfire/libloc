@@ -69,6 +69,7 @@ struct loc_database_enumerator {
 
 	// Search string
 	char* string;
+	char country_code[3];
 
 	// Index of the AS we are looking at
 	unsigned int as_index;
@@ -606,6 +607,24 @@ LOC_EXPORT int loc_database_enumerator_set_string(struct loc_database_enumerator
 	// Make the string lowercase
 	for (char *p = enumerator->string; *p; p++)
 		*p = tolower(*p);
+
+	return 0;
+}
+
+LOC_EXPORT int loc_database_enumerator_set_country_code(struct loc_database_enumerator* enumerator, const char* country_code) {
+	// Set empty country code
+	if (!country_code || !*country_code) {
+		*enumerator->country_code = '\0';
+		return 0;
+	}
+
+	// Country codes must be two characters
+	if (strlen(country_code) != 2)
+		return -EINVAL;
+
+	for (unsigned int i = 0; i < 3; i++) {
+		enumerator->country_code[i] = country_code[i];
+	}
 
 	return 0;
 }

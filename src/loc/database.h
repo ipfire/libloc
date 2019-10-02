@@ -49,6 +49,7 @@ struct loc_database_enumerator* loc_database_enumerator_ref(struct loc_database_
 struct loc_database_enumerator* loc_database_enumerator_unref(struct loc_database_enumerator* enumerator);
 
 int loc_database_enumerator_set_string(struct loc_database_enumerator* enumerator, const char* string);
+int loc_database_enumerator_set_country_code(struct loc_database_enumerator* enumerator, const char* country_code);
 struct loc_as* loc_database_enumerator_next_as(struct loc_database_enumerator* enumerator);
 
 #endif
