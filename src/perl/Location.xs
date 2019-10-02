@@ -113,6 +113,29 @@ lookup_country_code(db, address)
 	OUTPUT:
 		RETVAL
 
+SV*
+lookup_asn(db, address)
+	struct loc_database* db;
+	char* address;
+
+	CODE:
+		RETVAL = &PL_sv_undef;
+
+		// Lookup network
+		struct loc_network *network;
+		int err = loc_database_lookup_from_string(db, address, &network);
+		if (!err) {
+			// Extract the ASN
+			unsigned int as_number = loc_network_get_asn(network);
+			if (as_number > 0) {
+				RETVAL = newSViv(as_number);
+			}
+
+			loc_network_unref(network);
+		}
+	OUTPUT:
+		RETVAL
+
 void
 DESTROY(db)
 	struct loc_database* db;
