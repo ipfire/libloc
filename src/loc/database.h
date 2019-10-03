@@ -57,7 +57,9 @@ struct loc_database_enumerator* loc_database_enumerator_unref(struct loc_databas
 int loc_database_enumerator_set_string(struct loc_database_enumerator* enumerator, const char* string);
 int loc_database_enumerator_set_country_code(struct loc_database_enumerator* enumerator, const char* country_code);
 int loc_database_enumerator_set_asn(struct loc_database_enumerator* enumerator, unsigned int asn);
-struct loc_as* loc_database_enumerator_next_as(struct loc_database_enumerator* enumerator);
-struct loc_network* loc_database_enumerator_next_network(struct loc_database_enumerator* enumerator);
+int loc_database_enumerator_next_as(
+	struct loc_database_enumerator* enumerator, struct loc_as** as);
+int loc_database_enumerator_next_network(
+	struct loc_database_enumerator* enumerator, struct loc_network** network);
 
 #endif

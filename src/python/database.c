@@ -311,8 +311,15 @@ static void DatabaseEnumerator_dealloc(DatabaseEnumeratorObject* self) {
 }
 
 static PyObject* DatabaseEnumerator_next(DatabaseEnumeratorObject* self) {
+	struct loc_network* network = NULL;
+
 	// Enumerate all networks
-	struct loc_network* network = loc_database_enumerator_next_network(self->enumerator);
+	int r = loc_database_enumerator_next_network(self->enumerator, &network);
+	if (r) {
+		return NULL;
+	}
+
+	// A network was found
 	if (network) {
 		PyObject* obj = new_network(&NetworkType, network);
 		loc_network_unref(network);
@@ -321,7 +328,13 @@ static PyObject* DatabaseEnumerator_next(DatabaseEnumeratorObject* self) {
 	}
 
 	// Enumerate all ASes
-	struct loc_as* as = loc_database_enumerator_next_as(self->enumerator);
+	struct loc_as* as = NULL;
+
+	r = loc_database_enumerator_next_as(self->enumerator, &as);
+	if (r) {
+		return NULL;
+	}
+
 	if (as) {
 		PyObject* obj = new_as(&ASType, as);
 		loc_as_unref(as);

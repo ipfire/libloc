@@ -662,37 +662,39 @@ LOC_EXPORT int loc_database_enumerator_set_asn(
 	return 0;
 }
 
-LOC_EXPORT struct loc_as* loc_database_enumerator_next_as(struct loc_database_enumerator* enumerator) {
+LOC_EXPORT int loc_database_enumerator_next_as(
+		struct loc_database_enumerator* enumerator, struct loc_as** as) {
+	*as = NULL;
+
 	// Do not do anything if not in AS mode
 	if (enumerator->mode != LOC_DB_ENUMERATE_ASES)
-		return NULL;
+		return 0;
 
 	struct loc_database* db = enumerator->db;
-	struct loc_as* as;
 
 	while (enumerator->as_index < db->as_count) {
 		// Fetch the next AS
-		int r = loc_database_fetch_as(db, &as, enumerator->as_index++);
+		int r = loc_database_fetch_as(db, as, enumerator->as_index++);
 		if (r)
-			return NULL;
+			return r;
 
-		r = loc_as_match_string(as, enumerator->string);
+		r = loc_as_match_string(*as, enumerator->string);
 		if (r == 1) {
 			DEBUG(enumerator->ctx, "AS%d (%s) matches %s\n",
-				loc_as_get_number(as), loc_as_get_name(as), enumerator->string);
+				loc_as_get_number(*as), loc_as_get_name(*as), enumerator->string);
 
-			return as;
+			return 0;
 		}
 
 		// No match
-		loc_as_unref(as);
+		loc_as_unref(*as);
 	}
 
 	// Reset the index
 	enumerator->as_index = 0;
 
 	// We have searched through all of them
-	return NULL;
+	return 0;
 }
 
 static int loc_database_enumerator_stack_push_node(
@@ -719,46 +721,52 @@ static int loc_database_enumerator_stack_push_node(
 	return 0;
 }
 
-static int loc_database_enumerator_network_depth_first_search(
-		struct loc_database_enumerator* e, struct loc_network** network) {
+LOC_EXPORT int loc_database_enumerator_next_network(
+		struct loc_database_enumerator* enumerator, struct loc_network** network) {
 	// Reset network
 	*network = NULL;
+
+	// Do not do anything if not in network mode
+	if (enumerator->mode != LOC_DB_ENUMERATE_NETWORKS)
+		return 0;
+
 	int r;
 
-	DEBUG(e->ctx, "Called with a stack of %u nodes\n", e->network_stack_depth);
+	DEBUG(enumerator->ctx, "Called with a stack of %u nodes\n",
+		enumerator->network_stack_depth);
 
 	// Perform DFS
-	while (e->network_stack_depth > 0) {
-		DEBUG(e->ctx, "Stack depth: %u\n", e->network_stack_depth);
+	while (enumerator->network_stack_depth > 0) {
+		DEBUG(enumerator->ctx, "Stack depth: %u\n", enumerator->network_stack_depth);
 
 		// Get object from top of the stack
-		struct loc_node_stack* node = &e->network_stack[e->network_stack_depth];
+		struct loc_node_stack* node = &enumerator->network_stack[enumerator->network_stack_depth];
 
 		// Remove the node from the stack if we have already visited it
-		if (e->networks_visited[node->offset]) {
-			e->network_stack_depth--;
+		if (enumerator->networks_visited[node->offset]) {
+			enumerator->network_stack_depth--;
 			continue;
 		}
 
 		// Mark the bits on the path correctly
-		in6_addr_set_bit(&e->network_address,
+		in6_addr_set_bit(&enumerator->network_address,
 			(node->depth > 0) ? node->depth - 1 : 0, node->i);
 
-		DEBUG(e->ctx, "Looking at node %jd\n", node->offset);
-		e->networks_visited[node->offset]++;
+		DEBUG(enumerator->ctx, "Looking at node %jd\n", node->offset);
+		enumerator->networks_visited[node->offset]++;
 
 		// Pop node from top of the stack
 		struct loc_database_network_node_v0* n =
-			e->db->network_nodes_v0 + node->offset;
+			enumerator->db->network_nodes_v0 + node->offset;
 
 		// Add edges to stack
-		r = loc_database_enumerator_stack_push_node(e,
+		r = loc_database_enumerator_stack_push_node(enumerator,
 			be32toh(n->one), 1, node->depth + 1);
 
 		if (r)
 			return r;
 
-		r = loc_database_enumerator_stack_push_node(e,
+		r = loc_database_enumerator_stack_push_node(enumerator,
 			be32toh(n->zero), 0, node->depth + 1);
 
 		if (r)
@@ -768,11 +776,11 @@ static int loc_database_enumerator_network_depth_first_search(
 		if (__loc_database_node_is_leaf(n)) {
 			off_t network_index = be32toh(n->network);
 
-			DEBUG(e->ctx, "Node has a network at %jd\n", network_index);
+			DEBUG(enumerator->ctx, "Node has a network at %jd\n", network_index);
 
 			// Fetch the network object
-			r = loc_database_fetch_network(e->db, network,
-				&e->network_address, node->depth, network_index);
+			r = loc_database_fetch_network(enumerator->db, network,
+				&enumerator->network_address, node->depth, network_index);
 
 			// Break on any errors
 			if (r)
@@ -781,14 +789,20 @@ static int loc_database_enumerator_network_depth_first_search(
 			// Check if we are interested in this network
 
 			// Skip if the country code does not match
-			if (e->country_code && !loc_network_match_country_code(*network, e->country_code)) {
+			if (enumerator->country_code &&
+					!loc_network_match_country_code(*network, enumerator->country_code)) {
 				loc_network_unref(*network);
+				*network = NULL;
+
 				continue;
 			}
 
 			// Skip if the ASN does not match
-			if (e->asn && !loc_network_match_asn(*network, e->asn)) {
+			if (enumerator->asn &&
+					!loc_network_match_asn(*network, enumerator->asn)) {
 				loc_network_unref(*network);
+				*network = NULL;
+
 				continue;
 			}
 
@@ -799,24 +813,8 @@ static int loc_database_enumerator_network_depth_first_search(
 	// Reached the end of the search
 
 	// Mark all nodes as non-visited
-	for (unsigned int i = 0; i < e->db->network_nodes_count; i++)
-		e->networks_visited[i] = 0;
+	for (unsigned int i = 0; i < enumerator->db->network_nodes_count; i++)
+		enumerator->networks_visited[i] = 0;
 
 	return 0;
-}
-
-LOC_EXPORT struct loc_network* loc_database_enumerator_next_network(
-		struct loc_database_enumerator* enumerator) {
-	// Do not do anything if not in network mode
-	if (enumerator->mode != LOC_DB_ENUMERATE_NETWORKS)
-		return NULL;
-
-	struct loc_network* network = NULL;
-
-	int r = loc_database_enumerator_network_depth_first_search(enumerator, &network);
-	if (r) {
-		return NULL;
-	}
-
-	return network;
 }
