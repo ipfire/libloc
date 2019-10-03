@@ -688,6 +688,7 @@ LOC_EXPORT int loc_database_enumerator_next_as(
 
 		// No match
 		loc_as_unref(*as);
+		*as = NULL;
 	}
 
 	// Reset the index
