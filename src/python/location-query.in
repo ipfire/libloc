@@ -80,14 +80,18 @@ class CLI(object):
 		search_as.add_argument("country_code", nargs=1)
 		search_as.set_defaults(func=self.handle_list_networks_by_cc)
 
-		return parser.parse_args()
+		args = parser.parse_args()
+
+		# Print usage if no action was given
+		if not "func" in args:
+			parser.print_usage()
+			sys.exit(2)
+
+		return args
 
 	def run(self):
 		# Parse command line arguments
 		args = self.parse_cli()
-
-		# Callback function must be defined
-		assert args.func, "Callback function not defined"
 
 		# Open database
 		try:
