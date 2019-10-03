@@ -78,6 +78,7 @@ struct loc_database_enumerator {
 	// Search string
 	char* string;
 	char country_code[3];
+	uint32_t asn;
 
 	// Index of the AS we are looking at
 	unsigned int as_index;
@@ -651,6 +652,13 @@ LOC_EXPORT int loc_database_enumerator_set_country_code(struct loc_database_enum
 	return 0;
 }
 
+LOC_EXPORT int loc_database_enumerator_set_asn(
+		struct loc_database_enumerator* enumerator, unsigned int asn) {
+	enumerator->asn = asn;
+
+	return 0;
+}
+
 LOC_EXPORT struct loc_as* loc_database_enumerator_next_as(struct loc_database_enumerator* enumerator) {
 	struct loc_database* db = enumerator->db;
 	struct loc_as* as;
@@ -767,6 +775,12 @@ static int loc_database_enumerator_network_depth_first_search(
 
 			// Skip if the country code does not match
 			if (e->country_code && !loc_network_match_country_code(*network, e->country_code)) {
+				loc_network_unref(*network);
+				continue;
+			}
+
+			// Skip if the ASN does not match
+			if (e->asn && !loc_network_match_asn(*network, e->asn)) {
 				loc_network_unref(*network);
 				continue;
 			}
