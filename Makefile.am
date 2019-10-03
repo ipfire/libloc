@@ -45,6 +45,18 @@ pkgconfigdir = $(libdir)/pkgconfig
 
 @INTLTOOL_POLICY_RULE@
 
+# ------------------------------------------------------------------------------
+
+AM_V_ASCIIDOC   = $(AM_V_ASCIIDOC_$(V))
+AM_V_ASCIIDOC_  = $(AM_V_ASCIIDOC_$(AM_DEFAULT_VERBOSITY))
+AM_V_ASCIIDOC_0 = @echo "  ASCIIDOC" $@;
+
+AM_V_XSLT   = $(AM_V_XSLT_$(V))
+AM_V_XSLT_  = $(AM_V_XSLT_$(AM_DEFAULT_VERBOSITY))
+AM_V_XSLT_0 = @echo "  XSLT    " $@;
+
+# ------------------------------------------------------------------------------
+
 .PHONY: update-po
 update-po:
 	$(MAKE) -C po update-po
@@ -187,6 +199,8 @@ EXTRA_DIST += \
 CLEANFILES += \
 	src/python/location-query
 
+# ------------------------------------------------------------------------------
+
 TESTS_CFLAGS = \
 	$(AM_CFLAGS) \
 	-DLIBLOC_PRIVATE
@@ -256,3 +270,61 @@ src_test_database_CFLAGS = \
 
 src_test_database_LDADD = \
 	src/libloc.la
+
+# ------------------------------------------------------------------------------
+
+MANPAGES = \
+	man/location-query.8
+
+MANPAGES_TXT  = $(patsubst %.8,%.txt,$(MANPAGES))
+MANPAGES_HTML = $(patsubst %.txt,%.html,$(MANPAGES_TXT))
+MANPAGES_XML  = $(patsubst %.txt,%.xml,$(MANPAGES_TXT))
+
+.PHONY: man
+man: $(MANPAGES) $(MANPAGES_HTML)
+
+if ENABLE_MANPAGES
+man_MANS = \
+	$(MANPAGES)
+endif
+
+CLEANFILES += \
+	$(MANPAGES) \
+	$(MANPAGES_HTML) \
+	$(MANPAGES_XML)
+
+EXTRA_DIST += \
+	man/asciidoc.conf \
+	$(MANPAGES_TXT)
+
+XSLTPROC_FLAGS = \
+	--nonet \
+	--stringparam man.output.quietly 1 \
+	--stringparam funcsynopsis.style ansi \
+	--stringparam man.th.extra1.suppress 1 \
+	--stringparam man.authors.section.enabled 1 \
+	--stringparam man.copyright.section.enabled 1
+
+XSLTPROC_COMMAND_MAN = \
+	$(AM_V_XSLT)$(MKDIR_P) $(dir $@) && \
+	$(XSLTPROC) -o $@ $(XSLTPROC_FLAGS) \
+		http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl $<
+
+man/%.xml: man/%.txt man/asciidoc.conf
+	$(AM_V_ASCIIDOC)$(MKDIR_P) $(dir $@) && \
+	$(ASCIIDOC) \
+		-f $(abs_srcdir)/man/asciidoc.conf \
+		-d manpage -b docbook -o $@ $<
+
+man/%.8: man/%.xml
+	$(XSLTPROC_COMMAND_MAN)
+
+man/%.html: man/%.txt man/asciidoc.conf
+	$(AM_V_ASCIIDOC)$(MKDIR_P) $(dir $@) && \
+	$(ASCIIDOC) \
+		-f $(abs_srcdir)/man/asciidoc.conf \
+		-b html5 -a icons -a theme=flask -o $@ $<
+
+.PHONY: upload-man
+upload-man: $(MANPAGES_HTML)
+	rsync -avHz --delete --progress $(MANPAGES_HTML) ms@fs01.haj.ipfire.org:/pub/man-pages/$(PACKAGE_NAME)/

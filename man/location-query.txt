@@ -1,0 +1,69 @@
+= location-query(8)
+
+== NAME
+location-query - Query the location database
+
+== SYNOPSIS
+[verse]
+`location-query lookup ADDRESS [ADDRESS...]`
+`location-query get-as ASN [ASN...]`
+`location-query search-as STRING`
+`location-query list-networks-by-as ASN`
+`location-query list-networks-by-cc COUNTRY_CODE`
+
+== DESCRIPTION
+The `location-query` retrieves information from the location database.
+This data can be used to determine someone's location on the Internet
+and for building firewall rulesets to block access from certain ASes
+or countries.
+
+== OPTIONS
+
+--database FILE::
+-d FILE::
+	The path of the database which is being opened.
+	+
+	If this option is omitted, the system's database will be opened.
+
+--debug::
+	Enable debugging mode
+
+== COMMANDS
+
+'lookup ADDRESS [ADDRESS...]'::
+		This command returns the network the given IP address has been found in
+		as well as its Autonomous System if that information is available.
+
+'get-as ASN [ASN...]'::
+	This command returns the name of the owning organisation of the Autonomous
+	System.
+
+'search-as STRING'::
+	Lists all Autonomous Systems which match the given string.
+	+
+	The search will be performed case-insensitively.
+
+'list-networks-by-as ASN'::
+	Lists all networks which belong to this Autonomous System.
+
+'list-networks-by-cc COUNTRY_CODE'::
+	Lists all networks that belong to a country.
+	+
+	The country has to be encoded in ISO3166 Alpha-2 notation.
+
+'--help'::
+	Shows a short help text on using this program.
+
+'--version'::
+	Shows the program's version and exists.
+
+== EXIT CODES
+The 'location-query' command will normally exit with code zero.
+If there has been a problem and the requested action could not be performed,
+the exit code is unequal to zero.
+
+== BUGS
+Please report all bugs to the bugtracker at https://bugzilla.ipfire.org/.
+
+== AUTHORS
+Michael Tremer

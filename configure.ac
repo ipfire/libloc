@@ -36,6 +36,22 @@ AC_SUBST(GETTEXT_PACKAGE)
 AC_PROG_SED
 AC_PROG_MKDIR_P
 
+# - man ------------------------------------------------------------------------
+
+have_manpages=no
+AC_ARG_ENABLE(manpages, AS_HELP_STRING([--disable-man-pages],
+	[do not install man pages]))
+AS_IF([test "x$enable_manpages" != xno], [have_manpages=yes])
+AM_CONDITIONAL(ENABLE_MANPAGES, [test "x$have_manpages" = "xyes"])
+
+AC_PATH_PROG([XSLTPROC], [xsltproc])
+
+AC_CHECK_PROGS(ASCIIDOC, [asciidoc])
+if test "${have_manpages}" = "yes" && test -z "${ASCIIDOC}"; then
+	AC_MSG_ERROR([Required program 'asciidoc' not found])
+fi
+# - debug ----------------------------------------------------------------------
+
 AC_ARG_ENABLE([debug],
         AS_HELP_STRING([--enable-debug], [enable debug messages @<:@default=disabled@:>@]),
         [], [enable_debug=no])
