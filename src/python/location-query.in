@@ -73,6 +73,13 @@ class CLI(object):
 		search_as.add_argument("query", nargs=1)
 		search_as.set_defaults(func=self.handle_search_as)
 
+		# List all networks in an AS
+		list_networks_by_as = subparsers.add_parser("list-networks-by-as",
+			help=_("Lists all networks in an AS"),
+		)
+		list_networks_by_as.add_argument("asn", nargs=1, type=int)
+		list_networks_by_as.set_defaults(func=self.handle_list_networks_by_as)
+
 		# List all networks in a country
 		search_as = subparsers.add_parser("list-networks-by-cc",
 			help=_("Lists all networks in a country"),
@@ -180,6 +187,12 @@ class CLI(object):
 			# Print all matches ASes
 			for a in db.search_as(query):
 				print(a)
+
+	def handle_list_networks_by_as(self, db, ns):
+		for asn in ns.asn:
+			# Print all matching networks
+			for n in db.search_networks(asn=asn):
+				print(n)
 
 	def handle_list_networks_by_cc(self, db, ns):
 		for country_code in ns.country_code:
