@@ -305,6 +305,15 @@ LOC_EXPORT int loc_network_set_country_code(struct loc_network* network, const c
 	return 0;
 }
 
+LOC_EXPORT int loc_network_match_country_code(struct loc_network* network, const char* country_code) {
+	// Country codes must be two characters
+	if (strlen(country_code) != 2)
+		return -EINVAL;
+
+	return (network->country_code[0] == country_code[0])
+		&& (network->country_code[1] == country_code[1]);
+}
+
 LOC_EXPORT uint32_t loc_network_get_asn(struct loc_network* network) {
 	return network->asn;
 }

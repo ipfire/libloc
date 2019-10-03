@@ -62,6 +62,14 @@ struct loc_database {
 	struct loc_stringpool* pool;
 };
 
+#define MAX_STACK_DEPTH 256
+
+struct loc_node_stack {
+	off_t offset;
+	int i; // Is this node 0 or 1?
+	int depth;
+};
+
 struct loc_database_enumerator {
 	struct loc_ctx* ctx;
 	struct loc_database* db;
@@ -73,6 +81,12 @@ struct loc_database_enumerator {
 
 	// Index of the AS we are looking at
 	unsigned int as_index;
+
+	// Network state
+	struct in6_addr network_address;
+	struct loc_node_stack network_stack[MAX_STACK_DEPTH];
+	int network_stack_depth;
+	unsigned int* networks_visited;
 };
 
 static int loc_database_read_magic(struct loc_database* db, FILE* f) {
@@ -565,6 +579,11 @@ LOC_EXPORT int loc_database_enumerator_new(struct loc_database_enumerator** enum
 	e->db = loc_database_ref(db);
 	e->refcount = 1;
 
+	// Initialise graph search
+	//e->network_stack[++e->network_stack_depth] = 0;
+	e->network_stack_depth = 1;
+	e->networks_visited = calloc(db->network_nodes_count, sizeof(*e->networks_visited));
+
 	DEBUG(e->ctx, "Database enumerator object allocated at %p\n", e);
 
 	*enumerator = e;
@@ -656,4 +675,119 @@ LOC_EXPORT struct loc_as* loc_database_enumerator_next_as(struct loc_database_en
 
 	// We have searched through all of them
 	return NULL;
+}
+
+static int loc_database_enumerator_stack_push_node(
+		struct loc_database_enumerator* e, off_t offset, int i, int depth) {
+	// Do not add empty nodes
+	if (!offset)
+		return 0;
+
+	// Check if there is any space left on the stack
+	if (e->network_stack_depth >= MAX_STACK_DEPTH) {
+		ERROR(e->ctx, "Maximum stack size reached: %d\n", e->network_stack_depth);
+		return -1;
+	}
+
+	// Increase stack size
+	int s = ++e->network_stack_depth;
+
+	DEBUG(e->ctx, "Added node %jd to stack (%d)\n", offset, depth);
+
+	e->network_stack[s].offset = offset;
+	e->network_stack[s].i = i;
+	e->network_stack[s].depth = depth;
+
+	return 0;
+}
+
+static int loc_database_enumerator_network_depth_first_search(
+		struct loc_database_enumerator* e, struct loc_network** network) {
+	// Reset network
+	*network = NULL;
+	int r;
+
+	DEBUG(e->ctx, "Called with a stack of %u nodes\n", e->network_stack_depth);
+
+	// Perform DFS
+	while (e->network_stack_depth > 0) {
+		DEBUG(e->ctx, "Stack depth: %u\n", e->network_stack_depth);
+
+		// Get object from top of the stack
+		struct loc_node_stack* node = &e->network_stack[e->network_stack_depth];
+
+		// Remove the node from the stack if we have already visited it
+		if (e->networks_visited[node->offset]) {
+			e->network_stack_depth--;
+			continue;
+		}
+
+		in6_addr_set_bit(&e->network_address,
+			(node->depth > 0) ? node->depth - 1 : 0, node->i);
+
+		//for (unsigned int i = stack->depth + 1; i < 128; i++)
+		//	in6_addr_set_bit(&e->network_address, i, 0);
+
+		DEBUG(e->ctx, "Looking at node %jd\n", node->offset);
+		e->networks_visited[node->offset]++;
+
+		// Pop node from top of the stack
+		struct loc_database_network_node_v0* n =
+			e->db->network_nodes_v0 + node->offset;
+
+		// Add edges to stack
+		r = loc_database_enumerator_stack_push_node(e,
+			be32toh(n->one), 1, node->depth + 1);
+
+		if (r)
+			return r;
+
+		r = loc_database_enumerator_stack_push_node(e,
+			be32toh(n->zero), 0, node->depth + 1);
+
+		if (r)
+			return r;
+
+		// Check if this node is a leaf and has a network object
+		if (__loc_database_node_is_leaf(n)) {
+			off_t network_index = be32toh(n->network);
+
+			DEBUG(e->ctx, "Node has a network at %jd\n", network_index);
+
+			// Fetch the network object
+			r = loc_database_fetch_network(e->db, network,
+				&e->network_address, node->depth, network_index);
+
+			// Break on any errors
+			if (r)
+				return r;
+
+			// Check if we are interested in this network
+
+			// Skip if the country code does not match
+			if (e->country_code && !loc_network_match_country_code(*network, e->country_code)) {
+				loc_network_unref(*network);
+				continue;
+			}
+
+			return 0;
+		}
+	}
+
+	// Reached the end of the search
+	// TODO cleanup
+
+	return 0;
+}
+
+LOC_EXPORT struct loc_network* loc_database_enumerator_next_network(
+		struct loc_database_enumerator* enumerator) {
+	struct loc_network* network = NULL;
+
+	int r = loc_database_enumerator_network_depth_first_search(enumerator, &network);
+	if (r) {
+		return NULL;
+	}
+
+	return network;
 }

@@ -53,6 +53,7 @@ global:
 	# Database Enumerator
 	loc_database_enumerator_new;
 	loc_database_enumerator_next_as;
+	loc_database_enumerator_next_network;
 	loc_database_enumerator_ref;
 	loc_database_enumerator_set_country_code;
 	loc_database_enumerator_set_string;
@@ -61,6 +62,7 @@ global:
 	# Network
 	loc_network_get_asn;
 	loc_network_get_country_code;
+	loc_network_match_country_code;
 	loc_network_new;
 	loc_network_new_from_string;
 	loc_network_ref;
