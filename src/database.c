@@ -778,7 +778,10 @@ static int loc_database_enumerator_network_depth_first_search(
 	}
 
 	// Reached the end of the search
-	// TODO cleanup
+
+	// Mark all nodes as non-visited
+	for (unsigned int i = 0; i < e->db->network_nodes_count; i++)
+		e->networks_visited[i] = 0;
 
 	return 0;
 }
