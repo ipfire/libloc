@@ -1,0 +1,2 @@
+TYPEMAP
+struct loc_database * T_PTRREF

@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import location
+import sys
 
 w = location.Writer()
 
@@ -9,6 +10,9 @@ w.vendor = "IPFire Project"
 
 # Set a description
 w.description = "This is a geo location database"
+
+# Set a license
+w.license = "CC"
 
 # Add an AS
 a = w.add_as(204867)
@@ -24,4 +28,5 @@ n.asn = a.number
 print(n)
 
 # Write the database to disk
-w.write("test.db")
+for f in sys.argv[1:]:
+    w.write(f)
