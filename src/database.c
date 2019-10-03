@@ -73,6 +73,7 @@ struct loc_node_stack {
 struct loc_database_enumerator {
 	struct loc_ctx* ctx;
 	struct loc_database* db;
+	enum loc_database_enumerator_mode mode;
 	int refcount;
 
 	// Search string
@@ -570,7 +571,8 @@ LOC_EXPORT int loc_database_lookup_from_string(struct loc_database* db,
 
 // Enumerator
 
-LOC_EXPORT int loc_database_enumerator_new(struct loc_database_enumerator** enumerator, struct loc_database* db) {
+LOC_EXPORT int loc_database_enumerator_new(struct loc_database_enumerator** enumerator,
+		struct loc_database* db, enum loc_database_enumerator_mode mode) {
 	struct loc_database_enumerator* e = calloc(1, sizeof(*e));
 	if (!e)
 		return -ENOMEM;
@@ -578,6 +580,7 @@ LOC_EXPORT int loc_database_enumerator_new(struct loc_database_enumerator** enum
 	// Reference context
 	e->ctx = loc_ref(db->ctx);
 	e->db = loc_database_ref(db);
+	e->mode = mode;
 	e->refcount = 1;
 
 	// Initialise graph search
@@ -660,6 +663,10 @@ LOC_EXPORT int loc_database_enumerator_set_asn(
 }
 
 LOC_EXPORT struct loc_as* loc_database_enumerator_next_as(struct loc_database_enumerator* enumerator) {
+	// Do not do anything if not in AS mode
+	if (enumerator->mode != LOC_DB_ENUMERATE_ASES)
+		return NULL;
+
 	struct loc_database* db = enumerator->db;
 	struct loc_as* as;
 
@@ -800,6 +807,10 @@ static int loc_database_enumerator_network_depth_first_search(
 
 LOC_EXPORT struct loc_network* loc_database_enumerator_next_network(
 		struct loc_database_enumerator* enumerator) {
+	// Do not do anything if not in network mode
+	if (enumerator->mode != LOC_DB_ENUMERATE_NETWORKS)
+		return NULL;
+
 	struct loc_network* network = NULL;
 
 	int r = loc_database_enumerator_network_depth_first_search(enumerator, &network);

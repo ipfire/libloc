@@ -98,7 +98,7 @@ int main(int argc, char** argv) {
 	// Enumerator
 
 	struct loc_database_enumerator* enumerator;
-	err = loc_database_enumerator_new(&enumerator, db);
+	err = loc_database_enumerator_new(&enumerator, db, LOC_DB_ENUMERATE_ASES);
 	if (err) {
 		fprintf(stderr, "Could not create a database enumerator\n");
 		exit(EXIT_FAILURE);

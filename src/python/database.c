@@ -168,7 +168,7 @@ static PyObject* Database_search_as(DatabaseObject* self, PyObject* args) {
 
 	struct loc_database_enumerator* enumerator;
 
-	int r = loc_database_enumerator_new(&enumerator, self->db);
+	int r = loc_database_enumerator_new(&enumerator, self->db, LOC_DB_ENUMERATE_ASES);
 	if (r) {
 		PyErr_SetFromErrno(PyExc_SystemError);
 		return NULL;
@@ -176,6 +176,47 @@ static PyObject* Database_search_as(DatabaseObject* self, PyObject* args) {
 
 	// Search string we are searching for
 	loc_database_enumerator_set_string(enumerator, string);
+
+	PyObject* obj = new_database_enumerator(&DatabaseEnumeratorType, enumerator);
+	loc_database_enumerator_unref(enumerator);
+
+	return obj;
+}
+
+static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, PyObject* kwargs) {
+	char* kwlist[] = { "country_code", "asn", NULL };
+	const char* country_code = NULL;
+	unsigned int asn = 0;
+
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|si", kwlist, &country_code, &asn))
+		return NULL;
+
+	struct loc_database_enumerator* enumerator;
+	int r = loc_database_enumerator_new(&enumerator, self->db, LOC_DB_ENUMERATE_NETWORKS);
+	if (r) {
+		PyErr_SetFromErrno(PyExc_SystemError);
+		return NULL;
+	}
+
+	// Set country code we are searching for
+	if (country_code) {
+		r = loc_database_enumerator_set_country_code(enumerator, country_code);
+
+		if (r) {
+			PyErr_SetFromErrno(PyExc_SystemError);
+			return NULL;
+		}
+	}
+
+	// Set the ASN we are searching for
+	if (asn) {
+		r = loc_database_enumerator_set_asn(enumerator, asn);
+
+		if (r) {
+			PyErr_SetFromErrno(PyExc_SystemError);
+			return NULL;
+		}
+	}
 
 	PyObject* obj = new_database_enumerator(&DatabaseEnumeratorType, enumerator);
 	loc_database_enumerator_unref(enumerator);
@@ -200,6 +241,12 @@ static struct PyMethodDef Database_methods[] = {
 		"search_as",
 		(PyCFunction)Database_search_as,
 		METH_VARARGS,
+		NULL,
+	},
+	{
+		"search_networks",
+		(PyCFunction)Database_search_networks,
+		METH_VARARGS|METH_KEYWORDS,
 		NULL,
 	},
 	{ NULL },
@@ -264,6 +311,16 @@ static void DatabaseEnumerator_dealloc(DatabaseEnumeratorObject* self) {
 }
 
 static PyObject* DatabaseEnumerator_next(DatabaseEnumeratorObject* self) {
+	// Enumerate all networks
+	struct loc_network* network = loc_database_enumerator_next_network(self->enumerator);
+	if (network) {
+		PyObject* obj = new_network(&NetworkType, network);
+		loc_network_unref(network);
+
+		return obj;
+	}
+
+	// Enumerate all ASes
 	struct loc_as* as = loc_database_enumerator_next_as(self->enumerator);
 	if (as) {
 		PyObject* obj = new_as(&ASType, as);
