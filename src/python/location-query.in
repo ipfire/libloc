@@ -81,11 +81,11 @@ class CLI(object):
 		list_networks_by_as.set_defaults(func=self.handle_list_networks_by_as)
 
 		# List all networks in a country
-		search_as = subparsers.add_parser("list-networks-by-cc",
+		list_networks_by_cc = subparsers.add_parser("list-networks-by-cc",
 			help=_("Lists all networks in a country"),
 		)
-		search_as.add_argument("country_code", nargs=1)
-		search_as.set_defaults(func=self.handle_list_networks_by_cc)
+		list_networks_by_cc.add_argument("country_code", nargs=1)
+		list_networks_by_cc.set_defaults(func=self.handle_list_networks_by_cc)
 
 		args = parser.parse_args()
 
