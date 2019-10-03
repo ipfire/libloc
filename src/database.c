@@ -259,8 +259,8 @@ static int loc_database_read(struct loc_database* db, FILE* f) {
 
 	clock_t end = clock();
 
-	INFO(db->ctx, "Opened database in %.8fs\n",
-		(double)(end - start) / CLOCKS_PER_SEC);
+	INFO(db->ctx, "Opened database in %.4fms\n",
+		(double)(end - start) / CLOCKS_PER_SEC * 1000);
 
 	return 0;
 }
@@ -323,8 +323,7 @@ static void loc_database_free(struct loc_database* db) {
 			ERROR(db->ctx, "Could not unmap network nodes section: %s\n", strerror(errno));
 	}
 
-	if (db->pool)
-		loc_stringpool_unref(db->pool);
+	loc_stringpool_unref(db->pool);
 
 	loc_unref(db->ctx);
 	free(db);
@@ -404,8 +403,8 @@ LOC_EXPORT int loc_database_get_as(struct loc_database* db, struct loc_as** as, 
 			clock_t end = clock();
 
 			// Log how fast this has been
-			DEBUG(db->ctx, "Found AS%u in %.8fs\n", as_number,
-				(double)(end - start) / CLOCKS_PER_SEC);
+			DEBUG(db->ctx, "Found AS%u in %.4fms\n", as_number,
+				(double)(end - start) / CLOCKS_PER_SEC * 1000);
 
 			return 0;
 		}
@@ -553,8 +552,8 @@ LOC_EXPORT int loc_database_lookup(struct loc_database* db,
 	clock_t end = clock();
 
 	// Log how fast this has been
-	DEBUG(db->ctx, "Executed network search in %.8fs\n",
-		(double)(end - start) / CLOCKS_PER_SEC);
+	DEBUG(db->ctx, "Executed network search in %.4fms\n",
+		(double)(end - start) / CLOCKS_PER_SEC * 1000);
 
 	return r;
 }
