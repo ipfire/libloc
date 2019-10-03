@@ -606,6 +606,9 @@ static void loc_database_enumerator_free(struct loc_database_enumerator* enumera
 	if (enumerator->string)
 		free(enumerator->string);
 
+	// Free network search
+	free(enumerator->networks_visited);
+
 	free(enumerator);
 }
 
