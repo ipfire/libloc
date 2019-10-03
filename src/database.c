@@ -725,11 +725,9 @@ static int loc_database_enumerator_network_depth_first_search(
 			continue;
 		}
 
+		// Mark the bits on the path correctly
 		in6_addr_set_bit(&e->network_address,
 			(node->depth > 0) ? node->depth - 1 : 0, node->i);
-
-		//for (unsigned int i = stack->depth + 1; i < 128; i++)
-		//	in6_addr_set_bit(&e->network_address, i, 0);
 
 		DEBUG(e->ctx, "Looking at node %jd\n", node->offset);
 		e->networks_visited[node->offset]++;
