@@ -115,5 +115,15 @@ PyMODINIT_FUNC PyInit_location(void) {
 	// Version
 	PyDict_SetItemString(d, "__version__", PyUnicode_FromString(VERSION));
 
+	// Add flags
+	if (PyModule_AddIntConstant(m, "FLAG_ANONYMOUS_PROXY", LOC_NETWORK_FLAG_ANONYMOUS_PROXY))
+		return NULL;
+
+	if (PyModule_AddIntConstant(m, "FLAG_SATELLITE_PROVIDER", LOC_NETWORK_FLAG_SATELLITE_PROVIDER))
+		return NULL;
+
+	if (PyModule_AddIntConstant(m, "FLAG_ANYCAST", LOC_NETWORK_FLAG_ANYCAST))
+		return NULL;
+
 	return m;
 }

@@ -126,6 +126,50 @@ static int Network_set_asn(NetworkObject* self, PyObject* value) {
 	return 0;
 }
 
+static PyObject* Network_has_flag(NetworkObject* self, PyObject* args) {
+	enum loc_network_flags flag = 0;
+
+	if (!PyArg_ParseTuple(args, "i", &flag))
+		return NULL;
+
+	if (loc_network_has_flag(self->network, flag))
+		Py_RETURN_TRUE;
+
+	Py_RETURN_FALSE;
+}
+
+static PyObject* Network_set_flag(NetworkObject* self, PyObject* args) {
+	enum loc_network_flags flag = 0;
+
+	if (!PyArg_ParseTuple(args, "i", &flag))
+		return NULL;
+
+	int r = loc_network_set_flag(self->network, flag);
+
+	if (r) {
+		// What exception to throw here?
+		return NULL;
+	}
+
+	Py_RETURN_NONE;
+}
+
+static struct PyMethodDef Network_methods[] = {
+	{
+		"has_flag",
+		(PyCFunction)Network_has_flag,
+		METH_VARARGS,
+		NULL,
+	},
+	{
+		"set_flag",
+		(PyCFunction)Network_set_flag,
+		METH_VARARGS,
+		NULL,
+	},
+	{ NULL },
+};
+
 static struct PyGetSetDef Network_getsetters[] = {
 	{
 		"asn",
@@ -153,6 +197,7 @@ PyTypeObject NetworkType = {
 	.tp_dealloc =            (destructor)Network_dealloc,
 	.tp_init =               (initproc)Network_init,
 	.tp_doc =                "Network object",
+	.tp_methods =            Network_methods,
 	.tp_getset =             Network_getsetters,
 	.tp_repr =               (reprfunc)Network_repr,
 	.tp_str =                (reprfunc)Network_str,
