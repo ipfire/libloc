@@ -79,6 +79,9 @@ struct loc_database_network_v0 {
 
 	// ASN
 	uint32_t asn;
+
+	// Flags
+	uint32_t flags;
 };
 
 struct loc_database_as_v0 {

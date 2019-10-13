@@ -35,6 +35,7 @@ struct loc_network {
 
 	char country_code[3];
 	uint32_t asn;
+	uint32_t flags;
 };
 
 static int valid_prefix(struct in6_addr* address, unsigned int prefix) {
@@ -328,6 +329,20 @@ LOC_EXPORT int loc_network_match_asn(struct loc_network* network, uint32_t asn) 
 	return network->asn == asn;
 }
 
+LOC_EXPORT int loc_network_has_flag(struct loc_network* network, uint32_t flag) {
+	return network->flags & flag;
+}
+
+LOC_EXPORT int loc_network_set_flag(struct loc_network* network, uint32_t flag) {
+	network->flags |= flag;
+
+	return 0;
+}
+
+LOC_EXPORT int loc_network_match_flag(struct loc_network* network, uint32_t flag) {
+	return loc_network_has_flag(network, flag);
+}
+
 LOC_EXPORT int loc_network_to_database_v0(struct loc_network* network, struct loc_database_network_v0* dbobj) {
 	// Add country code
 	for (unsigned int i = 0; i < 2; i++) {
@@ -336,6 +351,9 @@ LOC_EXPORT int loc_network_to_database_v0(struct loc_network* network, struct lo
 
 	// Add ASN
 	dbobj->asn = htobe32(network->asn);
+
+	// Flags
+	dbobj->flags = htobe32(network->flags);
 
 	return 0;
 }
@@ -359,6 +377,11 @@ LOC_EXPORT int loc_network_new_from_database_v0(struct loc_ctx* ctx, struct loc_
 
 	// Import ASN
 	r = loc_network_set_asn(*network, be32toh(dbobj->asn));
+	if (r)
+		return r;
+
+	// Import flags
+	r = loc_network_set_flag(*network, be32toh(dbobj->flags));
 	if (r)
 		return r;
 

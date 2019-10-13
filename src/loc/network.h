@@ -40,6 +40,10 @@ uint32_t loc_network_get_asn(struct loc_network* network);
 int loc_network_set_asn(struct loc_network* network, uint32_t asn);
 int loc_network_match_asn(struct loc_network* network, uint32_t asn);
 
+int loc_network_has_flag(struct loc_network* network, uint32_t flag);
+int loc_network_set_flag(struct loc_network* network, uint32_t flag);
+int loc_network_match_flag(struct loc_network* network, uint32_t flag);
+
 #ifdef LIBLOC_PRIVATE
 
 int loc_network_to_database_v0(struct loc_network* network, struct loc_database_network_v0* dbobj);
