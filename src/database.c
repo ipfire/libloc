@@ -649,6 +649,19 @@ LOC_EXPORT int loc_database_enumerator_set_country_code(struct loc_database_enum
 	if (strlen(country_code) != 2)
 		return -EINVAL;
 
+	// Treat A1, A2, A3 as special country codes,
+	// but perform search for flags instead
+	if (strcmp(country_code, "A1") == 0) {
+		return loc_database_enumerator_set_flag(enumerator,
+			LOC_NETWORK_FLAG_ANONYMOUS_PROXY);
+	} else if (strcmp(country_code, "A2") == 0) {
+		return loc_database_enumerator_set_flag(enumerator,
+			LOC_NETWORK_FLAG_SATELLITE_PROVIDER);
+	} else if (strcmp(country_code, "A3") == 0) {
+		return loc_database_enumerator_set_flag(enumerator,
+			LOC_NETWORK_FLAG_ANYCAST);
+	}
+
 	for (unsigned int i = 0; i < 3; i++) {
 		enumerator->country_code[i] = country_code[i];
 	}
