@@ -80,6 +80,7 @@ struct loc_database_enumerator {
 	char* string;
 	char country_code[3];
 	uint32_t asn;
+	enum loc_network_flags flags;
 
 	// Index of the AS we are looking at
 	unsigned int as_index;
@@ -662,6 +663,13 @@ LOC_EXPORT int loc_database_enumerator_set_asn(
 	return 0;
 }
 
+LOC_EXPORT int loc_database_enumerator_set_flag(
+		struct loc_database_enumerator* enumerator, enum loc_network_flags flag) {
+	enumerator->flags |= flag;
+
+	return 0;
+}
+
 LOC_EXPORT int loc_database_enumerator_next_as(
 		struct loc_database_enumerator* enumerator, struct loc_as** as) {
 	*as = NULL;
@@ -805,6 +813,13 @@ LOC_EXPORT int loc_database_enumerator_next_network(
 				*network = NULL;
 
 				continue;
+			}
+
+			// Skip if flags do not match
+			if (enumerator->flags &&
+					!loc_network_match_flag(*network, enumerator->flags)) {
+				loc_network_unref(*network);
+				*network = NULL;
 			}
 
 			return 0;
