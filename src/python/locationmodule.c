@@ -110,10 +110,8 @@ PyMODINIT_FUNC PyInit_location(void) {
 	PyModule_AddObject(m, "Writer", (PyObject *)&WriterType);
 
 	// Add constants
-	PyObject* d = PyModule_GetDict(m);
-
-	// Version
-	PyDict_SetItemString(d, "__version__", PyUnicode_FromString(VERSION));
+	if (PyModule_AddStringConstant(m, "__version__", VERSION))
+		return NULL;
 
 	// Add flags
 	if (PyModule_AddIntConstant(m, "FLAG_ANONYMOUS_PROXY", LOC_NETWORK_FLAG_ANONYMOUS_PROXY))
