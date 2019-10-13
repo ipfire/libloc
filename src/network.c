@@ -35,7 +35,7 @@ struct loc_network {
 
 	char country_code[3];
 	uint32_t asn;
-	uint32_t flags;
+	enum loc_network_flags flags;
 };
 
 static int valid_prefix(struct in6_addr* address, unsigned int prefix) {

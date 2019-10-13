@@ -22,6 +22,12 @@
 #include <loc/libloc.h>
 #include <loc/format.h>
 
+enum loc_network_flags {
+	LOC_NETWORK_FLAG_ANONYMOUS_PROXY    = (1 << 0), // A1
+	LOC_NETWORK_FLAG_SATELLITE_PROVIDER = (1 << 1), // A2
+	LOC_NETWORK_FLAG_ANYCAST            = (1 << 2), // A3
+};
+
 struct loc_network;
 int loc_network_new(struct loc_ctx* ctx, struct loc_network** network,
 		struct in6_addr* start_address, unsigned int prefix);
