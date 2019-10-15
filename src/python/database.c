@@ -21,6 +21,7 @@
 
 #include "locationmodule.h"
 #include "as.h"
+#include "country.h"
 #include "database.h"
 #include "network.h"
 
@@ -118,6 +119,24 @@ static PyObject* Database_get_as(DatabaseObject* self, PyObject* args) {
 
 	// Unexpected error
 	return NULL;
+}
+
+static PyObject* Database_get_country(DatabaseObject* self, PyObject* args) {
+	const char* country_code = NULL;
+
+	if (!PyArg_ParseTuple(args, "s", &country_code))
+		return NULL;
+
+	struct loc_country* country;
+	int r = loc_database_get_country(self->db, &country, country_code);
+	if (r) {
+		Py_RETURN_NONE;
+	}
+
+	PyObject* obj = new_country(&CountryType, country);
+	loc_country_unref(country);
+
+	return obj;
 }
 
 static PyObject* Database_lookup(DatabaseObject* self, PyObject* args) {
@@ -228,6 +247,12 @@ static struct PyMethodDef Database_methods[] = {
 	{
 		"get_as",
 		(PyCFunction)Database_get_as,
+		METH_VARARGS,
+		NULL,
+	},
+	{
+		"get_country",
+		(PyCFunction)Database_get_country,
 		METH_VARARGS,
 		NULL,
 	},
