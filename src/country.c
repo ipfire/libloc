@@ -137,15 +137,12 @@ int loc_country_new_from_database_v0(struct loc_ctx* ctx, struct loc_stringpool*
 		goto FAIL;
 
 	// Set name
-#if 0
-	// XXX Reading from the stringpool makes test-country.c fail
 	const char* name = loc_stringpool_get(pool, be32toh(dbobj->name));
 	if (name) {
 		r = loc_country_set_name(*country, name);
 		if (r)
 			goto FAIL;
 	}
-#endif
 
 	return 0;
 

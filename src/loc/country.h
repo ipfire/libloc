@@ -49,7 +49,7 @@ static inline void loc_country_copy_code(char* dst, const char* src) {
     }
 
     // Terminate the string
-    dst[3] = '\0';
+    dst[2] = '\0';
 }
 
 #endif
