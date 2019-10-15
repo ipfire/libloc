@@ -300,9 +300,7 @@ LOC_EXPORT int loc_network_set_country_code(struct loc_network* network, const c
 	if (!loc_country_code_is_valid(country_code))
 		return -EINVAL;
 
-	for (unsigned int i = 0; i < 3; i++) {
-		network->country_code[i] = country_code[i];
-	}
+	loc_country_code_copy(network->country_code, country_code);
 
 	return 0;
 }
@@ -346,9 +344,7 @@ LOC_EXPORT int loc_network_match_flag(struct loc_network* network, uint32_t flag
 
 LOC_EXPORT int loc_network_to_database_v0(struct loc_network* network, struct loc_database_network_v0* dbobj) {
 	// Add country code
-	for (unsigned int i = 0; i < 2; i++) {
-		dbobj->country_code[i] = network->country_code[i] ? network->country_code[i] : '\0';
-	}
+	loc_country_code_copy(dbobj->country_code, network->country_code);
 
 	// Add ASN
 	dbobj->asn = htobe32(network->asn);
@@ -361,16 +357,14 @@ LOC_EXPORT int loc_network_to_database_v0(struct loc_network* network, struct lo
 
 LOC_EXPORT int loc_network_new_from_database_v0(struct loc_ctx* ctx, struct loc_network** network,
 		struct in6_addr* address, unsigned int prefix, const struct loc_database_network_v0* dbobj) {
+	char country_code[3];
+
 	int r = loc_network_new(ctx, network, address, prefix);
 	if (r)
 		return r;
 
 	// Import country code
-	char country_code[3];
-	for (unsigned int i = 0; i < 2; i++) {
-		country_code[i] = dbobj->country_code[i];
-	}
-	country_code[2] = '\0';
+	loc_country_code_copy(country_code, dbobj->country_code);
 
 	r = loc_network_set_country_code(*network, country_code);
 	if (r)

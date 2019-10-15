@@ -122,7 +122,7 @@ int loc_country_new_from_database_v0(struct loc_ctx* ctx, struct loc_stringpool*
 	char buffer[3];
 
 	// Read country code
-	loc_country_copy_code(buffer, dbobj->code);
+	loc_country_code_copy(buffer, dbobj->code);
 
 	// Create a new country object
 	int r = loc_country_new(ctx, country, buffer);
@@ -130,7 +130,7 @@ int loc_country_new_from_database_v0(struct loc_ctx* ctx, struct loc_stringpool*
 		return r;
 
 	// Continent Code
-	loc_country_copy_code(buffer, dbobj->continent_code);
+	loc_country_code_copy(buffer, dbobj->continent_code);
 
 	r = loc_country_set_continent_code(*country, buffer);
 	if (r)

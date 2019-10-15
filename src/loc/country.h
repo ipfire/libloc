@@ -64,7 +64,7 @@ static inline int loc_country_code_is_valid(const char* cc) {
 	return 1;
 }
 
-static inline void loc_country_copy_code(char* dst, const char* src) {
+static inline void loc_country_code_copy(char* dst, const char* src) {
     for (unsigned int i = 0; i < 2; i++) {
         dst[i] = src[i];
     }
