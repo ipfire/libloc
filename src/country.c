@@ -159,8 +159,10 @@ int loc_country_to_database_v0(struct loc_country* country,
 	}
 
 	// Add continent code
-	for (unsigned int i = 0; i < 2; i++) {
-		dbobj->continent_code[i] = country->continent_code[i] ? country->continent_code[i] : '\0';
+	if (country->continent_code) {
+		for (unsigned int i = 0; i < 2; i++) {
+			dbobj->continent_code[i] = country->continent_code[i] ? country->continent_code[i] : '\0';
+		}
 	}
 
 	// Save the name string in the string pool
