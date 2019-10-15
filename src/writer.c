@@ -507,13 +507,13 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f) {
 	if (r)
 		return r;
 
-	// Write pool
-	r = loc_database_write_pool(writer, &header, &offset, f);
+	// Write countries
+	r = loc_database_write_countries(writer, &header, &offset, f);
 	if (r)
 		return r;
 
-	// Write countries
-	r = loc_database_write_countries(writer, &header, &offset, f);
+	// Write pool
+	r = loc_database_write_pool(writer, &header, &offset, f);
 	if (r)
 		return r;
 
