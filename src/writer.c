@@ -24,6 +24,7 @@
 
 #include <loc/libloc.h>
 #include <loc/as.h>
+#include <loc/country.h>
 #include <loc/format.h>
 #include <loc/network.h>
 #include <loc/private.h>
@@ -40,6 +41,9 @@ struct loc_writer {
 
 	struct loc_as** as;
 	size_t as_count;
+
+	struct loc_country** countries;
+	size_t countries_count;
 
 	struct loc_network_tree* networks;
 };
@@ -181,6 +185,32 @@ LOC_EXPORT int loc_writer_add_network(struct loc_writer* writer, struct loc_netw
 
 	// Add it to the local tree
 	return loc_network_tree_add_network(writer->networks, *network);
+}
+
+static int __loc_country_cmp(const void* country1, const void* country2) {
+	return loc_country_cmp(*(struct loc_country**)country1, *(struct loc_country**)country2);
+}
+
+LOC_EXPORT int loc_writer_add_country(struct loc_writer* writer, struct loc_country** country, const char* country_code) {
+	int r = loc_country_new(writer->ctx, country, country_code);
+	if (r)
+		return r;
+
+	// We have a new country to add
+	writer->countries_count++;
+
+	// Make space
+	writer->countries = realloc(writer->countries, sizeof(*writer->countries) * writer->countries_count);
+	if (!writer->countries)
+		return -ENOMEM;
+
+	// Add as last element
+	writer->countries[writer->countries_count - 1] = loc_country_ref(*country);
+
+	// Sort everything
+	qsort(writer->countries, writer->countries_count, sizeof(*writer->countries), __loc_country_cmp);
+
+	return 0;
 }
 
 static void make_magic(struct loc_writer* writer, struct loc_database_magic* magic) {
@@ -408,6 +438,31 @@ static int loc_database_write_networks(struct loc_writer* writer,
 	return 0;
 }
 
+static int loc_database_write_countries(struct loc_writer* writer,
+		struct loc_database_header_v0* header, off_t* offset, FILE* f) {
+	DEBUG(writer->ctx, "Countries section starts at %jd bytes\n", *offset);
+	header->countries_offset = htobe32(*offset);
+
+	size_t countries_length = 0;
+
+	struct loc_database_country_v0 country;
+	for (unsigned int i = 0; i < writer->countries_count; i++) {
+		// Convert country into database format
+		loc_country_to_database_v0(writer->countries[i], writer->pool, &country);
+
+		// Write to disk
+		*offset += fwrite(&country, 1, sizeof(country), f);
+		countries_length += sizeof(country);
+	}
+
+	DEBUG(writer->ctx, "Countries section has a length of %zu bytes\n", countries_length);
+	header->countries_length = htobe32(countries_length);
+
+	align_page_boundary(offset, f);
+
+	return 0;
+}
+
 LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f) {
 	struct loc_database_magic magic;
 	make_magic(writer, &magic);
@@ -454,6 +509,11 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f) {
 
 	// Write pool
 	r = loc_database_write_pool(writer, &header, &offset, f);
+	if (r)
+		return r;
+
+	// Write countries
+	r = loc_database_write_countries(writer, &header, &offset, f);
 	if (r)
 		return r;
 

@@ -68,6 +68,7 @@ EXTRA_DIST += \
 pkginclude_HEADERS = \
 	src/loc/libloc.h \
 	src/loc/as.h \
+	src/loc/country.h \
 	src/loc/database.h \
 	src/loc/format.h \
 	src/loc/network.h \
@@ -81,6 +82,7 @@ lib_LTLIBRARIES = \
 src_libloc_la_SOURCES = \
 	src/libloc.c \
 	src/as.c \
+	src/country.c \
 	src/database.c \
 	src/network.c \
 	src/stringpool.c \
@@ -210,7 +212,8 @@ TESTS = \
 	src/test-stringpool \
 	src/test-database \
 	src/test-as \
-	src/test-network
+	src/test-network \
+	src/test-country
 
 CLEANFILES += \
 	test.db \
@@ -224,7 +227,8 @@ check_PROGRAMS = \
 	src/test-stringpool \
 	src/test-database \
 	src/test-as \
-	src/test-network
+	src/test-network \
+	src/test-country
 
 src_test_libloc_SOURCES = \
 	src/test-libloc.c
@@ -242,6 +246,15 @@ src_test_as_CFLAGS = \
 	$(TESTS_CFLAGS)
 
 src_test_as_LDADD = \
+	src/libloc.la
+
+src_test_country_SOURCES = \
+	src/test-country.c
+
+src_test_country_CFLAGS = \
+	$(TESTS_CFLAGS)
+
+src_test_country_LDADD = \
 	src/libloc.la
 
 src_test_network_SOURCES = \

@@ -31,6 +31,7 @@
 
 #include <loc/libloc.h>
 #include <loc/as.h>
+#include <loc/country.h>
 #include <loc/database.h>
 #include <loc/format.h>
 #include <loc/network.h>
@@ -58,6 +59,10 @@ struct loc_database {
 	// Networks
 	struct loc_database_network_v0* networks_v0;
 	size_t networks_count;
+
+	// Countries
+	struct loc_database_country_v0* countries_v0;
+	size_t countries_count;
 
 	struct loc_stringpool* pool;
 };
@@ -190,6 +195,30 @@ static int loc_database_read_networks_section_v0(struct loc_database* db,
 	return 0;
 }
 
+static int loc_database_read_countries_section_v0(struct loc_database* db,
+		FILE* f, const struct loc_database_header_v0* header) {
+	off_t countries_offset  = be32toh(header->countries_offset);
+	size_t countries_length = be32toh(header->countries_length);
+
+	DEBUG(db->ctx, "Reading countries section from %jd (%zu bytes)\n",
+		countries_offset, countries_length);
+
+	if (countries_length > 0) {
+		db->countries_v0 = mmap(NULL, countries_length, PROT_READ,
+			MAP_SHARED, fileno(f), countries_offset);
+
+		if (db->countries_v0 == MAP_FAILED)
+			return -errno;
+	}
+
+	db->countries_count = countries_length / sizeof(*db->countries_v0);
+
+	INFO(db->ctx, "Read %zu countries from the database\n",
+		db->countries_count);
+
+	return 0;
+}
+
 static int loc_database_read_header_v0(struct loc_database* db, FILE* f) {
 	struct loc_database_header_v0 header;
 
@@ -228,6 +257,11 @@ static int loc_database_read_header_v0(struct loc_database* db, FILE* f) {
 
 	// Networks
 	r = loc_database_read_networks_section_v0(db, f, &header);
+	if (r)
+		return r;
+
+	// countries
+	r = loc_database_read_countries_section_v0(db, f, &header);
 	if (r)
 		return r;
 
@@ -568,6 +602,78 @@ LOC_EXPORT int loc_database_lookup_from_string(struct loc_database* db,
 		return r;
 
 	return loc_database_lookup(db, &address, network);
+}
+
+// Returns the country at position pos
+static int loc_database_fetch_country(struct loc_database* db,
+		struct loc_country** country, off_t pos) {
+	if ((size_t)pos >= db->countries_count)
+		return -EINVAL;
+
+	DEBUG(db->ctx, "Fetching country at position %jd\n", pos);
+
+	int r;
+	switch (db->version) {
+		case 0:
+			r = loc_country_new_from_database_v0(db->ctx, db->pool, country, db->countries_v0 + pos);
+			break;
+
+		default:
+			return -1;
+	}
+
+	if (r == 0) {
+		DEBUG(db->ctx, "Got country %s\n", loc_country_get_code(*country));
+	}
+
+	return r;
+}
+
+// Performs a binary search to find the country in the list
+LOC_EXPORT int loc_database_get_country(struct loc_database* db,
+		struct loc_country** country, const char* code) {
+	off_t lo = 0;
+	off_t hi = db->countries_count - 1;
+
+	// Save start time
+	clock_t start = clock();
+
+	while (lo <= hi) {
+		off_t i = (lo + hi) / 2;
+
+		// Fetch country in the middle between lo and hi
+		int r = loc_database_fetch_country(db, country, i);
+		if (r)
+			return r;
+
+		// Check if this is a match
+		const char* cc = loc_country_get_code(*country);
+		int result = strcmp(code, cc);
+
+		if (result == 0) {
+			clock_t end = clock();
+
+			// Log how fast this has been
+			DEBUG(db->ctx, "Found country %s in %.4fms\n", cc,
+				(double)(end - start) / CLOCKS_PER_SEC * 1000);
+
+			return 0;
+		}
+
+		// If it wasn't, we release the country and
+		// adjust our search pointers
+		loc_country_unref(*country);
+
+		if (result < 0) {
+			lo = i + 1;
+		} else
+			hi = i - 1;
+	}
+
+	// Nothing found
+	*country = NULL;
+
+	return 1;
 }
 
 // Enumerator

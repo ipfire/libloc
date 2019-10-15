@@ -8,5 +8,6 @@ libloc.pc
 test-as
 test-libloc
 test-database
+test-country
 test-network
 test-stringpool

@@ -24,6 +24,7 @@
 #include <loc/libloc.h>
 #include <loc/network.h>
 #include <loc/as.h>
+#include <loc/country.h>
 
 struct loc_database;
 int loc_database_new(struct loc_ctx* ctx, struct loc_database** database, FILE* f);
@@ -42,6 +43,9 @@ int loc_database_lookup(struct loc_database* db,
 		struct in6_addr* address, struct loc_network** network);
 int loc_database_lookup_from_string(struct loc_database* db,
 		const char* string, struct loc_network** network);
+
+int loc_database_get_country(struct loc_database* db,
+		struct loc_country** country, const char* code);
 
 enum loc_database_enumerator_mode {
 	LOC_DB_ENUMERATE_NETWORKS = 1,

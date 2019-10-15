@@ -21,6 +21,7 @@
 
 #include <loc/libloc.h>
 #include <loc/as.h>
+#include <loc/country.h>
 #include <loc/network.h>
 
 struct loc_writer;
@@ -39,6 +40,7 @@ int loc_writer_set_license(struct loc_writer* writer, const char* license);
 
 int loc_writer_add_as(struct loc_writer* writer, struct loc_as** as, uint32_t number);
 int loc_writer_add_network(struct loc_writer* writer, struct loc_network** network, const char* string);
+int loc_writer_add_country(struct loc_writer* writer, struct loc_country** country, const char* country_code);
 
 int loc_writer_write(struct loc_writer* writer, FILE* f);
 

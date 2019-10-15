@@ -59,6 +59,10 @@ struct loc_database_header_v0 {
 	uint32_t network_tree_offset;
 	uint32_t network_tree_length;
 
+	// Tells us where the countries start
+	uint32_t countries_offset;
+	uint32_t countries_length;
+
 	// Tells us where the pool starts
 	uint32_t pool_offset;
 	uint32_t pool_length;
@@ -89,6 +93,14 @@ struct loc_database_as_v0 {
 	uint32_t number;
 
 	// Name
+	uint32_t name;
+};
+
+struct loc_database_country_v0 {
+	char code[2];
+	char continent_code[2];
+
+	// Name in the string pool
 	uint32_t name;
 };
 

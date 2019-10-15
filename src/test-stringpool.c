@@ -59,6 +59,13 @@ int main(int argc, char** argv) {
 	if (err < 0)
 		exit(EXIT_FAILURE);
 
+	// Try reading some invalid string
+	const char* s = loc_stringpool_get(pool, 100);
+	if (s != NULL) {
+		fprintf(stderr, "An unexpected string was returned: %s\n", s);
+		exit(EXIT_FAILURE);
+	}
+
 	// Append a string
 	off_t pos = loc_stringpool_add(pool, "ABC");
 	if (pos < 0) {

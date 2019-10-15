@@ -36,11 +36,22 @@ global:
 	loc_as_set_name;
 	loc_as_unref;
 
+	# Country
+	loc_country_get_code;
+	loc_country_get_continent_code;
+	loc_country_get_name;
+	loc_country_new;
+	loc_country_ref;
+	loc_country_set_continent_code;
+	loc_country_set_name;
+	loc_country_unref;
+
 	# Database
 	loc_database_add_as;
 	loc_database_count_as;
 	loc_database_created_at;
 	loc_database_get_as;
+	loc_database_get_country;
 	loc_database_get_description;
 	loc_database_get_license;
 	loc_database_get_vendor;
@@ -78,6 +89,7 @@ global:
 
 	# Writer
 	loc_writer_add_as;
+	loc_writer_add_country;
 	loc_writer_add_network;
 	loc_writer_get_description;
 	loc_writer_get_license;
