@@ -21,6 +21,7 @@
 #include <string.h>
 
 #include <loc/libloc.h>
+#include <loc/country.h>
 #include <loc/database.h>
 #include <loc/network.h>
 #include <loc/writer.h>
@@ -28,6 +29,18 @@
 int main(int argc, char** argv) {
 	struct loc_country* country;
 	int err;
+
+	// Check some valid country codes
+	if (!loc_country_code_is_valid("XX")) {
+		fprintf(stderr, "Valid country code detected as invalid: %s\n", "XX");
+		exit(EXIT_FAILURE);
+	}
+
+	// Check some invalid country codes
+	if (loc_country_code_is_valid("X1")) {
+		fprintf(stderr, "Invalid country code detected as valid: %s\n", "X1");
+		exit(EXIT_FAILURE);
+	}
 
 	struct loc_ctx* ctx;
 	err = loc_new(&ctx);
@@ -41,7 +54,7 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 
 	// Create a country
-	err = loc_writer_add_country(writer, &country, "T1");
+	err = loc_writer_add_country(writer, &country, "XX");
 	if (err) {
 		fprintf(stderr, "Could not create country\n");
 		exit(EXIT_FAILURE);
@@ -49,7 +62,7 @@ int main(int argc, char** argv) {
 
 	// Set name & continent
 	loc_country_set_name(country, "Testistan");
-	loc_country_set_continent_code(country, "XX");
+	loc_country_set_continent_code(country, "YY");
 
 	// Free country
 	loc_country_unref(country);
@@ -84,9 +97,9 @@ int main(int argc, char** argv) {
 	}
 
 	// Lookup an address in the subnet
-	err = loc_database_get_country(db, &country, "T1");
+	err = loc_database_get_country(db, &country, "XX");
 	if (err) {
-		fprintf(stderr, "Could not find country T1\n");
+		fprintf(stderr, "Could not find country XX\n");
 		exit(EXIT_FAILURE);
 	}
 	loc_country_unref(country);

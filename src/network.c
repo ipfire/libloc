@@ -23,6 +23,7 @@
 #include <string.h>
 
 #include <loc/libloc.h>
+#include <loc/country.h>
 #include <loc/network.h>
 #include <loc/private.h>
 
@@ -295,8 +296,8 @@ LOC_EXPORT int loc_network_set_country_code(struct loc_network* network, const c
 		return 0;
 	}
 
-	// Country codes must be two characters
-	if (strlen(country_code) != 2)
+	// Check country code
+	if (!loc_country_code_is_valid(country_code))
 		return -EINVAL;
 
 	for (unsigned int i = 0; i < 3; i++) {
@@ -307,8 +308,8 @@ LOC_EXPORT int loc_network_set_country_code(struct loc_network* network, const c
 }
 
 LOC_EXPORT int loc_network_match_country_code(struct loc_network* network, const char* country_code) {
-	// Country codes must be two characters
-	if (strlen(country_code) != 2)
+	// Check country code
+	if (!loc_country_code_is_valid(country_code))
 		return -EINVAL;
 
 	return (network->country_code[0] == country_code[0])

@@ -751,10 +751,6 @@ LOC_EXPORT int loc_database_enumerator_set_country_code(struct loc_database_enum
 		return 0;
 	}
 
-	// Country codes must be two characters
-	if (strlen(country_code) != 2)
-		return -EINVAL;
-
 	// Treat A1, A2, A3 as special country codes,
 	// but perform search for flags instead
 	if (strcmp(country_code, "A1") == 0) {
@@ -767,6 +763,10 @@ LOC_EXPORT int loc_database_enumerator_set_country_code(struct loc_database_enum
 		return loc_database_enumerator_set_flag(enumerator,
 			LOC_NETWORK_FLAG_ANYCAST);
 	}
+
+	// Country codes must be two characters
+	if (!loc_country_code_is_valid(country_code))
+		return -EINVAL;
 
 	for (unsigned int i = 0; i < 3; i++) {
 		enumerator->country_code[i] = country_code[i];

@@ -38,10 +38,31 @@ int loc_country_cmp(struct loc_country* country1, struct loc_country* country2);
 
 #ifdef LIBLOC_PRIVATE
 
+#include <string.h>
+
 int loc_country_new_from_database_v0(struct loc_ctx* ctx, struct loc_stringpool* pool,
 		struct loc_country** country, const struct loc_database_country_v0* dbobj);
 int loc_country_to_database_v0(struct loc_country* country,
     struct loc_stringpool* pool, struct loc_database_country_v0* dbobj);
+
+static inline int loc_country_code_is_valid(const char* cc) {
+	// It cannot be NULL
+	if (!cc || !*cc)
+		return 0;
+
+	// It must be 2 characters long
+	if (strlen(cc) != 2)
+		return 0;
+
+	// It must only contain A-Z
+	for (unsigned int i = 0; i < 2; i++) {
+		if (cc[i] < 'A' || cc[i] > 'Z')
+			return 0;
+	}
+
+	// Looks valid
+	return 1;
+}
 
 static inline void loc_country_copy_code(char* dst, const char* src) {
     for (unsigned int i = 0; i < 2; i++) {
