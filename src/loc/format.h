@@ -66,6 +66,9 @@ struct loc_database_header_v0 {
 	// Tells us where the pool starts
 	uint32_t pool_offset;
 	uint32_t pool_length;
+
+	// Add some padding for future extensions
+	char padding[32];
 };
 
 struct loc_database_network_node_v0 {
