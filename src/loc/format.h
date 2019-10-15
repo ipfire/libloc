@@ -85,7 +85,10 @@ struct loc_database_network_v0 {
 	uint32_t asn;
 
 	// Flags
-	uint32_t flags;
+	uint16_t flags;
+
+	// Reserved
+	char padding[2];
 };
 
 struct loc_database_as_v0 {
