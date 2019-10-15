@@ -350,7 +350,7 @@ LOC_EXPORT int loc_network_to_database_v0(struct loc_network* network, struct lo
 	dbobj->asn = htobe32(network->asn);
 
 	// Flags
-	dbobj->flags = htobe32(network->flags);
+	dbobj->flags = htobe16(network->flags);
 
 	return 0;
 }
@@ -376,7 +376,7 @@ LOC_EXPORT int loc_network_new_from_database_v0(struct loc_ctx* ctx, struct loc_
 		return r;
 
 	// Import flags
-	r = loc_network_set_flag(*network, be32toh(dbobj->flags));
+	r = loc_network_set_flag(*network, be16toh(dbobj->flags));
 	if (r)
 		return r;
 
