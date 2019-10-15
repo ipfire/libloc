@@ -68,9 +68,6 @@ static inline void loc_country_code_copy(char* dst, const char* src) {
     for (unsigned int i = 0; i < 2; i++) {
         dst[i] = src[i];
     }
-
-    // Terminate the string
-    dst[2] = '\0';
 }
 
 #endif
