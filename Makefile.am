@@ -120,6 +120,8 @@ src_python_location_la_SOURCES = \
 	src/python/locationmodule.h \
 	src/python/as.c \
 	src/python/as.h \
+	src/python/country.c \
+	src/python/country.h \
 	src/python/database.c \
 	src/python/database.h \
 	src/python/network.c \

@@ -113,7 +113,7 @@ LOC_EXPORT int loc_country_set_name(struct loc_country* country, const char* nam
 	return 0;
 }
 
-int loc_country_cmp(struct loc_country* country1, struct loc_country* country2) {
+LOC_EXPORT int loc_country_cmp(struct loc_country* country1, struct loc_country* country2) {
 	return strcmp(country1->code, country2->code);
 }
 

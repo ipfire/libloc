@@ -21,6 +21,7 @@
 
 #include "locationmodule.h"
 #include "as.h"
+#include "country.h"
 #include "network.h"
 #include "writer.h"
 
@@ -118,6 +119,32 @@ static PyObject* Writer_add_as(WriterObject* self, PyObject* args) {
 	return obj;
 }
 
+static PyObject* Writer_add_country(WriterObject* self, PyObject* args) {
+	struct loc_country* country;
+	const char* country_code;
+
+	if (!PyArg_ParseTuple(args, "s", &country_code))
+		return NULL;
+
+	// Create country object
+	int r = loc_writer_add_country(self->writer, &country, country_code);
+	if (r) {
+		switch (r) {
+			case -EINVAL:
+				PyErr_SetString(PyExc_ValueError, "Invalid network");
+				break;
+
+			default:
+				return NULL;
+		}
+	}
+
+	PyObject* obj = new_country(&CountryType, country);
+	loc_country_unref(country);
+
+	return obj;
+}
+
 static PyObject* Writer_add_network(WriterObject* self, PyObject* args) {
 	struct loc_network* network;
 	const char* string = NULL;
@@ -175,6 +202,12 @@ static struct PyMethodDef Writer_methods[] = {
 	{
 		"add_as",
 		(PyCFunction)Writer_add_as,
+		METH_VARARGS,
+		NULL,
+	},
+	{
+		"add_country",
+		(PyCFunction)Writer_add_country,
 		METH_VARARGS,
 		NULL,
 	},

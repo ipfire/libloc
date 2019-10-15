@@ -37,6 +37,7 @@ global:
 	loc_as_unref;
 
 	# Country
+	loc_country_cmp;
 	loc_country_get_code;
 	loc_country_get_continent_code;
 	loc_country_get_name;
