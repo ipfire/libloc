@@ -67,6 +67,14 @@ int main(int argc, char** argv) {
 	// Free country
 	loc_country_unref(country);
 
+	// Add another country
+	err = loc_writer_add_country(writer, &country, "YY");
+	if (err) {
+		fprintf(stderr, "Could not create country: YY\n");
+		exit(EXIT_FAILURE);
+	}
+	loc_country_unref(country);
+
 	FILE* f = fopen("test.db", "w");
 	if (!f) {
 		fprintf(stderr, "Could not open file for writing: %s\n", strerror(errno));
@@ -97,9 +105,9 @@ int main(int argc, char** argv) {
 	}
 
 	// Lookup an address in the subnet
-	err = loc_database_get_country(db, &country, "XX");
+	err = loc_database_get_country(db, &country, "YY");
 	if (err) {
-		fprintf(stderr, "Could not find country XX\n");
+		fprintf(stderr, "Could not find country: YY\n");
 		exit(EXIT_FAILURE);
 	}
 	loc_country_unref(country);
