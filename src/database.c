@@ -664,7 +664,7 @@ LOC_EXPORT int loc_database_get_country(struct loc_database* db,
 		// adjust our search pointers
 		loc_country_unref(*country);
 
-		if (result < 0) {
+		if (result > 0) {
 			lo = i + 1;
 		} else
 			hi = i - 1;
