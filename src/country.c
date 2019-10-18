@@ -19,6 +19,7 @@
 #include <string.h>
 
 #include <loc/libloc.h>
+#include <loc/compat.h>
 #include <loc/country.h>
 #include <loc/private.h>
 

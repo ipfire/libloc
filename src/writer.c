@@ -14,7 +14,6 @@
 	Lesser General Public License for more details.
 */
 
-#include <endian.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -22,8 +21,13 @@
 #include <sys/queue.h>
 #include <time.h>
 
+#ifdef HAVE_ENDIAN_H
+#  include <endian.h>
+#endif
+
 #include <loc/libloc.h>
 #include <loc/as.h>
+#include <loc/compat.h>
 #include <loc/country.h>
 #include <loc/format.h>
 #include <loc/network.h>
@@ -231,7 +235,7 @@ static void align_page_boundary(off_t* offset, FILE* f) {
 static int loc_database_write_pool(struct loc_writer* writer,
 		struct loc_database_header_v0* header, off_t* offset, FILE* f) {
 	// Save the offset of the pool section
-	DEBUG(writer->ctx, "Pool starts at %jd bytes\n", *offset);
+	DEBUG(writer->ctx, "Pool starts at %jd bytes\n", (intmax_t)*offset);
 	header->pool_offset = htobe32(*offset);
 
 	// Write the pool
@@ -246,7 +250,7 @@ static int loc_database_write_pool(struct loc_writer* writer,
 
 static int loc_database_write_as_section(struct loc_writer* writer,
 		struct loc_database_header_v0* header, off_t* offset, FILE* f) {
-	DEBUG(writer->ctx, "AS section starts at %jd bytes\n", *offset);
+	DEBUG(writer->ctx, "AS section starts at %jd bytes\n", (intmax_t)*offset);
 	header->as_offset = htobe32(*offset);
 
 	size_t as_length = 0;
@@ -321,7 +325,7 @@ static void free_network(struct network* network) {
 static int loc_database_write_networks(struct loc_writer* writer,
 		struct loc_database_header_v0* header, off_t* offset, FILE* f) {
 	// Write the network tree
-	DEBUG(writer->ctx, "Network tree starts at %jd bytes\n", *offset);
+	DEBUG(writer->ctx, "Network tree starts at %jd bytes\n", (intmax_t)*offset);
 	header->network_tree_offset = htobe32(*offset);
 
 	size_t network_tree_length = 0;
@@ -411,7 +415,7 @@ static int loc_database_write_networks(struct loc_writer* writer,
 
 	align_page_boundary(offset, f);
 
-	DEBUG(writer->ctx, "Networks data section starts at %jd bytes\n", *offset);
+	DEBUG(writer->ctx, "Networks data section starts at %jd bytes\n", (intmax_t)*offset);
 	header->network_data_offset = htobe32(*offset);
 
 	// We have now written the entire tree and have all networks

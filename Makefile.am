@@ -6,6 +6,8 @@ AM_MAKEFLAGS = --no-print-directory
 SUBDIRS = . po
 BINDINGS =
 
+OS = $(shell uname -s)
+
 if ENABLE_PERL
 BINDINGS += perl
 endif
@@ -19,9 +21,16 @@ AM_CFLAGS = ${my_CFLAGS} \
 	-ffunction-sections \
 	-fdata-sections
 
-AM_LDFLAGS = \
-	-Wl,--gc-sections \
-	-Wl,--as-needed
+AM_LDFLAGS =
+
+# leaving a space here to work around automake's conditionals
+ ifeq ($(OS),Darwin)
+	AM_LDFLAGS += -Wl,-dead_strip
+ else
+	AM_LDFLAGS += \
+		-Wl,--as-needed \
+		-Wl,--gc-sections
+ endif
 
 LIBLOC_CURRENT=0
 LIBLOC_REVISION=0
@@ -68,6 +77,7 @@ EXTRA_DIST += \
 pkginclude_HEADERS = \
 	src/loc/libloc.h \
 	src/loc/as.h \
+	src/loc/compat.h \
 	src/loc/country.h \
 	src/loc/database.h \
 	src/loc/format.h \
@@ -97,8 +107,13 @@ src_libloc_la_CFLAGS = \
 
 src_libloc_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
-	-version-info $(LIBLOC_CURRENT):$(LIBLOC_REVISION):$(LIBLOC_AGE) \
-	-Wl,--version-script=$(top_srcdir)/src/libloc.sym
+	-version-info $(LIBLOC_CURRENT):$(LIBLOC_REVISION):$(LIBLOC_AGE)
+
+if HAVE_LD_VERSION_SCRIPT
+	src_libloc_la_LDFLAGS += -Wl,--version-script=$(top_srcdir)/src/libloc.sym
+else
+	src_libloc_la_LDFLAGS += -export-symbols $(top_srcdir)/src/libloc.sym
+endif
 
 src_libloc_la_DEPENDENCIES = \
 	${top_srcdir}/src/libloc.sym

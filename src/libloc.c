@@ -26,6 +26,7 @@
 #include <ctype.h>
 
 #include <loc/libloc.h>
+#include <loc/compat.h>
 #include <loc/private.h>
 
 struct loc_ctx {
