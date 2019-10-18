@@ -6,6 +6,8 @@ AM_MAKEFLAGS = --no-print-directory
 SUBDIRS = . po
 BINDINGS =
 
+OS = $(shell uname -s)
+
 if ENABLE_PERL
 BINDINGS += perl
 endif
@@ -19,9 +21,16 @@ AM_CFLAGS = ${my_CFLAGS} \
 	-ffunction-sections \
 	-fdata-sections
 
-AM_LDFLAGS = \
-	-Wl,--gc-sections \
-	-Wl,--as-needed
+AM_LDFLAGS =
+
+# leaving a space here to work around automake's conditionals
+ ifeq ($(OS),Darwin)
+	AM_LDFLAGS += -Wl,-dead_strip
+ else
+	AM_LDFLAGS += \
+		-Wl,--as-needed \
+		-Wl,--gc-sections
+ endif
 
 LIBLOC_CURRENT=0
 LIBLOC_REVISION=0
