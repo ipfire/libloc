@@ -921,7 +921,7 @@ LOC_EXPORT int loc_database_enumerator_next_network(
 			// Check if we are interested in this network
 
 			// Skip if the country code does not match
-			if (enumerator->country_code &&
+			if (*enumerator->country_code &&
 					!loc_network_match_country_code(*network, enumerator->country_code)) {
 				loc_network_unref(*network);
 				*network = NULL;
