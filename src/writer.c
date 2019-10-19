@@ -444,7 +444,7 @@ static int loc_database_write_networks(struct loc_writer* writer,
 
 static int loc_database_write_countries(struct loc_writer* writer,
 		struct loc_database_header_v0* header, off_t* offset, FILE* f) {
-	DEBUG(writer->ctx, "Countries section starts at %jd bytes\n", *offset);
+	DEBUG(writer->ctx, "Countries section starts at %jd bytes\n", (intmax_t)*offset);
 	header->countries_offset = htobe32(*offset);
 
 	size_t countries_length = 0;

@@ -205,7 +205,7 @@ static int loc_database_read_countries_section_v0(struct loc_database* db,
 	size_t countries_length = be32toh(header->countries_length);
 
 	DEBUG(db->ctx, "Reading countries section from %jd (%zu bytes)\n",
-		countries_offset, countries_length);
+		(intmax_t)countries_offset, countries_length);
 
 	if (countries_length > 0) {
 		db->countries_v0 = mmap(NULL, countries_length, PROT_READ,
@@ -614,7 +614,7 @@ static int loc_database_fetch_country(struct loc_database* db,
 	if ((size_t)pos >= db->countries_count)
 		return -EINVAL;
 
-	DEBUG(db->ctx, "Fetching country at position %jd\n", pos);
+	DEBUG(db->ctx, "Fetching country at position %jd\n", (intmax_t)pos);
 
 	int r;
 	switch (db->version) {
@@ -844,7 +844,7 @@ static int loc_database_enumerator_stack_push_node(
 	// Increase stack size
 	int s = ++e->network_stack_depth;
 
-	DEBUG(e->ctx, "Added node %jd to stack (%d)\n", offset, depth);
+	DEBUG(e->ctx, "Added node %jd to stack (%d)\n", (intmax_t)offset, depth);
 
 	e->network_stack[s].offset = offset;
 	e->network_stack[s].i = i;
@@ -884,7 +884,7 @@ LOC_EXPORT int loc_database_enumerator_next_network(
 		in6_addr_set_bit(&enumerator->network_address,
 			(node->depth > 0) ? node->depth - 1 : 0, node->i);
 
-		DEBUG(enumerator->ctx, "Looking at node %jd\n", node->offset);
+		DEBUG(enumerator->ctx, "Looking at node %jd\n", (intmax_t)node->offset);
 		enumerator->networks_visited[node->offset]++;
 
 		// Pop node from top of the stack
@@ -908,7 +908,7 @@ LOC_EXPORT int loc_database_enumerator_next_network(
 		if (__loc_database_node_is_leaf(n)) {
 			off_t network_index = be32toh(n->network);
 
-			DEBUG(enumerator->ctx, "Node has a network at %jd\n", network_index);
+			DEBUG(enumerator->ctx, "Node has a network at %jd\n", (intmax_t)network_index);
 
 			// Fetch the network object
 			r = loc_database_fetch_network(enumerator->db, network,
