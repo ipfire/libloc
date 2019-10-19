@@ -371,6 +371,11 @@ XSLTPROC_COMMAND_MAN = \
 	$(XSLTPROC) -o $@ $(XSLTPROC_FLAGS) \
 		http://docbook.sourceforge.net/release/xsl/current/manpages/docbook.xsl $<
 
+# Let XSLT find its source on Mac OS X
+ ifeq ($(OS),Darwin)
+export XML_CATALOG_FILES = /usr/local/etc/xml/catalog
+ endif
+
 man/%.xml: man/%.txt man/asciidoc.conf
 	$(AM_V_ASCIIDOC)$(MKDIR_P) $(dir $@) && \
 	$(ASCIIDOC) \
