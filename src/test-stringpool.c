@@ -73,7 +73,7 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	printf("Added string at %jd\n", pos);
+	printf("Added string at %jd\n", (intmax_t)pos);
 
 	// Must start at first byte
 	if (pos != 0) {
