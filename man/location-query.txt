@@ -50,6 +50,7 @@ or countries.
 	directly loaded into other software. The following options are available:
 	+
 	* 'list' (default): Just lists all networks, one per line
+	* 'ipset': For ipset
 	* 'nftables': For nftables
 	* 'xt_geoip': Returns a list of networks to be loaded into the xt_geoip
 	  kernel module

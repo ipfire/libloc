@@ -69,6 +69,17 @@ class OutputFormatter(object):
 		print(network)
 
 
+class IpsetOutputFormatter(OutputFormatter):
+	"""
+		For nftables
+	"""
+	def open(self):
+		print("create %s hash:net family inet hashsize 1024 maxelem 65536" % self.name)
+
+	def network(self, network):
+		print("add %s %s" % (self.name, network))
+
+
 class NftablesOutputFormatter(OutputFormatter):
 	"""
 		For nftables
@@ -102,6 +113,7 @@ class XTGeoIPOutputFormatter(OutputFormatter):
 
 class CLI(object):
 	output_formats = {
+		"ipset"    : IpsetOutputFormatter,
 		"list"     : OutputFormatter,
 		"nftables" : NftablesOutputFormatter,
 		"xt_geoip" : XTGeoIPOutputFormatter,
