@@ -38,6 +38,9 @@ def _(singular, plural=None, n=None):
 # Output formatters
 
 class OutputFormatter(object):
+	def __init__(self, ns):
+		self.ns = ns
+
 	def __enter__(self):
 		# Open the output
 		self.open()
@@ -48,6 +51,14 @@ class OutputFormatter(object):
 		if tb is None:
 			self.close()
 
+	@property
+	def name(self):
+		if "country_code" in self.ns:
+			return "networks_country_%s" % self.ns.country_code[0]
+
+		elif "asn" in self.ns:
+			return "networks_AS%s" % self.ns.asn[0]
+
 	def open(self):
 		pass
 
@@ -56,6 +67,20 @@ class OutputFormatter(object):
 
 	def network(self, network):
 		print(network)
+
+
+class NftablesOutputFormatter(OutputFormatter):
+	"""
+		For nftables
+	"""
+	def open(self):
+		print("define %s = {" % self.name)
+
+	def close(self):
+		print("}")
+
+	def network(self, network):
+		print("	%s," % network)
 
 
 class XTGeoIPOutputFormatter(OutputFormatter):
@@ -78,6 +103,7 @@ class XTGeoIPOutputFormatter(OutputFormatter):
 class CLI(object):
 	output_formats = {
 		"list"     : OutputFormatter,
+		"nftables" : NftablesOutputFormatter,
 		"xt_geoip" : XTGeoIPOutputFormatter,
 	}
 
@@ -246,7 +272,7 @@ class CLI(object):
 		except KeyError:
 			cls = OutputFormatter
 
-		return cls()
+		return cls(ns)
 
 	def handle_list_networks_by_as(self, db, ns):
 		with self.__get_output_formatter(ns) as f:
