@@ -10,6 +10,7 @@ location-query - Query the location database
 `location-query search-as STRING`
 `location-query list-networks-by-as ASN`
 `location-query list-networks-by-cc COUNTRY_CODE`
+`location-query list-networks-by-flags [--anonymous-proxy|--satellite-provider|--anycast]`
 
 == DESCRIPTION
 The `location-query` retrieves information from the location database.
@@ -59,6 +60,11 @@ or countries.
 	Lists all networks that belong to a country.
 	+
 	The country has to be encoded in ISO3166 Alpha-2 notation.
+	+
+	See above for usage of the '--output-format' parameter.
+
+'list-networks-by-flags [--output-format FORMAT] [--anonymous-proxy|--satellite-provider|--anycast]'::
+	Lists all networks that have a certain flag.
 	+
 	See above for usage of the '--output-format' parameter.
 

@@ -177,6 +177,23 @@ class CLI(object):
 			choices=self.output_formats.keys(), default="list")
 		list_networks_by_cc.set_defaults(func=self.handle_list_networks_by_cc)
 
+		# List all networks with flags
+		list_networks_by_flags = subparsers.add_parser("list-networks-by-flags",
+			help=_("Lists all networks with flags"),
+		)
+		list_networks_by_flags.add_argument("--anonymous-proxy",
+			action="store_true", help=_("Anonymous Proxies"),
+		)
+		list_networks_by_flags.add_argument("--satellite-provider",
+			action="store_true", help=_("Satellite Providers"),
+		)
+		list_networks_by_flags.add_argument("--anycast",
+			action="store_true", help=_("Anycasts"),
+		)
+		list_networks_by_flags.add_argument("--output-format",
+			choices=self.output_formats.keys(), default="list")
+		list_networks_by_flags.set_defaults(func=self.handle_list_networks_by_flags)
+
 		args = parser.parse_args()
 
 		# Print usage if no action was given
@@ -299,6 +316,22 @@ class CLI(object):
 				# Print all matching networks
 				for n in db.search_networks(country_code=country_code):
 					f.network(n)
+
+	def handle_list_networks_by_flags(self, db, ns):
+		flags = 0
+
+		if ns.anonymous_proxy:
+			flags |= location.NETWORK_FLAG_ANONYMOUS_PROXY
+
+		if ns.satellite_provider:
+			flags |= location.NETWORK_FLAG_SATELLITE_PROVIDER
+
+		if ns.anycast:
+			flags |= location.NETWORK_FLAG_ANYCAST
+
+		with self.__get_output_formatter(ns) as f:
+			for n in db.search_networks(flags=flags):
+				f.network(n)
 
 
 def main():

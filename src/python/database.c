@@ -203,11 +203,12 @@ static PyObject* Database_search_as(DatabaseObject* self, PyObject* args) {
 }
 
 static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, PyObject* kwargs) {
-	char* kwlist[] = { "country_code", "asn", NULL };
+	char* kwlist[] = { "country_code", "asn", "flags", NULL };
 	const char* country_code = NULL;
 	unsigned int asn = 0;
+	int flags = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|si", kwlist, &country_code, &asn))
+    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|sii", kwlist, &country_code, &asn, &flags))
 		return NULL;
 
 	struct loc_database_enumerator* enumerator;
@@ -230,6 +231,16 @@ static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, 
 	// Set the ASN we are searching for
 	if (asn) {
 		r = loc_database_enumerator_set_asn(enumerator, asn);
+
+		if (r) {
+			PyErr_SetFromErrno(PyExc_SystemError);
+			return NULL;
+		}
+	}
+
+	// Set the flags we are searching for
+	if (flags) {
+		r = loc_database_enumerator_set_flag(enumerator, flags);
 
 		if (r) {
 			PyErr_SetFromErrno(PyExc_SystemError);
