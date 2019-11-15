@@ -361,7 +361,7 @@ LOC_EXPORT int loc_network_to_database_v0(struct loc_network* network, struct lo
 
 LOC_EXPORT int loc_network_new_from_database_v0(struct loc_ctx* ctx, struct loc_network** network,
 		struct in6_addr* address, unsigned int prefix, const struct loc_database_network_v0* dbobj) {
-	char country_code[3];
+	char country_code[3] = "\0\0";
 
 	int r = loc_network_new(ctx, network, address, prefix);
 	if (r) {
