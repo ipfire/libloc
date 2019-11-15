@@ -341,6 +341,7 @@ static PyObject* DatabaseEnumerator_next(DatabaseEnumeratorObject* self) {
 	// Enumerate all networks
 	int r = loc_database_enumerator_next_network(self->enumerator, &network);
 	if (r) {
+		PyErr_SetFromErrno(PyExc_ValueError);
 		return NULL;
 	}
 
@@ -357,6 +358,7 @@ static PyObject* DatabaseEnumerator_next(DatabaseEnumeratorObject* self) {
 
 	r = loc_database_enumerator_next_as(self->enumerator, &as);
 	if (r) {
+		PyErr_SetFromErrno(PyExc_ValueError);
 		return NULL;
 	}
 
