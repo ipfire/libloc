@@ -19,6 +19,9 @@
 
 import argparse
 import gettext
+import ipaddress
+import os
+import socket
 import sys
 import syslog
 
@@ -32,7 +35,52 @@ def _(singular, plural=None, n=None):
 
 	return gettext.dgettext("libloc", singular)
 
+# Output formatters
+
+class OutputFormatter(object):
+	def __enter__(self):
+		# Open the output
+		self.open()
+
+		return self
+
+	def __exit__(self, type, value, tb):
+		if tb is None:
+			self.close()
+
+	def open(self):
+		pass
+
+	def close(self):
+		pass
+
+	def network(self, network):
+		print(network)
+
+
+class XTGeoIPOutputFormatter(OutputFormatter):
+	"""
+		Formats the output in that way, that it can be loaded by
+		the xt_geoip kernel module from xtables-addons.
+	"""
+	def network(self, network):
+		n = ipaddress.ip_network("%s" % network)
+
+		for address in (n.network_address, n.broadcast_address):
+			bytes = socket.inet_pton(
+				socket.AF_INET6 if address.version == 6 else socket.AF_INET,
+				"%s" % address,
+			)
+
+			os.write(1, bytes)
+
+
 class CLI(object):
+	output_formats = {
+		"list"     : OutputFormatter,
+		"xt_geoip" : XTGeoIPOutputFormatter,
+	}
+
 	def parse_cli(self):
 		parser = argparse.ArgumentParser(
 			description=_("Location Database Command Line Interface"),
@@ -78,6 +126,8 @@ class CLI(object):
 			help=_("Lists all networks in an AS"),
 		)
 		list_networks_by_as.add_argument("asn", nargs=1, type=int)
+		list_networks_by_as.add_argument("--output-format",
+			choices=self.output_formats.keys(), default="list")
 		list_networks_by_as.set_defaults(func=self.handle_list_networks_by_as)
 
 		# List all networks in a country
@@ -85,6 +135,8 @@ class CLI(object):
 			help=_("Lists all networks in a country"),
 		)
 		list_networks_by_cc.add_argument("country_code", nargs=1)
+		list_networks_by_cc.add_argument("--output-format",
+			choices=self.output_formats.keys(), default="list")
 		list_networks_by_cc.set_defaults(func=self.handle_list_networks_by_cc)
 
 		args = parser.parse_args()
@@ -188,17 +240,28 @@ class CLI(object):
 			for a in db.search_as(query):
 				print(a)
 
+	def __get_output_formatter(self, ns):
+		try:
+			cls = self.output_formats[ns.output_format]
+		except KeyError:
+			cls = OutputFormatter
+
+		return cls()
+
 	def handle_list_networks_by_as(self, db, ns):
-		for asn in ns.asn:
-			# Print all matching networks
-			for n in db.search_networks(asn=asn):
-				print(n)
+		with self.__get_output_formatter(ns) as f:
+			for asn in ns.asn:
+				# Print all matching networks
+				for n in db.search_networks(asn=asn):
+					f.network(n)
 
 	def handle_list_networks_by_cc(self, db, ns):
-		for country_code in ns.country_code:
-			# Print all matching networks
-			for n in db.search_networks(country_code=country_code):
-				print(n)
+		with self.__get_output_formatter(ns) as f:
+			for country_code in ns.country_code:
+				# Print all matching networks
+				for n in db.search_networks(country_code=country_code):
+					f.network(n)
+
 
 def main():
 	# Run the command line interface
