@@ -364,25 +364,35 @@ LOC_EXPORT int loc_network_new_from_database_v0(struct loc_ctx* ctx, struct loc_
 	char country_code[3];
 
 	int r = loc_network_new(ctx, network, address, prefix);
-	if (r)
+	if (r) {
+		ERROR(ctx, "Could not allocate a new network: %s", strerror(-r));
 		return r;
+	}
 
 	// Import country code
 	loc_country_code_copy(country_code, dbobj->country_code);
 
 	r = loc_network_set_country_code(*network, country_code);
-	if (r)
+	if (r) {
+		ERROR(ctx, "Could not set country code: %s\n", country_code);
 		return r;
+	}
 
 	// Import ASN
-	r = loc_network_set_asn(*network, be32toh(dbobj->asn));
-	if (r)
+	uint32_t asn = be32toh(dbobj->asn);
+	r = loc_network_set_asn(*network, asn);
+	if (r) {
+		ERROR(ctx, "Could not set ASN: %d\n", asn);
 		return r;
+	}
 
 	// Import flags
-	r = loc_network_set_flag(*network, be16toh(dbobj->flags));
-	if (r)
+	int flags = be16toh(dbobj->flags);
+	r = loc_network_set_flag(*network, flags);
+	if (r) {
+		ERROR(ctx, "Could not set flags: %d\n", flags);
 		return r;
+	}
 
 	return 0;
 }
