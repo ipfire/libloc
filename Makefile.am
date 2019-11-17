@@ -210,12 +210,15 @@ uninstall-perl:
 		$(DESTDIR)/$(prefix)/man/man3/Location.3pm
 
 bin_SCRIPTS = \
+	src/python/location-downloader \
 	src/python/location-query
 
 EXTRA_DIST += \
+	src/python/location-downloader.in \
 	src/python/location-query.in
 
 CLEANFILES += \
+	src/python/location-downloader \
 	src/python/location-query
 
 # ------------------------------------------------------------------------------
