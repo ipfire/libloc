@@ -1,0 +1,9 @@
+[Unit]
+Description=Update location database once a day
+
+[Timer]
+OnCalendar=daily
+RandomizedDelaySec=24h
+
+[Install]
+WantedBy=timers.target

@@ -96,6 +96,42 @@ my_CFLAGS="\
 "
 AC_SUBST([my_CFLAGS])
 
+# ------------------------------------------------------------------------------
+
+AC_ARG_WITH([systemd],
+	AS_HELP_STRING([--with-systemd], [Enable systemd support.])
+)
+
+AS_IF([test "x$with_systemd" != "xno"],
+      [PKG_CHECK_MODULES(systemd, [libsystemd],
+      [have_systemd=yes], [have_systemd=no])],
+      [have_systemd=no]
+)
+
+AS_IF([test "x$have_systemd" = "xyes"],
+      [AC_MSG_CHECKING([for systemd system unit directory])
+	AC_ARG_WITH([systemdsystemunitdir],
+		AS_HELP_STRING([--with-systemdsystemunitdir=DIR], [Directory for systemd service files]),
+		[], [with_systemdsystemunitdir=$($PKG_CONFIG --variable=systemdsystemunitdir systemd)]
+	)
+
+	AC_SUBST([systemdsystemunitdir], [$with_systemdsystemunitdir])
+
+	if test -n "$systemdsystemunitdir" -a "x$systemdsystemunitdir" != xno; then
+		AC_MSG_RESULT([$systemdsystemunitdir])
+	else
+		AC_MSG_ERROR([not found (try --with-systemdsystemunitdir)])
+	fi
+      ],
+      [AS_IF([test "x$with_systemd" = "xyes"],
+             [AC_MSG_ERROR([Systemd support is enabled but no systemd has been found.])
+      ])
+])
+
+AM_CONDITIONAL(HAVE_SYSTEMD, [test "x$have_systemd" = "xyes"])
+
+# ------------------------------------------------------------------------------
+
 # Python
 AM_PATH_PYTHON([3.4])
 PKG_CHECK_MODULES([PYTHON], [python-${PYTHON_VERSION}])
@@ -130,6 +166,7 @@ AC_MSG_RESULT([
         ldflags:                ${LDFLAGS}
 
         debug:                  ${enable_debug}
+        systemd support:        ${have_systemd}
 
 	Bindings:
 	  perl:			${enable_perl}

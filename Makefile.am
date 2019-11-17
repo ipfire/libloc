@@ -1,5 +1,6 @@
 EXTRA_DIST =
 CLEANFILES =
+INSTALL_DIRS =
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 AM_MAKEFLAGS = --no-print-directory
 
@@ -36,11 +37,15 @@ LIBLOC_CURRENT=0
 LIBLOC_REVISION=0
 LIBLOC_AGE=0
 
+DISTCHECK_CONFIGURE_FLAGS = \
+	--with-systemdsystemunitdir=$$dc_install_base/$(systemdsystemunitdir)
+
 SED_PROCESS = \
 	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && $(SED) \
 	-e 's,@VERSION\@,$(VERSION),g' \
 	-e 's,@prefix\@,$(prefix),g' \
 	-e 's,@exec_prefix\@,$(exec_prefix),g' \
+	-e 's,@bindir\@,$(bindir),g' \
 	-e 's,@libdir\@,$(libdir),g' \
 	-e 's,@includedir\@,$(includedir),g' \
 	-e 's,@databasedir\@,$(databasedir),g' \
@@ -220,6 +225,23 @@ EXTRA_DIST += \
 CLEANFILES += \
 	src/python/location-downloader \
 	src/python/location-query
+# ------------------------------------------------------------------------------
+
+if HAVE_SYSTEMD
+systemdsystemunit_DATA = \
+	src/systemd/location-downloader.service \
+	src/systemd/location-downloader.timer
+
+CLEANFILES += \
+	$(systemdsystemunit_DATA)
+
+INSTALL_DIRS += \
+	$(systemdsystemunitdir)
+endif
+
+EXTRA_DIST += \
+	src/systemd/location-downloader.service.in \
+	src/systemd/location-downloader.timer.in
 
 # ------------------------------------------------------------------------------
 

@@ -1,0 +1,7 @@
+[Unit]
+Description=Automatic Location Database Updater
+Requires=network.target
+
+[Service]
+Type=oneshot
+ExecStart=@bindir@/location-downloader update
