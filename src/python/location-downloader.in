@@ -19,6 +19,8 @@
 
 import argparse
 import gettext
+import logging
+import logging.handlers
 import lzma
 import os
 import random
@@ -33,14 +35,35 @@ import urllib.request
 # Load our location module
 import location
 
-import logging
-logging.basicConfig(level=logging.INFO)
-
 DATABASE_FILENAME = "test.db.xz"
 MIRRORS = (
 	"https://location.ipfire.org/databases/",
 	"https://people.ipfire.org/~ms/location/",
 )
+
+def setup_logging(level=logging.INFO):
+	l = logging.getLogger("location-downloader")
+	l.setLevel(level)
+
+	# Log to console
+	h = logging.StreamHandler()
+	h.setLevel(logging.DEBUG)
+	l.addHandler(h)
+
+	# Log to syslog
+	h = logging.handlers.SysLogHandler(address="/dev/log",
+		facility=logging.handlers.SysLogHandler.LOG_DAEMON)
+	h.setLevel(logging.INFO)
+	l.addHandler(h)
+
+	# Format syslog messages
+	formatter = logging.Formatter("location-downloader[%(process)d]: %(message)s")
+	h.setFormatter(formatter)
+
+	return l
+
+# Initialise logging
+log = setup_logging()
 
 # i18n
 def _(singular, plural=None, n=None):
@@ -100,21 +123,21 @@ class Downloader(object):
 
 	def _send_request(self, req, **kwargs):
 		# Log request headers
-		logging.debug("HTTP %s Request to %s" % (req.method, req.host))
-		logging.debug("	URL: %s" % req.full_url)
-		logging.debug("	Headers:")
+		log.debug("HTTP %s Request to %s" % (req.method, req.host))
+		log.debug("	URL: %s" % req.full_url)
+		log.debug("	Headers:")
 		for k, v in req.header_items():
-			logging.debug("		%s: %s" % (k, v))
+			log.debug("		%s: %s" % (k, v))
 
 		try:
 			res = urllib.request.urlopen(req, **kwargs)
 
 		except urllib.error.HTTPError as e:
 			# Log response headers
-			logging.debug("HTTP Response: %s" % e.code)
-			logging.debug("	Headers:")
+			log.debug("HTTP Response: %s" % e.code)
+			log.debug("	Headers:")
 			for header in e.headers:
-				logging.debug("		%s: %s" % (header, e.headers[header]))
+				log.debug("		%s: %s" % (header, e.headers[header]))
 
 			# Handle 304
 			if e.code == 304:
@@ -124,10 +147,10 @@ class Downloader(object):
 			raise e
 
 		# Log response headers
-		logging.debug("HTTP Response: %s" % res.code)
-		logging.debug("	Headers:")
+		log.debug("HTTP Response: %s" % res.code)
+		log.debug("	Headers:")
 		for k, v in res.getheaders():
-			logging.debug("		%s: %s" % (k, v))
+			log.debug("		%s: %s" % (k, v))
 
 		return res
 
@@ -166,12 +189,12 @@ class Downloader(object):
 
 				# Nothing to do when the database on the server is up to date
 				except NotModifiedError:
-					logging.info("Local database is up to date")
+					log.info("Local database is up to date")
 					return
 
 				# Catch decompression errors
 				except lzma.LZMAError as e:
-					logging.warning("Could not decompress downloaded file: %s" % e)
+					log.warning("Could not decompress downloaded file: %s" % e)
 					continue
 
 				# XXX what do we catch here?
@@ -224,7 +247,7 @@ class CLI(object):
 
 		# Enable debug logging
 		if args.debug:
-			logging.basicConfig(level=logging.DEBUG)
+			log.setLevel(logging.DEBUG)
 
 		# Print usage if no action was given
 		if not "func" in args:
@@ -265,7 +288,7 @@ class CLI(object):
 
 		# If no file could be downloaded, log a message
 		except FileNotFoundError as e:
-			logging.error("Could not download a new database")
+			log.error("Could not download a new database")
 			return 1
 
 		# If we have not received a new file, there is nothing to do
@@ -283,10 +306,10 @@ class CLI(object):
 
 		# Check if the downloaded file is newer
 		if db.created_at <= created_at:
-			logging.warning("Downloaded database is older than the current version")
+			log.warning("Downloaded database is older than the current version")
 			return 1
 
-		logging.info("Downloaded new database from %s" % (time.strftime(
+		log.info("Downloaded new database from %s" % (time.strftime(
 			"%a, %d %b %Y %H:%M:%S GMT", time.gmtime(db.created_at),
 		)))
 
