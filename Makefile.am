@@ -329,6 +329,7 @@ src_test_database_LDADD = \
 # ------------------------------------------------------------------------------
 
 MANPAGES = \
+	man/location-downloader.8 \
 	man/location-query.8
 
 MANPAGES_TXT  = $(patsubst %.8,%.txt,$(MANPAGES))

@@ -1,0 +1,45 @@
+= location-downloader(8)
+
+== NAME
+location-downloader - Download a location database
+
+== SYNOPSIS
+[verse]
+`location-downloader update`
+
+== DESCRIPTION
+The `location-downloader` command updates the local version of the
+location database.
+
+== OPTIONS
+
+--database FILE::
+-d FILE::
+	The path of the database which is being updated.
+	+
+	If this option is omitted, the system's database will be opened.
+
+--debug::
+	Enable debugging mode
+
+== COMMANDS
+
+'update'::
+	This command will try to update the local database.
+
+'--help'::
+	Shows a short help text on using this program.
+
+'--version'::
+	Shows the program's version and exists.
+
+== EXIT CODES
+The 'location-downloader' command will normally exit with code zero.
+If there has been a problem and the requested action could not be performed,
+the exit code is unequal to zero.
+
+== BUGS
+Please report all bugs to the bugtracker at https://bugzilla.ipfire.org/.
+
+== AUTHORS
+Michael Tremer
