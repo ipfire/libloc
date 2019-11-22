@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libloc 0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2018-02-01 14:04+0000\n"
+"POT-Creation-Date: 2019-11-17 14:56+0000\n"
 "PO-Revision-Date: 2018-02-01 14:05+0000\n"
 "Last-Translator: Michael Tremer <michael.tremer@ipfire.org>\n"
 "Language-Team: German\n"
@@ -17,31 +17,81 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../src/python/location-query.in:42
+#: ../src/python/location-query.in:124
 msgid "Location Database Command Line Interface"
 msgstr ""
 
-#: ../src/python/location-query.in:48
+#: ../src/python/location-query.in:130
 msgid "Enable debug output"
 msgstr ""
 
-#: ../src/python/location-query.in:56
+#: ../src/python/location-query.in:138
+msgid "Path to database"
+msgstr ""
+
+#: ../src/python/location-query.in:143
 msgid "Lookup one or multiple IP addresses"
 msgstr ""
 
-#: ../src/python/location-query.in:87
+#: ../src/python/location-query.in:150
+msgid "Get information about one or multiple Autonomous Systems"
+msgstr ""
+
+#: ../src/python/location-query.in:157
+msgid "Search for Autonomous Systems that match the string"
+msgstr ""
+
+#: ../src/python/location-query.in:164
+msgid "Lists all networks in an AS"
+msgstr ""
+
+#: ../src/python/location-query.in:173
+msgid "Lists all networks in a country"
+msgstr ""
+
+#: ../src/python/location-query.in:182
+msgid "Lists all networks with flags"
+msgstr ""
+
+#: ../src/python/location-query.in:185
+msgid "Anonymous Proxies"
+msgstr ""
+
+#: ../src/python/location-query.in:188
+msgid "Satellite Providers"
+msgstr ""
+
+#: ../src/python/location-query.in:191
+msgid "Anycasts"
+msgstr ""
+
+#: ../src/python/location-query.in:235
 #, c-format
 msgid "Invalid IP address: %s"
 msgstr ""
 
-#: ../src/python/location-query.in:96
+#: ../src/python/location-query.in:244
 msgid "Nothing found for %(address)s"
 msgstr ""
 
-#: ../src/python/location-query.in:110
+#: ../src/python/location-query.in:258
 msgid "%(address)s belongs to %(network)s which is a part of %(as)s"
 msgstr ""
 
-#: ../src/python/location-query.in:113
+#: ../src/python/location-query.in:261
 msgid "%(address)s belongs to %(network)s"
+msgstr ""
+
+#: ../src/python/location-query.in:275
+#, c-format
+msgid "Invalid ASN: %s"
+msgstr ""
+
+#: ../src/python/location-query.in:284
+#, c-format
+msgid "Could not find AS%s"
+msgstr ""
+
+#: ../src/python/location-query.in:288
+msgid "AS%(asn)s belongs to %(name)s"
 msgstr ""
