@@ -115,9 +115,9 @@ src_libloc_la_LDFLAGS = \
 	-version-info $(LIBLOC_CURRENT):$(LIBLOC_REVISION):$(LIBLOC_AGE)
 
 if HAVE_LD_VERSION_SCRIPT
-	src_libloc_la_LDFLAGS += -Wl,--version-script=$(top_srcdir)/src/libloc.sym
+src_libloc_la_LDFLAGS += -Wl,--version-script=$(top_srcdir)/src/libloc.sym
 else
-	src_libloc_la_LDFLAGS += -export-symbols $(top_srcdir)/src/libloc.sym
+src_libloc_la_LDFLAGS += -export-symbols $(top_srcdir)/src/libloc.sym
 endif
 
 src_libloc_la_DEPENDENCIES = \
