@@ -17,6 +17,8 @@
 #include <Python.h>
 #include <syslog.h>
 
+#include <loc/resolv.h>
+
 #include "locationmodule.h"
 #include "as.h"
 #include "country.h"
@@ -46,7 +48,30 @@ static PyObject* set_log_level(PyObject* m, PyObject* args) {
 	Py_RETURN_NONE;
 }
 
+static PyObject* discover_latest_version(PyObject* m, PyObject* args) {
+	const char* domain = NULL;
+
+	if (!PyArg_ParseTuple(args, "|s", &domain))
+		return NULL;
+
+	time_t t = 0;
+
+	int r = loc_discover_latest_version(loc_ctx, domain, &t);
+	if (r) {
+		PyErr_SetFromErrno(PyExc_OSError);
+		return NULL;
+	}
+
+	return PyLong_FromUnsignedLong(t);
+}
+
 static PyMethodDef location_module_methods[] = {
+	{
+		"discover_latest_version",
+		(PyCFunction)discover_latest_version,
+		METH_VARARGS,
+		NULL,
+	},
 	{
 		"set_log_level",
 		(PyCFunction)set_log_level,

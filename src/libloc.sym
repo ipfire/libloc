@@ -26,6 +26,7 @@ global:
 	loc_unref;
 	loc_set_log_priority;
 	loc_new;
+	loc_discover_latest_version;
 
 	# AS
 	loc_as_cmp;
@@ -69,6 +70,7 @@ global:
 	loc_database_enumerator_ref;
 	loc_database_enumerator_set_asn;
 	loc_database_enumerator_set_country_code;
+	loc_database_enumerator_set_flag;
 	loc_database_enumerator_set_string;
 	loc_database_enumerator_unref;
 

@@ -89,6 +89,7 @@ pkginclude_HEADERS = \
 	src/loc/network.h \
 	src/loc/private.h \
 	src/loc/stringpool.h \
+	src/loc/resolv.h \
 	src/loc/writer.h
 
 lib_LTLIBRARIES = \
@@ -100,6 +101,7 @@ src_libloc_la_SOURCES = \
 	src/country.c \
 	src/database.c \
 	src/network.c \
+	src/resolv.c \
 	src/stringpool.c \
 	src/writer.c
 
@@ -119,6 +121,9 @@ src_libloc_la_LDFLAGS += -Wl,--version-script=$(top_srcdir)/src/libloc.sym
 else
 src_libloc_la_LDFLAGS += -export-symbols $(top_srcdir)/src/libloc.sym
 endif
+
+src_libloc_la_LIBADD = \
+	$(RESOLV_LIBS)
 
 src_libloc_la_DEPENDENCIES = \
 	${top_srcdir}/src/libloc.sym

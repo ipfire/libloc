@@ -25,6 +25,9 @@
 
 #define LOC_DATABASE_VERSION    0
 
+#define STR(x) #x
+#define LOC_DATABASE_DOMAIN_LATEST(version) "_latest._v" STR(version) ".location.ipfire.org"
+
 #define LOC_DATABASE_PAGE_SIZE  4096
 
 struct loc_database_magic {
