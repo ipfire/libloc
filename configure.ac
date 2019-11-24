@@ -62,7 +62,8 @@ AS_IF([test "x$enable_debug" = "xyes"], [
 
 AC_CHECK_HEADERS_ONCE([
 	arpa/inet.h \
-    arpa/nameser.h \
+	arpa/nameser.h \
+	arpa/nameser_compat.h \
 	endian.h \
 	netinet/in.h \
     resolv.h \
@@ -149,7 +150,7 @@ AC_ARG_ENABLE(perl, AS_HELP_STRING([--disable-perl], [do not build the perl modu
 AM_CONDITIONAL(ENABLE_PERL, test "$enable_perl" = "yes")
 
 dnl Checking for libresolv
-AC_CHECK_LIB(resolv, ns_msg_getflag, [LIBS="-lresolv $LIBS"], AC_MSG_ERROR([libresolv has not been found]), -lresolv)
+AC_CHECK_LIB(resolv, res_init, [LIBS="-lresolv $LIBS"], AC_MSG_ERROR([libresolv has not been found]), -lresolv)
 RESOLV_LIBS="${LIBS}"
 
 AC_CONFIG_HEADERS(config.h)

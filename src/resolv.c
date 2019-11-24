@@ -14,6 +14,8 @@
 	Lesser General Public License for more details.
 */
 
+#include <arpa/nameser.h>
+#include <arpa/nameser_compat.h>
 #include <resolv.h>
 #include <string.h>
 #include <time.h>
