@@ -1,0 +1,13 @@
+#!/usr/bin/make -f
+
+# enable verbose mode
+#export DH_VERBOSE=1
+
+# enable all hardening build flags
+export DEB_BUILD_MAINT_OPTIONS=hardening=+all
+
+%:
+	dh $@ --with python3 --with-systemd
+
+override_dh_perl:
+	dh_perl -d

@@ -1,0 +1,5 @@
+libloc (0.9.0-1) UNRELEASED; urgency=medium
+
+  * Initial release. (Closes: #XXXXXX)
+
+ -- Stefan Schantl <stefan.schantl@ipfire.org>  Sun, 27 Oct 2019 18:55:44 +0100

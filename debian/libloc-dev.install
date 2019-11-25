@@ -1,0 +1,3 @@
+usr/include/libloc
+usr/lib/*/libloc.so
+usr/lib/*/pkgconfig
