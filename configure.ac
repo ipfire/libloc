@@ -1,6 +1,6 @@
 AC_PREREQ(2.60)
 AC_INIT([libloc],
-        [0],
+        [0.9.0],
         [michael.tremer@ipfire.org],
         [libloc],
         [https://www.ipfire.org/])
