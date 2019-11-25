@@ -150,11 +150,14 @@ AC_ARG_ENABLE(perl, AS_HELP_STRING([--disable-perl], [do not build the perl modu
 AM_CONDITIONAL(ENABLE_PERL, test "$enable_perl" = "yes")
 
 dnl Checking for libresolv
-if test ${gm_platform} = "linux" ; then
-	AC_CHECK_LIB(resolv, ns_msg_getflag, [LIBS="-lresolv $LIBS"], AC_MSG_ERROR([libresolv has not been found]), -lresolv)
-else
-	AC_CHECK_LIB(resolv, res_init, [LIBS="-lresolv $LIBS"], AC_MSG_ERROR([libresolv has not been found]), -lresolv)
-fi
+case "${host}" in
+	*-gnu*)
+		AC_CHECK_LIB(resolv, ns_msg_getflag, [LIBS="-lresolv $LIBS"], AC_MSG_ERROR([libresolv has not been found]), -lresolv)
+		;;
+	*)
+		AC_CHECK_LIB(resolv, res_init, [LIBS="-lresolv $LIBS"], AC_MSG_ERROR([libresolv has not been found]), -lresolv)
+		;;
+esac
 RESOLV_LIBS="${LIBS}"
 
 AC_CONFIG_HEADERS(config.h)
