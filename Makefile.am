@@ -11,6 +11,9 @@ OS = $(shell uname -s)
 
 DEBIAN_TARBALL_NAME = $(PACKAGE_NAME)_$(PACKAGE_VERSION).orig.tar.xz
 
+CLEANFILES += \
+	$(DEBIAN_TARBALL_NAME)
+
 if ENABLE_PERL
 BINDINGS += perl
 endif
