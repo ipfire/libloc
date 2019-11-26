@@ -72,6 +72,9 @@ struct loc_database_header_v0 {
 
 	// Add some padding for future extensions
 	char padding[32];
+
+	// Signature
+	char signature[4096];
 };
 
 struct loc_database_network_node_v0 {

@@ -32,6 +32,8 @@
 #  include <endian.h>
 #endif
 
+#include <openssl/evp.h>
+
 #include <loc/libloc.h>
 #include <loc/as.h>
 #include <loc/compat.h>
@@ -45,6 +47,8 @@
 struct loc_database {
 	struct loc_ctx* ctx;
 	int refcount;
+
+	FILE* f;
 
 	unsigned int version;
 	time_t created_at;
@@ -101,11 +105,11 @@ struct loc_database_enumerator {
 	unsigned int* networks_visited;
 };
 
-static int loc_database_read_magic(struct loc_database* db, FILE* f) {
+static int loc_database_read_magic(struct loc_database* db) {
 	struct loc_database_magic magic;
 
 	// Read from file
-	size_t bytes_read = fread(&magic, 1, sizeof(magic), f);
+	size_t bytes_read = fread(&magic, 1, sizeof(magic), db->f);
 
 	// Check if we have been able to read enough data
 	if (bytes_read < sizeof(magic)) {
@@ -132,7 +136,7 @@ static int loc_database_read_magic(struct loc_database* db, FILE* f) {
 }
 
 static int loc_database_read_as_section_v0(struct loc_database* db,
-		FILE* f, const struct loc_database_header_v0* header) {
+		const struct loc_database_header_v0* header) {
 	off_t as_offset  = be32toh(header->as_offset);
 	size_t as_length = be32toh(header->as_length);
 
@@ -140,7 +144,7 @@ static int loc_database_read_as_section_v0(struct loc_database* db,
 
 	if (as_length > 0) {
 		db->as_v0 = mmap(NULL, as_length, PROT_READ,
-			MAP_SHARED, fileno(f), as_offset);
+			MAP_SHARED, fileno(db->f), as_offset);
 
 		if (db->as_v0 == MAP_FAILED)
 			return -errno;
@@ -154,7 +158,7 @@ static int loc_database_read_as_section_v0(struct loc_database* db,
 }
 
 static int loc_database_read_network_nodes_section_v0(struct loc_database* db,
-		FILE* f, const struct loc_database_header_v0* header) {
+		const struct loc_database_header_v0* header) {
 	off_t network_nodes_offset  = be32toh(header->network_tree_offset);
 	size_t network_nodes_length = be32toh(header->network_tree_length);
 
@@ -163,7 +167,7 @@ static int loc_database_read_network_nodes_section_v0(struct loc_database* db,
 
 	if (network_nodes_length > 0) {
 		db->network_nodes_v0 = mmap(NULL, network_nodes_length, PROT_READ,
-			MAP_SHARED, fileno(f), network_nodes_offset);
+			MAP_SHARED, fileno(db->f), network_nodes_offset);
 
 		if (db->network_nodes_v0 == MAP_FAILED)
 			return -errno;
@@ -177,7 +181,7 @@ static int loc_database_read_network_nodes_section_v0(struct loc_database* db,
 }
 
 static int loc_database_read_networks_section_v0(struct loc_database* db,
-		FILE* f, const struct loc_database_header_v0* header) {
+		const struct loc_database_header_v0* header) {
 	off_t networks_offset  = be32toh(header->network_data_offset);
 	size_t networks_length = be32toh(header->network_data_length);
 
@@ -186,7 +190,7 @@ static int loc_database_read_networks_section_v0(struct loc_database* db,
 
 	if (networks_length > 0) {
 		db->networks_v0 = mmap(NULL, networks_length, PROT_READ,
-			MAP_SHARED, fileno(f), networks_offset);
+			MAP_SHARED, fileno(db->f), networks_offset);
 
 		if (db->networks_v0 == MAP_FAILED)
 			return -errno;
@@ -200,7 +204,7 @@ static int loc_database_read_networks_section_v0(struct loc_database* db,
 }
 
 static int loc_database_read_countries_section_v0(struct loc_database* db,
-		FILE* f, const struct loc_database_header_v0* header) {
+		const struct loc_database_header_v0* header) {
 	off_t countries_offset  = be32toh(header->countries_offset);
 	size_t countries_length = be32toh(header->countries_length);
 
@@ -209,7 +213,7 @@ static int loc_database_read_countries_section_v0(struct loc_database* db,
 
 	if (countries_length > 0) {
 		db->countries_v0 = mmap(NULL, countries_length, PROT_READ,
-			MAP_SHARED, fileno(f), countries_offset);
+			MAP_SHARED, fileno(db->f), countries_offset);
 
 		if (db->countries_v0 == MAP_FAILED)
 			return -errno;
@@ -223,11 +227,11 @@ static int loc_database_read_countries_section_v0(struct loc_database* db,
 	return 0;
 }
 
-static int loc_database_read_header_v0(struct loc_database* db, FILE* f) {
+static int loc_database_read_header_v0(struct loc_database* db) {
 	struct loc_database_header_v0 header;
 
 	// Read from file
-	size_t size = fread(&header, 1, sizeof(header), f);
+	size_t size = fread(&header, 1, sizeof(header), db->f);
 
 	if (size < sizeof(header)) {
 		ERROR(db->ctx, "Could not read enough data for header\n");
@@ -245,37 +249,37 @@ static int loc_database_read_header_v0(struct loc_database* db, FILE* f) {
 	size_t pool_length = be32toh(header.pool_length);
 
 	int r = loc_stringpool_open(db->ctx, &db->pool,
-		f, pool_length, pool_offset);
+		db->f, pool_length, pool_offset);
 	if (r)
 		return r;
 
 	// AS section
-	r = loc_database_read_as_section_v0(db, f, &header);
+	r = loc_database_read_as_section_v0(db, &header);
 	if (r)
 		return r;
 
 	// Network Nodes
-	r = loc_database_read_network_nodes_section_v0(db, f, &header);
+	r = loc_database_read_network_nodes_section_v0(db, &header);
 	if (r)
 		return r;
 
 	// Networks
-	r = loc_database_read_networks_section_v0(db, f, &header);
+	r = loc_database_read_networks_section_v0(db, &header);
 	if (r)
 		return r;
 
 	// countries
-	r = loc_database_read_countries_section_v0(db, f, &header);
+	r = loc_database_read_countries_section_v0(db, &header);
 	if (r)
 		return r;
 
 	return 0;
 }
 
-static int loc_database_read_header(struct loc_database* db, FILE* f) {
+static int loc_database_read_header(struct loc_database* db) {
 	switch (db->version) {
 		case 0:
-			return loc_database_read_header_v0(db, f);
+			return loc_database_read_header_v0(db);
 
 		default:
 			ERROR(db->ctx, "Incompatible database version: %u\n", db->version);
@@ -286,13 +290,32 @@ static int loc_database_read_header(struct loc_database* db, FILE* f) {
 static int loc_database_read(struct loc_database* db, FILE* f) {
 	clock_t start = clock();
 
+	int fd = fileno(f);
+
+	// Clone file descriptor
+	fd = dup(fd);
+	if (!fd) {
+		ERROR(db->ctx, "Could not duplicate file descriptor\n");
+		return -1;
+	}
+
+	// Reopen the file so that we can keep our own file handle
+	db->f = fdopen(fd, "r");
+	if (!db->f) {
+		ERROR(db->ctx, "Could not re-open database file\n");
+		return -1;
+	}
+
+	// Rewind to the start of the file
+	rewind(db->f);
+
 	// Read magic bytes
-	int r = loc_database_read_magic(db, f);
+	int r = loc_database_read_magic(db);
 	if (r)
 		return r;
 
 	// Read the header
-	r = loc_database_read_header(db, f);
+	r = loc_database_read_header(db);
 	if (r)
 		return r;
 
@@ -364,6 +387,10 @@ static void loc_database_free(struct loc_database* db) {
 
 	loc_stringpool_unref(db->pool);
 
+	// Close database file
+	if (db->f)
+		fclose(db->f);
+
 	loc_unref(db->ctx);
 	free(db);
 }
@@ -374,6 +401,97 @@ LOC_EXPORT struct loc_database* loc_database_unref(struct loc_database* db) {
 
 	loc_database_free(db);
 	return NULL;
+}
+
+static int loc_database_hash(struct loc_database* db,
+		unsigned char* hash, unsigned int* length) {
+	int r = 0;
+
+	EVP_MD_CTX* mdctx = EVP_MD_CTX_new();
+
+	// Select SHA512
+	const EVP_MD* md = EVP_sha512();
+
+	// Initialise hash function
+	EVP_DigestInit_ex(mdctx, md, NULL);
+
+	// Reset file to start
+	rewind(db->f);
+
+	// Read magic
+	struct loc_database_magic magic;
+	fread(&magic, 1, sizeof(magic), db->f);
+
+	// Feed magic into the hash
+	EVP_DigestUpdate(mdctx, &magic, sizeof(magic));
+
+	// Read the header
+	struct loc_database_header_v0 header_v0;
+
+	switch (db->version) {
+		case 0:
+			fread(&header_v0, 1, sizeof(header_v0), db->f);
+
+			// Clear signature
+			for (unsigned int i = 0; i < sizeof(header_v0.signature); i++) {
+				header_v0.signature[i] = '\0';
+			}
+
+			// Feed header into the hash
+			EVP_DigestUpdate(mdctx, &header_v0, sizeof(header_v0));
+			break;
+
+		default:
+			ERROR(db->ctx, "Cannot compute hash for database with format %d\n",
+				db->version);
+			r = -EINVAL;
+			goto CLEANUP;
+	}
+
+	// Walk through the file in chunks of 100kB
+	char buffer[1024 * 100];
+
+	while (!feof(db->f)) {
+		size_t bytes_read = fread(buffer, 1, sizeof(buffer), db->f);
+
+		EVP_DigestUpdate(mdctx, buffer, bytes_read);
+	}
+
+	// Finish hash
+	EVP_DigestFinal_ex(mdctx, hash, length);
+
+#ifdef ENABLE_DEBUG
+	char hash_string[(EVP_MAX_MD_SIZE * 2) + 1];
+
+	for (unsigned int i = 0; i < *length; i++) {
+		sprintf(&hash_string[i*2], "%02x", hash[i]);
+	}
+
+	DEBUG(db->ctx, "Database hash: %s\n", hash_string);
+#endif
+
+CLEANUP:
+	// Cleanup
+	EVP_MD_CTX_free(mdctx);
+
+	return r;
+}
+
+LOC_EXPORT int loc_database_verify(struct loc_database* db) {
+	// Hash
+	unsigned char hash[EVP_MAX_MD_SIZE];
+	unsigned int hash_length;
+
+	// Compute hash of the database
+	int r = loc_database_hash(db, hash, &hash_length);
+	if (r) {
+		ERROR(db->ctx, "Could not compute hash of the database\n");
+		return r;
+	}
+
+	# warning TODO Check signature against hash
+
+	return 0;
 }
 
 LOC_EXPORT time_t loc_database_created_at(struct loc_database* db) {

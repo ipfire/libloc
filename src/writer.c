@@ -480,6 +480,10 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f) {
 	time_t now = time(NULL);
 	header.created_at = htobe64(now);
 
+	// Clear the signature
+	for (unsigned int i = 0; i < sizeof(header.signature); i++)
+		header.signature[i] = '\0';
+
 	int r;
 	off_t offset = 0;
 

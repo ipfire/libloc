@@ -71,6 +71,15 @@ static PyObject* Database_repr(DatabaseObject* self) {
 	return PyUnicode_FromFormat("<Database %s>", self->path);
 }
 
+static PyObject* Database_verify(DatabaseObject* self) {
+	int r = loc_database_verify(self->db);
+
+	if (r == 0)
+		Py_RETURN_TRUE;
+
+	Py_RETURN_FALSE;
+}
+
 static PyObject* Database_get_description(DatabaseObject* self) {
 	const char* description = loc_database_get_description(self->db);
 
@@ -283,6 +292,12 @@ static struct PyMethodDef Database_methods[] = {
 		"search_networks",
 		(PyCFunction)Database_search_networks,
 		METH_VARARGS|METH_KEYWORDS,
+		NULL,
+	},
+	{
+		"verify",
+		(PyCFunction)Database_verify,
+		METH_NOARGS,
 		NULL,
 	},
 	{ NULL },

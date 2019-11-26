@@ -62,6 +62,7 @@ global:
 	loc_database_new;
 	loc_database_ref;
 	loc_database_unref;
+	loc_database_verify;
 
 	# Database Enumerator
 	loc_database_enumerator_new;

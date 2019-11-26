@@ -215,6 +215,11 @@ class CLI(object):
 				% (args.database, e))
 			sys.exit(1)
 
+		# Verify the database
+		if not db.verify():
+			sys.stderr.write("location-query: Could not verify the database\n")
+			sys.exit(1)
+
 		# Call function
 		ret = args.func(db, args)
 
