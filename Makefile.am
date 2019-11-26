@@ -128,6 +128,7 @@ src_libloc_la_LDFLAGS += -export-symbols $(top_srcdir)/src/libloc.sym
 endif
 
 src_libloc_la_LIBADD = \
+	$(OPENSSL_LIBS) \
 	$(RESOLV_LIBS)
 
 src_libloc_la_DEPENDENCIES = \
