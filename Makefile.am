@@ -9,6 +9,8 @@ BINDINGS =
 
 OS = $(shell uname -s)
 
+DEBIAN_TARBALL_NAME = $(PACKAGE_NAME)_$(PACKAGE_VERSION).orig.tar.xz
+
 if ENABLE_PERL
 BINDINGS += perl
 endif
@@ -394,3 +396,10 @@ man/%.html: man/%.txt man/asciidoc.conf
 .PHONY: upload-man
 upload-man: $(MANPAGES_HTML)
 	rsync -avHz --delete --progress $(MANPAGES_HTML) ms@fs01.haj.ipfire.org:/pub/man-pages/$(PACKAGE_NAME)/
+
+$(DEBIAN_TARBALL_NAME): dist
+	cp -v $(distdir).tar.xz $@
+
+.PHONY: debian
+debian: $(DEBIAN_TARBALL_NAME)
+	debuild -i -us -uc -b
