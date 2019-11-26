@@ -467,8 +467,12 @@ LOC_EXPORT int loc_database_get_as(struct loc_database* db, struct loc_as** as, 
 // Returns the network at position pos
 static int loc_database_fetch_network(struct loc_database* db, struct loc_network** network,
 		struct in6_addr* address, unsigned int prefix, off_t pos) {
-	if ((size_t)pos >= db->networks_count)
+	if ((size_t)pos >= db->networks_count) {
+		DEBUG(db->ctx, "Network ID out of range: %jd/%jd\n",
+			(intmax_t)pos, (intmax_t)db->networks_count);
 		return -EINVAL;
+	}
+
 
 	DEBUG(db->ctx, "Fetching network at position %jd\n", (intmax_t)pos);
 
