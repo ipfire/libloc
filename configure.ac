@@ -159,11 +159,13 @@ case "${host}" in
 		;;
 esac
 RESOLV_LIBS="${LIBS}"
+AC_SUBST(RESOLV_LIBS)
 
 dnl Checking for OpenSSL
 LIBS=
 AC_CHECK_LIB(crypto, EVP_EncryptInit,, AC_MSG_ERROR([libcrypto has not been found]))
 OPENSSL_LIBS="${LIBS}"
+AC_SUBST(OPENSSL_LIBS)
 
 AC_CONFIG_HEADERS(config.h)
 AC_CONFIG_FILES([
