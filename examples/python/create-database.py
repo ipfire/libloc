@@ -1,32 +1,38 @@
 #!/usr/bin/python3
 
 import location
+import os
 import sys
 
-w = location.Writer()
+ABS_SRCDIR = os.environ.get("ABS_SRCDIR", ".")
 
-# Set the vendor
-w.vendor = "IPFire Project"
+private_key_path = os.path.join(ABS_SRCDIR, "examples/private-key.pem")
 
-# Set a description
-w.description = "This is a geo location database"
+with open(private_key_path, "r") as pkey:
+    w = location.Writer(pkey)
 
-# Set a license
-w.license = "CC"
+    # Set the vendor
+    w.vendor = "IPFire Project"
 
-# Add an AS
-a = w.add_as(204867)
-a.name = "Lightning Wire Labs GmbH"
+    # Set a description
+    w.description = "This is a geo location database"
 
-print(a)
+    # Set a license
+    w.license = "CC"
 
-# Add a network
-n = w.add_network("2a07:1c44:5800::/40")
-n.country_code = "DE"
-n.asn = a.number
+    # Add an AS
+    a = w.add_as(204867)
+    a.name = "Lightning Wire Labs GmbH"
 
-print(n)
+    print(a)
 
-# Write the database to disk
-for f in sys.argv[1:]:
-    w.write(f)
+    # Add a network
+    n = w.add_network("2a07:1c44:5800::/40")
+    n.country_code = "DE"
+    n.asn = a.number
+
+    print(n)
+
+    # Write the database to disk
+    for f in sys.argv[1:]:
+        w.write(f)

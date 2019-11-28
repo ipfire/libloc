@@ -71,8 +71,27 @@ static PyObject* Database_repr(DatabaseObject* self) {
 	return PyUnicode_FromFormat("<Database %s>", self->path);
 }
 
-static PyObject* Database_verify(DatabaseObject* self) {
-	int r = loc_database_verify(self->db);
+static PyObject* Database_verify(DatabaseObject* self, PyObject* args) {
+	PyObject* public_key = NULL;
+	FILE* f = NULL;
+
+	// Parse arguments
+	if (!PyArg_ParseTuple(args, "O", &public_key))
+		return NULL;
+
+	// Convert into FILE*
+	int fd = PyObject_AsFileDescriptor(public_key);
+	if (fd < 0)
+		return NULL;
+
+	// Re-open file descriptor
+	f = fdopen(fd, "r");
+	if (!f) {
+		PyErr_SetFromErrno(PyExc_IOError);
+		return NULL;
+	}
+
+	int r = loc_database_verify(self->db, f);
 
 	if (r == 0)
 		Py_RETURN_TRUE;
@@ -297,7 +316,7 @@ static struct PyMethodDef Database_methods[] = {
 	{
 		"verify",
 		(PyCFunction)Database_verify,
-		METH_NOARGS,
+		METH_VARARGS,
 		NULL,
 	},
 	{ NULL },

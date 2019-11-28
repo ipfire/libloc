@@ -31,7 +31,7 @@ int loc_database_new(struct loc_ctx* ctx, struct loc_database** database, FILE* 
 struct loc_database* loc_database_ref(struct loc_database* db);
 struct loc_database* loc_database_unref(struct loc_database* db);
 
-int loc_database_verify(struct loc_database* db);
+int loc_database_verify(struct loc_database* db, FILE* f);
 
 time_t loc_database_created_at(struct loc_database* db);
 const char* loc_database_get_vendor(struct loc_database* db);

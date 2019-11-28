@@ -81,6 +81,8 @@ update-po:
 	$(MAKE) -C po update-po
 
 EXTRA_DIST += \
+	examples/private-key.pem \
+	examples/public-key.pem \
 	examples/python/create-database.py \
 	examples/python/read-database.py
 
@@ -258,7 +260,8 @@ EXTRA_DIST += \
 
 TESTS_CFLAGS = \
 	$(AM_CFLAGS) \
-	-DLIBLOC_PRIVATE
+	-DLIBLOC_PRIVATE \
+	-DABS_SRCDIR=\"$(abs_srcdir)\"
 
 TESTS = \
 	src/test-libloc \
@@ -273,7 +276,9 @@ CLEANFILES += \
 	testdata.db
 
 testdata.db: examples/python/create-database.py
-	PYTHONPATH=$(abs_builddir)/src/python/.libs $(PYTHON) $< $@
+	PYTHONPATH=$(abs_builddir)/src/python/.libs \
+	ABS_SRCDIR="$(abs_srcdir)" \
+		$(PYTHON) $< $@
 
 check_PROGRAMS = \
 	src/test-libloc \

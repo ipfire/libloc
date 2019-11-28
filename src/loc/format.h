@@ -30,6 +30,8 @@
 
 #define LOC_DATABASE_PAGE_SIZE  4096
 
+#define LOC_SIGNATURE_MAX_LENGTH	4096
+
 struct loc_database_magic {
 	char magic[7];
 
@@ -70,11 +72,12 @@ struct loc_database_header_v0 {
 	uint32_t pool_offset;
 	uint32_t pool_length;
 
+	// Signature
+	uint32_t signature_length;
+	char signature[LOC_SIGNATURE_MAX_LENGTH];
+
 	// Add some padding for future extensions
 	char padding[32];
-
-	// Signature
-	char signature[4096];
 };
 
 struct loc_database_network_node_v0 {

@@ -14,6 +14,7 @@
 	Lesser General Public License for more details.
 */
 
+#include <assert.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -25,10 +26,16 @@
 #  include <endian.h>
 #endif
 
+#include <openssl/bio.h>
+#include <openssl/err.h>
+#include <openssl/evp.h>
+#include <openssl/pem.h>
+
 #include <loc/libloc.h>
 #include <loc/as.h>
 #include <loc/compat.h>
 #include <loc/country.h>
+#include <loc/database.h>
 #include <loc/format.h>
 #include <loc/network.h>
 #include <loc/private.h>
@@ -43,6 +50,9 @@ struct loc_writer {
 	off_t description;
 	off_t license;
 
+	// Private key to sign any databases
+	EVP_PKEY* private_key;
+
 	struct loc_as** as;
 	size_t as_count;
 
@@ -52,7 +62,26 @@ struct loc_writer {
 	struct loc_network_tree* networks;
 };
 
-LOC_EXPORT int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer) {
+static int parse_private_key(struct loc_writer* writer, FILE* f) {
+	// Free any previously loaded keys
+	if (writer->private_key)
+		EVP_PKEY_free(writer->private_key);
+
+	// Read the key
+	writer->private_key = PEM_read_PrivateKey(f, NULL, NULL, NULL);
+
+	// Log any errors
+	if (!writer->private_key) {
+		char* error = ERR_error_string(ERR_get_error(), NULL);
+		ERROR(writer->ctx, "Could not parse private key: %s\n", error);
+
+		return -1;
+	}
+
+	return 0;
+}
+
+LOC_EXPORT int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer, FILE* fkey) {
 	struct loc_writer* w = calloc(1, sizeof(*w));
 	if (!w)
 		return -ENOMEM;
@@ -73,6 +102,15 @@ LOC_EXPORT int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer) {
 		return r;
 	}
 
+	// Load the private key to sign databases
+	if (fkey) {
+		r = parse_private_key(w, fkey);
+		if (r) {
+			loc_writer_unref(w);
+			return r;
+		}
+	}
+
 	*writer = w;
 	return 0;
 }
@@ -85,6 +123,10 @@ LOC_EXPORT struct loc_writer* loc_writer_ref(struct loc_writer* writer) {
 
 static void loc_writer_free(struct loc_writer* writer) {
 	DEBUG(writer->ctx, "Releasing writer at %p\n", writer);
+
+	// Free private key
+	if (writer->private_key)
+		EVP_PKEY_free(writer->private_key);
 
 	// Unref all AS
 	for (unsigned int i = 0; i < writer->as_count; i++) {
@@ -467,6 +509,84 @@ static int loc_database_write_countries(struct loc_writer* writer,
 	return 0;
 }
 
+static int loc_writer_create_signature(struct loc_writer* writer,
+		struct loc_database_header_v0* header, FILE* f) {
+	DEBUG(writer->ctx, "Signing database...\n");
+
+	// Read file from the beginning
+	rewind(f);
+
+	// Create a new context for signing
+	EVP_MD_CTX* mdctx = EVP_MD_CTX_new();
+
+	// Initialise the context
+	int r = EVP_DigestSignInit(mdctx, NULL, NULL, NULL, writer->private_key);
+	if (r != 1) {
+		ERROR(writer->ctx, "%s\n", ERR_error_string(ERR_get_error(), NULL));
+		goto END;
+	}
+
+	// Read magic
+	struct loc_database_magic magic;
+	fread(&magic, 1, sizeof(magic), f);
+
+	// Feed magic into the signature
+	r = EVP_DigestSignUpdate(mdctx, &magic, sizeof(magic));
+	if (r != 1) {
+		ERROR(writer->ctx, "%s\n", ERR_error_string(ERR_get_error(), NULL));
+		goto END;
+	}
+
+	// Feed the header into the signature
+	r = EVP_DigestSignUpdate(mdctx, header, sizeof(header));
+	if (r != 1) {
+		ERROR(writer->ctx, "%s\n", ERR_error_string(ERR_get_error(), NULL));
+		goto END;
+	}
+
+	// Skip header
+	fseek(f, sizeof(header), SEEK_CUR);
+
+	// Walk through the file in chunks of 64kB
+	char buffer[64 * 1024];
+	while (!feof(f)) {
+		size_t bytes_read = fread(buffer, 1, sizeof(buffer), f);
+
+		if (ferror(f)) {
+			ERROR(writer->ctx, "Error reading from file: %s\n", strerror(errno));
+			r = errno;
+			goto END;
+		}
+
+		r = EVP_DigestSignUpdate(mdctx, buffer, bytes_read);
+		if (r != 1) {
+			ERROR(writer->ctx, "%s\n", ERR_error_string(ERR_get_error(), NULL));
+			goto END;
+		}
+	}
+
+	// Compute the signature
+	size_t signature_length = sizeof(header->signature);
+
+	r = EVP_DigestSignFinal(mdctx,
+		(unsigned char*)header->signature, &signature_length);
+	if (r != 1) {
+		ERROR(writer->ctx, "%s\n", ERR_error_string(ERR_get_error(), NULL));
+		goto END;
+	}
+
+	// Save length of the signature
+	header->signature_length = htobe32(signature_length);
+
+	DEBUG(writer->ctx, "Successfully generated signature\n");
+	r = 0;
+
+END:
+	EVP_MD_CTX_free(mdctx);
+
+	return r;
+}
+
 LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f) {
 	struct loc_database_magic magic;
 	make_magic(writer, &magic);
@@ -481,6 +601,7 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f) {
 	header.created_at = htobe64(now);
 
 	// Clear the signature
+	header.signature_length = 0;
 	for (unsigned int i = 0; i < sizeof(header.signature); i++)
 		header.signature[i] = '\0';
 
@@ -525,12 +646,19 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f) {
 	if (r)
 		return r;
 
+	// Create the signature
+	if (writer->private_key) {
+		r = loc_writer_create_signature(writer, &header, f);
+		if (r)
+			return r;
+	}
+
 	// Write the header
 	r = fseek(f, sizeof(magic), SEEK_SET);
 	if (r)
 		return r;
 
-	offset += fwrite(&header, 1, sizeof(header), f);
+	fwrite(&header, 1, sizeof(header), f);
 
-	return 0;
+	return r;
 }

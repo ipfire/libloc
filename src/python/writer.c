@@ -39,12 +39,31 @@ static void Writer_dealloc(WriterObject* self) {
 }
 
 static int Writer_init(WriterObject* self, PyObject* args, PyObject* kwargs) {
-	// Create the writer object
-	int r = loc_writer_new(loc_ctx, &self->writer);
-	if (r)
+	PyObject* private_key = NULL;
+	FILE* f = NULL;
+
+	// Parse arguments
+	if (!PyArg_ParseTuple(args, "|O", &private_key))
 		return -1;
 
-	return 0;
+	// Convert into FILE*
+	if (private_key) {
+		int fd = PyObject_AsFileDescriptor(private_key);
+		if (fd < 0)
+			return -1;
+
+		// Re-open file descriptor
+		f = fdopen(fd, "r");
+		if (!f) {
+			PyErr_SetFromErrno(PyExc_IOError);
+			return -1;
+		}
+	}
+
+	// Create the writer object
+	int r = loc_writer_new(loc_ctx, &self->writer, f);
+
+	return r;
 }
 
 static PyObject* Writer_get_vendor(WriterObject* self) {
@@ -180,7 +199,7 @@ static PyObject* Writer_write(WriterObject* self, PyObject* args) {
 	if (!PyArg_ParseTuple(args, "s", &path))
 		return NULL;
 
-	FILE* f = fopen(path, "w");
+	FILE* f = fopen(path, "w+");
 	if (!f) {
 		PyErr_Format(PyExc_IOError, strerror(errno));
 		return NULL;

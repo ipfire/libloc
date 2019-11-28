@@ -32,7 +32,9 @@
 #  include <endian.h>
 #endif
 
+#include <openssl/err.h>
 #include <openssl/evp.h>
+#include <openssl/pem.h>
 
 #include <loc/libloc.h>
 #include <loc/as.h>
@@ -55,6 +57,9 @@ struct loc_database {
 	off_t vendor;
 	off_t description;
 	off_t license;
+
+	char* signature;
+	size_t signature_length;
 
 	// ASes in the database
 	struct loc_database_as_v0* as_v0;
@@ -244,6 +249,23 @@ static int loc_database_read_header_v0(struct loc_database* db) {
 	db->description = be32toh(header.description);
 	db->license     = be32toh(header.license);
 
+	// Read signature
+	db->signature_length = be32toh(header.signature_length);
+	if (db->signature_length) {
+		// Check for a plausible signature length
+		if (db->signature_length > LOC_SIGNATURE_MAX_LENGTH) {
+			ERROR(db->ctx, "Signature too long: %ld\n", db->signature_length);
+			return -EINVAL;
+		}
+
+		DEBUG(db->ctx, "Reading signature of %ld bytes\n",
+			db->signature_length);
+
+		db->signature = malloc(db->signature_length);
+		for (unsigned int i = 0; i < db->signature_length; i++)
+			db->signature[i] = header.signature[i];
+	}
+
 	// Open pool
 	off_t pool_offset  = be32toh(header.pool_offset);
 	size_t pool_length = be32toh(header.pool_length);
@@ -387,6 +409,10 @@ static void loc_database_free(struct loc_database* db) {
 
 	loc_stringpool_unref(db->pool);
 
+	// Free signature
+	if (db->signature)
+		free(db->signature);
+
 	// Close database file
 	if (db->f)
 		fclose(db->f);
@@ -403,17 +429,28 @@ LOC_EXPORT struct loc_database* loc_database_unref(struct loc_database* db) {
 	return NULL;
 }
 
-static int loc_database_hash(struct loc_database* db,
-		unsigned char* hash, unsigned int* length) {
+LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
+	// Cannot do this when no signature is available
+	if (!db->signature) {
+		DEBUG(db->ctx, "No signature available to verify\n");
+		return 1;
+	}
+
+	// Load public key
+	EVP_PKEY* pkey = PEM_read_PUBKEY(f, NULL, NULL, NULL);
+	if (!pkey) {
+		char* error = ERR_error_string(ERR_get_error(), NULL);
+		ERROR(db->ctx, "Could not parse public key: %s\n", error);
+
+		return -1;
+	}
+
 	int r = 0;
 
 	EVP_MD_CTX* mdctx = EVP_MD_CTX_new();
 
-	// Select SHA512
-	const EVP_MD* md = EVP_sha512();
-
 	// Initialise hash function
-	EVP_DigestInit_ex(mdctx, md, NULL);
+	EVP_DigestVerifyInit(mdctx, NULL, NULL, NULL, pkey);
 
 	// Reset file to start
 	rewind(db->f);
@@ -423,7 +460,7 @@ static int loc_database_hash(struct loc_database* db,
 	fread(&magic, 1, sizeof(magic), db->f);
 
 	// Feed magic into the hash
-	EVP_DigestUpdate(mdctx, &magic, sizeof(magic));
+	EVP_DigestVerifyUpdate(mdctx, &magic, sizeof(magic));
 
 	// Read the header
 	struct loc_database_header_v0 header_v0;
@@ -438,7 +475,7 @@ static int loc_database_hash(struct loc_database* db,
 			}
 
 			// Feed header into the hash
-			EVP_DigestUpdate(mdctx, &header_v0, sizeof(header_v0));
+			EVP_DigestVerifyUpdate(mdctx, &header_v0, sizeof(header_v0));
 			break;
 
 		default:
@@ -448,50 +485,34 @@ static int loc_database_hash(struct loc_database* db,
 			goto CLEANUP;
 	}
 
-	// Walk through the file in chunks of 100kB
-	char buffer[1024 * 100];
+	// Walk through the file in chunks of 64kB
+	char buffer[64 * 1024];
 
 	while (!feof(db->f)) {
 		size_t bytes_read = fread(buffer, 1, sizeof(buffer), db->f);
 
-		EVP_DigestUpdate(mdctx, buffer, bytes_read);
+		EVP_DigestVerifyUpdate(mdctx, buffer, bytes_read);
 	}
 
-	// Finish hash
-	EVP_DigestFinal_ex(mdctx, hash, length);
+	// Finish
+	r = EVP_DigestVerifyFinal(mdctx,
+		(unsigned char*)db->signature, db->signature_length);
 
-#ifdef ENABLE_DEBUG
-	char hash_string[(EVP_MAX_MD_SIZE * 2) + 1];
-
-	for (unsigned int i = 0; i < *length; i++) {
-		sprintf(&hash_string[i*2], "%02x", hash[i]);
+	if (r == 0) {
+		DEBUG(db->ctx, "The signature is valid\n");
+	} else if (r == 1) {
+		DEBUG(db->ctx, "The signature is invalid\n");
+	} else {
+		ERROR(db->ctx, "Error verifying the signature: %s\n",
+			ERR_error_string(ERR_get_error(), NULL));
 	}
-
-	DEBUG(db->ctx, "Database hash: %s\n", hash_string);
-#endif
 
 CLEANUP:
 	// Cleanup
 	EVP_MD_CTX_free(mdctx);
+	EVP_PKEY_free(pkey);
 
 	return r;
-}
-
-LOC_EXPORT int loc_database_verify(struct loc_database* db) {
-	// Hash
-	unsigned char hash[EVP_MAX_MD_SIZE];
-	unsigned int hash_length;
-
-	// Compute hash of the database
-	int r = loc_database_hash(db, hash, &hash_length);
-	if (r) {
-		ERROR(db->ctx, "Could not compute hash of the database\n");
-		return r;
-	}
-
-	# warning TODO Check signature against hash
-
-	return 0;
 }
 
 LOC_EXPORT time_t loc_database_created_at(struct loc_database* db) {

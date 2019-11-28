@@ -138,6 +138,11 @@ class CLI(object):
 			default="@databasedir@/database.db", help=_("Path to database"),
 		)
 
+		# public key
+		parser.add_argument("--public-key", "-k",
+			default="@databasedir@/signing-key.pem", help=_("Public Signing Key"),
+		)
+
 		# lookup an IP address
 		lookup = subparsers.add_parser("lookup",
 			help=_("Lookup one or multiple IP addresses"),
@@ -216,8 +221,15 @@ class CLI(object):
 			sys.exit(1)
 
 		# Verify the database
-		if not db.verify():
-			sys.stderr.write("location-query: Could not verify the database\n")
+		try:
+			with open(args.public_key, "r") as f:
+				if not db.verify(f):
+					sys.stderr.write("location-query: Could not verify the database\n")
+					sys.exit(1)
+
+		# Catch any errors when loading the public key
+		except (FileNotFoundError, OSError) as e:
+			sys.stderr.write("Could not read the public key: %s\n" % e)
 			sys.exit(1)
 
 		# Call function

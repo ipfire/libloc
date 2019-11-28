@@ -93,7 +93,7 @@ int main(int argc, char** argv) {
 
 	// Create a database
 	struct loc_writer* writer;
-	err = loc_writer_new(ctx, &writer);
+	err = loc_writer_new(ctx, &writer, NULL);
 	if (err < 0)
 		exit(EXIT_FAILURE);
 
@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
 	// Set ASN
 	loc_network_set_asn(network4, 1024);
 
-	FILE* f = fopen("test.db", "w");
+	FILE* f = fopen("test.db", "w+");
 	if (!f) {
 		fprintf(stderr, "Could not open file for writing: %s\n", strerror(errno));
 		exit(EXIT_FAILURE);

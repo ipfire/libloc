@@ -26,7 +26,7 @@
 
 struct loc_writer;
 
-int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer);
+int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer, FILE* fkey);
 
 struct loc_writer* loc_writer_ref(struct loc_writer* writer);
 struct loc_writer* loc_writer_unref(struct loc_writer* writer);
