@@ -231,12 +231,13 @@ static PyObject* Database_search_as(DatabaseObject* self, PyObject* args) {
 }
 
 static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, PyObject* kwargs) {
-	char* kwlist[] = { "country_code", "asn", "flags", NULL };
+	char* kwlist[] = { "country_code", "asn", "flags", "family", NULL };
 	const char* country_code = NULL;
 	unsigned int asn = 0;
 	int flags = 0;
+	int family = 0;
 
-    if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|sii", kwlist, &country_code, &asn, &flags))
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|siii", kwlist, &country_code, &asn, &flags, &family))
 		return NULL;
 
 	struct loc_database_enumerator* enumerator;
@@ -269,6 +270,16 @@ static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, 
 	// Set the flags we are searching for
 	if (flags) {
 		r = loc_database_enumerator_set_flag(enumerator, flags);
+
+		if (r) {
+			PyErr_SetFromErrno(PyExc_SystemError);
+			return NULL;
+		}
+	}
+
+	// Set the family we are searching for
+	if (family) {
+		r = loc_database_enumerator_set_family(enumerator, family);
 
 		if (r) {
 			PyErr_SetFromErrno(PyExc_SystemError);

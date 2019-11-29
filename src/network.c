@@ -145,13 +145,6 @@ LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network
 	return 0;
 }
 
-static int loc_network_address_family(struct loc_network* network) {
-	if (IN6_IS_ADDR_V4MAPPED(&network->start_address))
-		return AF_INET;
-
-	return AF_INET6;
-}
-
 LOC_EXPORT int loc_network_new_from_string(struct loc_ctx* ctx, struct loc_network** network,
 		const char* address_string) {
 	struct in6_addr start_address;
@@ -271,6 +264,13 @@ LOC_EXPORT char* loc_network_str(struct loc_network* network) {
 	sprintf(string + strlen(string), "/%u", prefix);
 
 	return string;
+}
+
+LOC_EXPORT int loc_network_address_family(struct loc_network* network) {
+	if (IN6_IS_ADDR_V4MAPPED(&network->start_address))
+		return AF_INET;
+
+	return AF_INET6;
 }
 
 LOC_EXPORT int loc_network_match_address(struct loc_network* network, const struct in6_addr* address) {

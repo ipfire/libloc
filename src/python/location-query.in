@@ -169,6 +169,7 @@ class CLI(object):
 			help=_("Lists all networks in an AS"),
 		)
 		list_networks_by_as.add_argument("asn", nargs=1, type=int)
+		list_networks_by_as.add_argument("--family", choices=("ipv6", "ipv4"))
 		list_networks_by_as.add_argument("--output-format",
 			choices=self.output_formats.keys(), default="list")
 		list_networks_by_as.set_defaults(func=self.handle_list_networks_by_as)
@@ -178,6 +179,7 @@ class CLI(object):
 			help=_("Lists all networks in a country"),
 		)
 		list_networks_by_cc.add_argument("country_code", nargs=1)
+		list_networks_by_cc.add_argument("--family", choices=("ipv6", "ipv4"))
 		list_networks_by_cc.add_argument("--output-format",
 			choices=self.output_formats.keys(), default="list")
 		list_networks_by_cc.set_defaults(func=self.handle_list_networks_by_cc)
@@ -195,6 +197,7 @@ class CLI(object):
 		list_networks_by_flags.add_argument("--anycast",
 			action="store_true", help=_("Anycasts"),
 		)
+		list_networks_by_flags.add_argument("--family", choices=("ipv6", "ipv4"))
 		list_networks_by_flags.add_argument("--output-format",
 			choices=self.output_formats.keys(), default="list")
 		list_networks_by_flags.set_defaults(func=self.handle_list_networks_by_flags)
@@ -231,6 +234,14 @@ class CLI(object):
 		except (FileNotFoundError, OSError) as e:
 			sys.stderr.write("Could not read the public key: %s\n" % e)
 			sys.exit(1)
+
+		# Translate family
+		if args.family == "ipv6":
+			args.family = socket.AF_INET6
+		elif args.family == "ipv4":
+			args.family = socket.AF_INET
+		else:
+			args.family = 0
 
 		# Call function
 		ret = args.func(db, args)
@@ -324,14 +335,14 @@ class CLI(object):
 		with self.__get_output_formatter(ns) as f:
 			for asn in ns.asn:
 				# Print all matching networks
-				for n in db.search_networks(asn=asn):
+				for n in db.search_networks(asn=asn, family=ns.family):
 					f.network(n)
 
 	def handle_list_networks_by_cc(self, db, ns):
 		with self.__get_output_formatter(ns) as f:
 			for country_code in ns.country_code:
 				# Print all matching networks
-				for n in db.search_networks(country_code=country_code):
+				for n in db.search_networks(country_code=country_code, family=ns.family):
 					f.network(n)
 
 	def handle_list_networks_by_flags(self, db, ns):
@@ -347,7 +358,7 @@ class CLI(object):
 			flags |= location.NETWORK_FLAG_ANYCAST
 
 		with self.__get_output_formatter(ns) as f:
-			for n in db.search_networks(flags=flags):
+			for n in db.search_networks(flags=flags, family=ns.family):
 				f.network(n)
 
 

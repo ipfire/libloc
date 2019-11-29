@@ -44,8 +44,11 @@ or countries.
 	+
 	The search will be performed case-insensitively.
 
-'list-networks-by-as [--output-format FORMAT] ASN'::
+'list-networks-by-as [--family=[ipv6|ipv4]] [--output-format FORMAT] ASN'::
 	Lists all networks which belong to this Autonomous System.
+	+
+	The '--family' parameter can be used to filter output to only IPv6 or
+	IPv4 addresses.
 	+
 	The '--output-format' parameter can change the output so that it can be
 	directly loaded into other software. The following options are available:
@@ -56,17 +59,17 @@ or countries.
 	* 'xt_geoip': Returns a list of networks to be loaded into the xt_geoip
 	  kernel module
 
-'list-networks-by-cc [--output-format FORMAT] COUNTRY_CODE'::
+'list-networks-by-cc [--family=[ipv6|ipv4]] [--output-format FORMAT] COUNTRY_CODE'::
 	Lists all networks that belong to a country.
 	+
 	The country has to be encoded in ISO3166 Alpha-2 notation.
 	+
-	See above for usage of the '--output-format' parameter.
+	See above for usage of the '--family' and '--output-format' parameters.
 
-'list-networks-by-flags [--output-format FORMAT] [--anonymous-proxy|--satellite-provider|--anycast]'::
+'list-networks-by-flags [--family=[ipv6|ipv4]] [--output-format FORMAT] [--anonymous-proxy|--satellite-provider|--anycast]'::
 	Lists all networks that have a certain flag.
 	+
-	See above for usage of the '--output-format' parameter.
+	See above for usage of the '--family' and '--output-format' parameters.
 
 '--help'::
 	Shows a short help text on using this program.

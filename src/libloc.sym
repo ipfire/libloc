@@ -71,11 +71,13 @@ global:
 	loc_database_enumerator_ref;
 	loc_database_enumerator_set_asn;
 	loc_database_enumerator_set_country_code;
+	loc_database_enumerator_set_family;
 	loc_database_enumerator_set_flag;
 	loc_database_enumerator_set_string;
 	loc_database_enumerator_unref;
 
 	# Network
+	loc_network_address_family;
 	loc_network_get_asn;
 	loc_network_get_country_code;
 	loc_network_has_flag;
