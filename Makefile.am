@@ -209,7 +209,8 @@ build-perl:
 
 .PHONY: check-perl
 check-perl: testdata.db
-	cd $(builddir)/src/perl && $(MAKE) LD_LIBRARY_PATH="$(abs_builddir)/src/.libs" test database="../../$<"
+	cd $(builddir)/src/perl && $(MAKE) LD_LIBRARY_PATH="$(abs_builddir)/src/.libs" test \
+		database="../../$<" keyfile="$(abs_srcdir)/examples/public-key.pem"
 
 .PHONY: install-perl
 install-perl:

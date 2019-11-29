@@ -15,8 +15,9 @@
 MODULE = Location		PACKAGE = Location
 
 struct loc_database *
-init(file)
+init(file, keyfile)
 	char* file;
+	char* keyfile;
 
 	CODE:
 		struct loc_ctx* ctx = NULL;
@@ -48,6 +49,29 @@ init(file)
 
 			croak("Could not read database: %s\n", file);
 		}
+
+		// Try to open the keyfile
+		f = fopen(keyfile, "r");
+		if (!f) {
+			loc_database_unref(db);
+			loc_unref(ctx);
+
+			croak("Could not open keyfile %s: %s\n",
+				keyfile, strerror(errno));
+		}
+
+		// Verify the database
+		int status = loc_database_verify(db, f);
+		if (status) {
+			loc_database_unref(db);
+			loc_unref(ctx);
+			fclose(f);
+
+			croak("Could not verify the database signature\n");
+		}
+
+		// Close the keyfile
+		fclose(f);
 
 		// Cleanup
 		loc_unref(ctx);

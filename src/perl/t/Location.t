@@ -10,6 +10,7 @@ use warnings;
 
 # Where to find the test database.
 my $testdb = $ENV{'database'};
+my $keyfile = $ENV{'keyfile'};
 
 use Test::More tests => 6;
 BEGIN { use_ok('Location') };
@@ -23,7 +24,7 @@ BEGIN { use_ok('Location') };
 my $address = "2a07:1c44:5800::1";
 
 # Connect to the database.
-my $db = &Location::init("$testdb");
+my $db = &Location::init("$testdb", "$keyfile");
 
 my $vendor = &Location::get_vendor($db);
 ok($vendor eq "IPFire Project", "Test 1 - Get Database Vendor");
