@@ -145,7 +145,7 @@ class Downloader(object):
 
 		return res
 
-	def download(self, url, timestamp=None, **kwargs):
+	def download(self, url, public_key, timestamp=None, **kwargs):
 		headers = {}
 
 		if timestamp:
@@ -197,7 +197,7 @@ class Downloader(object):
 
 				else:
 					# Check if the downloaded database is recent
-					if not self._check_database(t, timestamp):
+					if not self._check_database(t, public_key, timestamp):
 						log.warning("Downloaded database is outdated. Trying next mirror...")
 
 						# Throw away the data and try again
@@ -209,7 +209,7 @@ class Downloader(object):
 
 		raise FileNotFoundError(url)
 
-	def _check_database(self, f, timestamp=None):
+	def _check_database(self, f, public_key, timestamp=None):
 		"""
 			Checks the downloaded database if it can be opened,
 			verified and if it is recent enough
@@ -225,6 +225,12 @@ class Downloader(object):
 		log.info("Downloaded new database from %s" % (time.strftime(
 			"%a, %d %b %Y %H:%M:%S GMT", time.gmtime(db.created_at),
 		)))
+
+		# Verify the database
+		with open(public_key, "r") as f:
+			if not db.verify(f):
+				log.error("Could not verify database")
+				return False
 
 		return True
 
@@ -250,6 +256,11 @@ class CLI(object):
 		# database
 		parser.add_argument("--database", "-d",
 			default="@databasedir@/database.db", help=_("Path to database"),
+		)
+
+		# public key
+		parser.add_argument("--public-key", "-k",
+			default="@databasedir@/signing-key.pem", help=_("Public Signing Key"),
 		)
 
 		# Update
@@ -307,7 +318,8 @@ class CLI(object):
 
 		# Try downloading a new database
 		try:
-			t = self.downloader.download(DATABASE_FILENAME, timestamp=timestamp)
+			t = self.downloader.download(DATABASE_FILENAME,
+				public_key=ns.public_key, timestamp=timestamp)
 
 		# If no file could be downloaded, log a message
 		except FileNotFoundError as e:
