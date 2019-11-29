@@ -436,6 +436,9 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 		return 1;
 	}
 
+	// Start the stopwatch
+	clock_t start = clock();
+
 	// Load public key
 	EVP_PKEY* pkey = PEM_read_PUBKEY(f, NULL, NULL, NULL);
 	if (!pkey) {
@@ -506,6 +509,10 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 		ERROR(db->ctx, "Error verifying the signature: %s\n",
 			ERR_error_string(ERR_get_error(), NULL));
 	}
+
+	clock_t end = clock();
+	DEBUG(db->ctx, "Signature checked in %.4fms\n",
+		(double)(end - start) / CLOCKS_PER_SEC * 1000);
 
 CLEANUP:
 	// Cleanup
