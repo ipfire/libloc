@@ -123,7 +123,7 @@ class IpsetOutputWriter(OutputWriter):
 	suffix = "ipset"
 
 	def _write_header(self, f):
-		h = "create %s hash:net family inet hashsize 1024 maxelem 65536" % self.name
+		h = "create %s hash:net family inet hashsize 1024 maxelem 65536\n" % self.name
 
 		f.write(h.encode("ascii"))
 
