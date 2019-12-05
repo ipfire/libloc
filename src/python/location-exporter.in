@@ -280,12 +280,12 @@ class CLI(object):
 
 				asns.append(object)
 
-			elif not len(object) == 2:
-				log.error("Invalid argument: %s" % object)
-				return 2
+			elif location.country_code_is_valid(object):
+				countries.append(object)
 
 			else:
-				countries.append(object)
+				log.error("Invalid argument: %s" % object)
+				return 2
 
 		# Open the database
 		try:

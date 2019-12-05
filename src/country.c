@@ -172,3 +172,22 @@ int loc_country_to_database_v0(struct loc_country* country,
 
 	return 0;
 }
+
+LOC_EXPORT int loc_country_code_is_valid(const char* cc) {
+	// It cannot be NULL
+	if (!cc || !*cc)
+		return 0;
+
+	// It must be 2 characters long
+	if (strlen(cc) != 2)
+		return 0;
+
+	// It must only contain A-Z
+	for (unsigned int i = 0; i < 2; i++) {
+		if (cc[i] < 'A' || cc[i] > 'Z')
+			return 0;
+	}
+
+	// Looks valid
+	return 1;
+}

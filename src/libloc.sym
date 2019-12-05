@@ -39,6 +39,7 @@ global:
 
 	# Country
 	loc_country_cmp;
+	loc_country_code_is_valid;
 	loc_country_get_code;
 	loc_country_get_continent_code;
 	loc_country_get_name;

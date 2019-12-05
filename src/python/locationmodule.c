@@ -65,7 +65,25 @@ static PyObject* discover_latest_version(PyObject* m, PyObject* args) {
 	return PyLong_FromUnsignedLong(t);
 }
 
+static PyObject* country_code_is_valid(PyObject* m, PyObject* args) {
+	const char* country_code = NULL;
+
+	if (!PyArg_ParseTuple(args, "s", &country_code))
+		return NULL;
+
+	if (loc_country_code_is_valid(country_code))
+		Py_RETURN_TRUE;
+
+	Py_RETURN_FALSE;
+}
+
 static PyMethodDef location_module_methods[] = {
+	{
+		"country_code_is_valid",
+		(PyCFunction)country_code_is_valid,
+		METH_VARARGS,
+		NULL,
+	},
 	{
 		"discover_latest_version",
 		(PyCFunction)discover_latest_version,
