@@ -223,18 +223,6 @@ class CLI(object):
 				% (args.database, e))
 			sys.exit(1)
 
-		# Verify the database
-		try:
-			with open(args.public_key, "r") as f:
-				if not db.verify(f):
-					sys.stderr.write("location-query: Could not verify the database\n")
-					sys.exit(1)
-
-		# Catch any errors when loading the public key
-		except (FileNotFoundError, OSError) as e:
-			sys.stderr.write("Could not read the public key: %s\n" % e)
-			sys.exit(1)
-
 		# Translate family
 		if args.family == "ipv6":
 			args.family = socket.AF_INET6
