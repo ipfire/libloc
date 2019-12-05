@@ -140,11 +140,11 @@ class NftablesOutputWriter(OutputWriter):
 	suffix = "set"
 
 	def _write_header(self, f):
-		h = "define %s = {" % self.name
+		h = "define %s = {\n" % self.name
 
 		f.write(h.encode("ascii"))
 
-	def _write_footer(self):
+	def _write_footer(self, f):
 		f.write(b"}")
 
 	def write(self, network):
