@@ -15,9 +15,8 @@
 MODULE = Location		PACKAGE = Location
 
 struct loc_database *
-init(file, keyfile)
+init(file)
 	char* file;
-	char* keyfile;
 
 	CODE:
 		struct loc_ctx* ctx = NULL;
@@ -50,29 +49,6 @@ init(file, keyfile)
 			croak("Could not read database: %s\n", file);
 		}
 
-		// Try to open the keyfile
-		f = fopen(keyfile, "r");
-		if (!f) {
-			loc_database_unref(db);
-			loc_unref(ctx);
-
-			croak("Could not open keyfile %s: %s\n",
-				keyfile, strerror(errno));
-		}
-
-		// Verify the database
-		int status = loc_database_verify(db, f);
-		if (status) {
-			loc_database_unref(db);
-			loc_unref(ctx);
-			fclose(f);
-
-			croak("Could not verify the database signature\n");
-		}
-
-		// Close the keyfile
-		fclose(f);
-
 		// Cleanup
 		loc_unref(ctx);
 
@@ -83,6 +59,36 @@ init(file, keyfile)
 #
 # Database functions
 #
+bool
+verify(db, keyfile)
+	struct loc_database* db;
+	char* keyfile;
+
+	CODE:
+		// Try to open the keyfile
+		FILE* f = fopen(keyfile, "r");
+		if (!f) {
+			croak("Could not open keyfile %s: %s\n",
+				keyfile, strerror(errno));
+		}
+
+		// Verify the database
+		int status = loc_database_verify(db, f);
+		if (status) {
+			RETVAL = false;
+			fclose(f);
+
+			croak("Could not verify the database signature\n");
+		}
+
+		// Database was validated successfully
+		RETVAL = true;
+
+		// Close the keyfile
+		fclose(f);
+	OUTPUT:
+		RETVAL
+
 const char*
 get_vendor(db)
 	struct loc_database* db;
