@@ -237,7 +237,7 @@ class CLI(object):
 
 		# format
 		parser.add_argument("--format", help=_("Output format"),
-			)#default="list", choices=self.output_formats.keys())
+			default="list", choices=self.output_formats.keys())
 
 		# directory
 		parser.add_argument("--directory", help=_("Output directory"), required=True)
