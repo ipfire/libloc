@@ -1,4 +1,5 @@
 usr/bin/location-downloader
+usr/bin/location-exporter
 usr/bin/location-query
 usr/lib/*/libloc.so.*
 usr/lib/python3*/*-packages/*.so
