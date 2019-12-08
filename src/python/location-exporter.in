@@ -177,8 +177,8 @@ class Exporter(object):
 		self.db = db
 		self.writer = writer
 
-	def export(self, directory, countries, asns):
-		for family in (socket.AF_INET6, socket.AF_INET):
+	def export(self, directory, families, countries, asns):
+		for family in families:
 			log.debug("Exporting family %s" % family)
 
 			writers = {}
@@ -242,6 +242,9 @@ class CLI(object):
 		# directory
 		parser.add_argument("--directory", help=_("Output directory"), required=True)
 
+		# family
+		parser.add_argument("--family", help=_("Specify address family"), choices=("ipv6", "ipv4"))
+
 		# Countries and Autonomous Systems
 		parser.add_argument("objects", nargs="+")
 
@@ -269,6 +272,14 @@ class CLI(object):
 
 	def handle_export(self, ns):
 		countries, asns = [], []
+
+		# Translate family
+		if ns.family == "ipv6":
+			families = [ socket.AF_INET6 ]
+		elif ns.family == "ipv4":
+			families = [ socket.AF_INET ]
+		else:
+			families = [ socket.AF_INET6, socket.AF_INET ]
 
 		for object in ns.objects:
 			if object.startswith("AS"):
@@ -299,7 +310,7 @@ class CLI(object):
 		assert writer
 
 		e = Exporter(db, writer)
-		e.export(ns.directory, countries=countries, asns=asns)
+		e.export(ns.directory, countries=countries, asns=asns, families=families)
 
 
 def main():
