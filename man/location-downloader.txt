@@ -26,6 +26,10 @@ location database.
 
 'update'::
 	This command will try to update the local database.
+	+
+	It will terminate with a return code of zero if the database has been
+	successfully updated. 1 on error, 2 on invalid call and 3 if the
+	database was already the latest version.
 
 '--help'::
 	Shows a short help text on using this program.

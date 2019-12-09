@@ -328,13 +328,15 @@ class CLI(object):
 
 		# If we have not received a new file, there is nothing to do
 		if not t:
-			return 0
+			return 3
 
 		# Write temporary file to destination
 		shutil.copyfile(t.name, ns.database)
 
 		# Remove temporary file
 		os.unlink(t.name)
+
+                return 0
 
 
 def main():
