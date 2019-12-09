@@ -223,13 +223,14 @@ class CLI(object):
 				% (args.database, e))
 			sys.exit(1)
 
-		# Translate family
-		if args.family == "ipv6":
-			args.family = socket.AF_INET6
-		elif args.family == "ipv4":
-			args.family = socket.AF_INET
-		else:
-			args.family = 0
+		# Translate family (if present)
+		if "family" in args:
+			if args.family == "ipv6":
+				args.family = socket.AF_INET6
+			elif args.family == "ipv4":
+				args.family = socket.AF_INET
+			else:
+				args.family = 0
 
 		# Call function
 		ret = args.func(db, args)
