@@ -291,7 +291,8 @@ class CLI(object):
 
 				asns.append(object)
 
-			elif location.country_code_is_valid(object):
+			elif location.country_code_is_valid(object) \
+					or object in ("A1", "A2", "A3"):
 				countries.append(object)
 
 			else:
