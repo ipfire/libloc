@@ -56,7 +56,7 @@ SED_PROCESS = \
 	-e 's,@databasedir\@,$(databasedir),g' \
 	< $< > $@ || rm $@
 
-databasedir = $(datadir)/location
+databasedir = $(localstatedir)/lib/location
 pkgconfigdir = $(libdir)/pkgconfig
 
 %: %.in Makefile
