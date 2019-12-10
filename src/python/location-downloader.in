@@ -267,6 +267,11 @@ class CLI(object):
 		update = subparsers.add_parser("update", help=_("Update database"))
 		update.set_defaults(func=self.handle_update)
 
+		# Verify
+		verify = subparsers.add_parser("verify",
+			help=_("Verify the downloaded database"))
+		verify.set_defaults(func=self.handle_verify)
+
 		args = parser.parse_args()
 
 		# Enable debug logging
@@ -336,7 +341,24 @@ class CLI(object):
 		# Remove temporary file
 		os.unlink(t.name)
 
-                return 0
+		return 0
+
+	def handle_verify(self, ns):
+		try:
+			db = location.Database(ns.database)
+		except FileNotFoundError as e:
+			log.error("%s: %s" % (ns.database, e))
+			return 127
+
+		# Verify the database
+		with open(ns.public_key, "r") as f:
+			if not db.verify(f):
+				log.error("Could not verify database")
+				return 1
+
+		# Success
+		log.debug("Database successfully verified")
+		return 0
 
 
 def main():

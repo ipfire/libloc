@@ -31,6 +31,9 @@ location database.
 	successfully updated. 1 on error, 2 on invalid call and 3 if the
 	database was already the latest version.
 
+'verify'::
+	Verifies the downloaded database.
+
 '--help'::
 	Shows a short help text on using this program.
 
