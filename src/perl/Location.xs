@@ -166,6 +166,31 @@ lookup_asn(db, address)
 	OUTPUT:
 		RETVAL
 
+#
+# Get functions
+#
+SV*
+get_continent_code(db, ccode)
+	struct loc_database* db;
+	char* ccode;
+
+	CODE:
+		RETVAL = &PL_sv_undef;
+
+		// Lookup country code
+		struct loc_country *country;
+		int err = loc_database_get_country(db, &country, ccode);
+		if(!err) {
+			//Extract the continent code for the given country code.
+			const char* continent_code =  loc_country_get_continent_code(country);
+			RETVAL = newSVpv(continent_code, strlen(continent_code));
+
+			loc_country_unref(country);
+		}
+
+	OUTPUT:
+		RETVAL
+
 void
 DESTROY(db)
 	struct loc_database* db;
