@@ -503,12 +503,15 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 		(unsigned char*)db->signature, db->signature_length);
 
 	if (r == 0) {
-		DEBUG(db->ctx, "The signature is valid\n");
-	} else if (r == 1) {
 		DEBUG(db->ctx, "The signature is invalid\n");
+		r = 1;
+	} else if (r == 1) {
+		DEBUG(db->ctx, "The signature is valid\n");
+		r = 0;
 	} else {
 		ERROR(db->ctx, "Error verifying the signature: %s\n",
 			ERR_error_string(ERR_get_error(), NULL));
+		r = 1;
 	}
 
 	clock_t end = clock();
