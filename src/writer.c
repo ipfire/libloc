@@ -530,12 +530,16 @@ static int loc_writer_create_signature(struct loc_writer* writer,
 	struct loc_database_magic magic;
 	fread(&magic, 1, sizeof(magic), f);
 
+	hexdump(writer->ctx, &magic, sizeof(magic));
+
 	// Feed magic into the signature
 	r = EVP_DigestSignUpdate(mdctx, &magic, sizeof(magic));
 	if (r != 1) {
 		ERROR(writer->ctx, "%s\n", ERR_error_string(ERR_get_error(), NULL));
 		goto END;
 	}
+
+	hexdump(writer->ctx, header, sizeof(*header));
 
 	// Feed the header into the signature
 	r = EVP_DigestSignUpdate(mdctx, header, sizeof(*header));
@@ -557,6 +561,8 @@ static int loc_writer_create_signature(struct loc_writer* writer,
 			r = errno;
 			goto END;
 		}
+
+		hexdump(writer->ctx, buffer, bytes_read);
 
 		r = EVP_DigestSignUpdate(mdctx, buffer, bytes_read);
 		if (r != 1) {

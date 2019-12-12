@@ -470,6 +470,8 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 	struct loc_database_magic magic;
 	fread(&magic, 1, sizeof(magic), db->f);
 
+	hexdump(db->ctx, &magic, sizeof(magic));
+
 	// Feed magic into the hash
 	r = EVP_DigestVerifyUpdate(mdctx, &magic, sizeof(magic));
 	if (r != 1) {
@@ -491,8 +493,10 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 				header_v0.signature[i] = '\0';
 			}
 
+			hexdump(db->ctx, &header_v0, sizeof(header_v0));
+
 			// Feed header into the hash
-			EVP_DigestVerifyUpdate(mdctx, &header_v0, sizeof(header_v0));
+			r = EVP_DigestVerifyUpdate(mdctx, &header_v0, sizeof(header_v0));
 			if (r != 1) {
 				ERROR(db->ctx, "%s\n", ERR_error_string(ERR_get_error(), NULL));
 				r = 1;
@@ -513,6 +517,8 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 
 	while (!feof(db->f)) {
 		size_t bytes_read = fread(buffer, 1, sizeof(buffer), db->f);
+
+		hexdump(db->ctx, buffer, bytes_read);
 
 		r = EVP_DigestVerifyUpdate(mdctx, buffer, bytes_read);
 		if (r != 1) {
