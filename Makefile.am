@@ -279,7 +279,8 @@ TESTS = \
 	src/test-database \
 	src/test-as \
 	src/test-network \
-	src/test-country
+	src/test-country \
+	src/test-signature
 
 CLEANFILES += \
 	test.db \
@@ -296,7 +297,8 @@ check_PROGRAMS = \
 	src/test-database \
 	src/test-as \
 	src/test-network \
-	src/test-country
+	src/test-country \
+	src/test-signature
 
 src_test_libloc_SOURCES = \
 	src/test-libloc.c
@@ -350,6 +352,15 @@ src_test_database_CFLAGS = \
 	$(TESTS_CFLAGS)
 
 src_test_database_LDADD = \
+	src/libloc.la
+
+src_test_signature_SOURCES = \
+	src/test-signature.c
+
+src_test_signature_CFLAGS = \
+	$(TESTS_CFLAGS)
+
+src_test_signature_LDADD = \
 	src/libloc.la
 
 # ------------------------------------------------------------------------------
