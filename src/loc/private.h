@@ -78,5 +78,47 @@ static inline void in6_addr_set_bit(struct in6_addr* address, unsigned int i, un
 	address->s6_addr[i / 8] ^= (-val ^ address->s6_addr[i / 8]) & (1 << (7 - (i % 8)));
 }
 
+static inline void hexdump(struct loc_ctx* ctx, const void* addr, size_t len) {
+	char buffer_hex[16 * 3 + 6];
+	char buffer_ascii[17];
+
+	unsigned int i = 0;
+	unsigned char* p = (unsigned char*)addr;
+
+	// Process every byte in the data
+	for (i = 0; i < len; i++) {
+		// Multiple of 16 means new line (with line offset)
+		if ((i % 16) == 0) {
+			// Just don't print ASCII for the zeroth line
+			if (i != 0)
+				DEBUG(ctx, "  %s %s\n", buffer_hex, buffer_ascii);
+
+			// Output the offset.
+			sprintf(buffer_hex, "%04x ", i);
+		}
+
+		// Now the hex code for the specific character
+		sprintf(buffer_hex + 5 + ((i % 16) * 3), " %02x", p[i]);
+
+		// And store a printable ASCII character for later
+		if ((p[i] < 0x20) || (p[i] > 0x7e))
+			buffer_ascii[i % 16] = '.';
+		else
+			buffer_ascii[i % 16] = p[i];
+
+		// Terminate string
+		buffer_ascii[(i % 16) + 1] = '\0';
+	}
+
+	// Pad out last line if not exactly 16 characters
+	while ((i % 16) != 0) {
+		sprintf(buffer_hex + 5 + ((i % 16) * 3), "   ");
+		i++;
+	}
+
+	// And print the final bit
+	DEBUG(ctx, "  %s %s\n", buffer_hex, buffer_ascii);
+}
+
 #endif
 #endif

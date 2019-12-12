@@ -578,8 +578,12 @@ static int loc_writer_create_signature(struct loc_writer* writer,
 	// Save length of the signature
 	header->signature_length = htobe32(signature_length);
 
-	DEBUG(writer->ctx, "Successfully generated signature\n");
+	DEBUG(writer->ctx, "Successfully generated signature of %lu bytes\n",
+		signature_length);
 	r = 0;
+
+	// Dump signature
+	hexdump(writer->ctx, header->signature, signature_length);
 
 END:
 	EVP_MD_CTX_free(mdctx);

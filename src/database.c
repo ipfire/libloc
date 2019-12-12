@@ -539,6 +539,9 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 		r = 1;
 	}
 
+	// Dump signature
+	hexdump(db->ctx, db->signature, db->signature_length);
+
 	clock_t end = clock();
 	DEBUG(db->ctx, "Signature checked in %.4fms\n",
 		(double)(end - start) / CLOCKS_PER_SEC * 1000);
