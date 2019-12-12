@@ -538,14 +538,14 @@ static int loc_writer_create_signature(struct loc_writer* writer,
 	}
 
 	// Feed the header into the signature
-	r = EVP_DigestSignUpdate(mdctx, header, sizeof(header));
+	r = EVP_DigestSignUpdate(mdctx, header, sizeof(*header));
 	if (r != 1) {
 		ERROR(writer->ctx, "%s\n", ERR_error_string(ERR_get_error(), NULL));
 		goto END;
 	}
 
 	// Skip header
-	fseek(f, sizeof(header), SEEK_CUR);
+	fseek(f, sizeof(*header), SEEK_CUR);
 
 	// Walk through the file in chunks of 64kB
 	char buffer[64 * 1024];
