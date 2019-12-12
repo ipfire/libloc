@@ -615,6 +615,10 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f) {
 	for (unsigned int i = 0; i < sizeof(header.signature); i++)
 		header.signature[i] = '\0';
 
+	// Clear the padding
+	for (unsigned int i = 0; i < sizeof(header.padding); i++)
+		header.padding[i] = '\0';
+
 	int r;
 	off_t offset = 0;
 
