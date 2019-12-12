@@ -40,20 +40,6 @@ const char* LICENSE = "CC";
 int main(int argc, char** argv) {
 	int err;
 
-	// Open public key
-	FILE* public_key = fopen(ABS_SRCDIR "/examples/public-key.pem", "r");
-	if (!public_key) {
-		fprintf(stderr, "Could not open public key file: %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-
-	// Open private key
-	FILE* private_key = fopen(ABS_SRCDIR "/examples/private-key.pem", "r");
-	if (!private_key) {
-		fprintf(stderr, "Could not open private key file: %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-
 	struct loc_ctx* ctx;
 	err = loc_new(&ctx);
 	if (err < 0)
@@ -61,7 +47,7 @@ int main(int argc, char** argv) {
 
 	// Create a database
 	struct loc_writer* writer;
-	err = loc_writer_new(ctx, &writer, private_key);
+	err = loc_writer_new(ctx, &writer, NULL);
 	if (err < 0)
 		exit(EXIT_FAILURE);
 
@@ -143,13 +129,6 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	// Verify the database signature
-	err = loc_database_verify(db, public_key);
-	if (err) {
-		fprintf(stderr, "Could not verify the database: %d\n", err);
-		exit(EXIT_FAILURE);
-	}
-
 	// Try reading something from the database
 	vendor = loc_database_get_vendor(db);
 	if (!vendor) {
@@ -164,9 +143,6 @@ int main(int argc, char** argv) {
 	loc_database_unref(db);
 
 	loc_unref(ctx);
-
-	fclose(private_key);
-	fclose(public_key);
 
 	return EXIT_SUCCESS;
 }
