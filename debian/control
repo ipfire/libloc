@@ -6,9 +6,17 @@ Standards-Version: 4.3.0
 Build-Depends:
  debhelper (>= 11),
  dh-python <!nopython>,
+ dh-systemd,
+ asciidoc <!nodoc>,
+ intltool (>=0.40.0),
  libpython3-all-dev <!nopython>,
+ libssl-dev,
  libsystemd-dev,
  python3-all-dev:any <!nopython>,
+ pkg-config,
+ systemd,
+ xsltproc <!nodoc>,
+ docbook-xsl <!nodoc>,
 Rules-Requires-Root: no
 Homepage: https://location.ipfire.org/
 Vcs-Git: https://git.ipfire.org/pub/git/location/libloc.git
