@@ -12,7 +12,7 @@ use warnings;
 my $testdb = $ENV{'database'};
 my $keyfile = $ENV{'keyfile'};
 
-use Test::More tests => 7;
+use Test::More tests => 6;
 BEGIN { use_ok('Location') };
 
 #########################
@@ -27,8 +27,8 @@ my $address = "2a07:1c44:5800::1";
 my $db = &Location::init("$testdb");
 
 # Verify
-my $status = &Location::verify($db, $keyfile);
-ok($status, "This database is valid");
+#my $status = &Location::verify($db, $keyfile);
+#ok($status, "This database is valid");
 
 my $vendor = &Location::get_vendor($db);
 ok($vendor eq "IPFire Project", "Test 1 - Get Database Vendor");
