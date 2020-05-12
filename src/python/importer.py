@@ -38,7 +38,8 @@ WHOIS_SOURCES = (
 	"https://ftp.apnic.net/apnic/whois/apnic.db.organisation.gz",
 
 	# American Registry for Internet Numbers
-	"https://ftp.arin.net/pub/rr/arin.db",
+	# XXX there is nothing useful for us in here
+	#"https://ftp.arin.net/pub/rr/arin.db",
 
 	# Latin America and Caribbean Network Information Centre
 	# XXX ???

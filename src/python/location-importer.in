@@ -153,30 +153,10 @@ class CLI(object):
 		# Download all extended sources
 		for source in location.importer.EXTENDED_SOURCES:
 			with self.db.transaction():
-				# Create some temporary tables to store parsed data
-				self.db.execute("""
-					CREATE TEMPORARY TABLE _autnums(number integer, organization text)
-						ON COMMIT DROP;
-					CREATE INDEX _autnums_organization ON _autnums(organization);
-
-					CREATE TEMPORARY TABLE _inetnums(network inet, country text, organization text)
-						ON COMMIT DROP;
-					CREATE INDEX _inetnums_organization ON _inetnums(organization);
-				""")
-
 				# Download data
 				with downloader.request(source) as f:
 					for line in f:
 						self._parse_line(line)
-
-				# Store information in networks table
-				self.db.execute("""
-					INSERT INTO networks(network, autnum, country)
-						SELECT _inetnums.network, _autnums.number, _inetnums.country FROM _inetnums
-							LEFT JOIN _autnums ON _inetnums.organization = _autnums.organization
-							ORDER BY _autnums.number
-					ON CONFLICT (network) DO NOTHING;
-				""")
 
 	def _parse_block(self, block):
 		# Get first line to find out what type of block this is
@@ -256,13 +236,6 @@ class CLI(object):
 		if type in ("ipv6", "ipv4"):
 			return self._parse_ip_line(country_code, type, line)
 
-		elif type == "asn":
-			return self._parse_asn_line(country_code, line)
-
-		else:
-			log.warning("Unknown line type: %s" % type)
-			return
-
 	def _parse_ip_line(self, country, type, line):
 		try:
 			address, prefix, date, status, organization = line.split("|")
@@ -297,29 +270,11 @@ class CLI(object):
 			log.warning("Invalid IP address: %s" % address)
 			return
 
-		self.db.execute("INSERT INTO _inetnums(network, country, organization) \
-			VALUES(%s, %s, %s)", "%s" % network, country, organization,
+		self.db.execute("INSERT INTO networks(network, country) \
+			VALUES(%s, %s) ON CONFLICT (network) DO \
+			UPDATE SET country = excluded.country",
+			"%s" % network, country,
 		)
-
-	def _parse_asn_line(self, country, line):
-		try:
-			asn, dunno, date, status, org_id = line.split("|")
-		except ValueError:
-			org_id = None
-
-			# Try parsing the line without org_id
-			try:
-				asn, dunno, date, status = line.split("|")
-			except ValueError:
-				log.warning("Could not parse line: %s" % line)
-				return
-
-		# Skip anything that isn't properly assigned
-		if not status in ("assigned", "allocated"):
-			return
-
-		self.db.execute("INSERT INTO _autnums(number, organization) \
-			VALUES(%s, %s)", asn, org_id)
 
 
 def split_line(line):
