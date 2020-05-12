@@ -17,8 +17,24 @@
 #                                                                             #
 ###############################################################################
 
-# Import everything from the C module
-from _location import *
+import logging
+import logging.handlers
 
-# Initialise logging
-from . import logger
+# Initialise root logger
+log = logging.getLogger("location")
+log.setLevel(logging.INFO)
+
+# Log to console
+handler = logging.StreamHandler()
+handler.setLevel(logging.DEBUG)
+log.addHandler(handler)
+
+# Log to syslog
+handler = logging.handlers.SysLogHandler(address="/dev/log",
+	facility=logging.handlers.SysLogHandler.LOG_DAEMON)
+handler.setLevel(logging.INFO)
+log.addHandler(handler)
+
+# Format syslog messages
+formatter = logging.Formatter("%(message)s")
+handler.setFormatter(formatter)

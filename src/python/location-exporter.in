@@ -22,7 +22,6 @@ import gettext
 import io
 import ipaddress
 import logging
-import logging.handlers
 import os.path
 import socket
 import sys
@@ -30,29 +29,9 @@ import sys
 # Load our location module
 import location
 
-def setup_logging(level=logging.INFO):
-	l = logging.getLogger("location-exporter")
-	l.setLevel(level)
-
-	# Log to console
-	h = logging.StreamHandler()
-	h.setLevel(logging.DEBUG)
-	l.addHandler(h)
-
-	# Log to syslog
-	h = logging.handlers.SysLogHandler(address="/dev/log",
-		facility=logging.handlers.SysLogHandler.LOG_DAEMON)
-	h.setLevel(logging.INFO)
-	l.addHandler(h)
-
-	# Format syslog messages
-	formatter = logging.Formatter("location-exporter[%(process)d]: %(message)s")
-	h.setFormatter(formatter)
-
-	return l
-
 # Initialise logging
-log = setup_logging()
+log = logging.getLogger("location.exporter")
+log.propagate = 1
 
 # i18n
 def _(singular, plural=None, n=None):

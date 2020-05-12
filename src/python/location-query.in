@@ -23,7 +23,6 @@ import ipaddress
 import os
 import socket
 import sys
-import syslog
 
 # Load our location module
 import location

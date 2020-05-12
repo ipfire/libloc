@@ -21,7 +21,6 @@ import argparse
 import datetime
 import gettext
 import logging
-import logging.handlers
 import lzma
 import os
 import random
@@ -42,29 +41,9 @@ MIRRORS = (
 	"https://people.ipfire.org/~ms/location/",
 )
 
-def setup_logging(level=logging.INFO):
-	l = logging.getLogger("location-downloader")
-	l.setLevel(level)
-
-	# Log to console
-	h = logging.StreamHandler()
-	h.setLevel(logging.DEBUG)
-	l.addHandler(h)
-
-	# Log to syslog
-	h = logging.handlers.SysLogHandler(address="/dev/log",
-		facility=logging.handlers.SysLogHandler.LOG_DAEMON)
-	h.setLevel(logging.INFO)
-	l.addHandler(h)
-
-	# Format syslog messages
-	formatter = logging.Formatter("location-downloader[%(process)d]: %(message)s")
-	h.setFormatter(formatter)
-
-	return l
-
 # Initialise logging
-log = setup_logging()
+log = logging.getLogger("location.downloader")
+log.propagate = 1
 
 # i18n
 def _(singular, plural=None, n=None):
