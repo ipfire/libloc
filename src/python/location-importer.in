@@ -23,6 +23,7 @@ import sys
 
 # Load our location module
 import location
+import location.importer
 from location.i18n import _
 
 # Initialise logging
