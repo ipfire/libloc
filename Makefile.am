@@ -59,6 +59,13 @@ SED_PROCESS = \
 databasedir = $(localstatedir)/lib/location
 pkgconfigdir = $(libdir)/pkgconfig
 
+# XXX hardcode path for Debian
+pythondir = $(prefix)/lib/python3/dist-packages
+pyexecdir = $(prefix)/lib/python$(PYTHON_VERSION)/lib-dynload
+
+# Overwrite Python path
+pkgpythondir = $(pythondir)/location
+
 %: %.in Makefile
 	$(SED_PROCESS)
 
@@ -145,10 +152,13 @@ EXTRA_DIST += \
 CLEANFILES += \
 	src/libloc.pc
 
-pyexec_LTLIBRARIES = \
-	src/python/location.la
+dist_pkgpython_PYTHON = \
+	src/python/__init__.py
 
-src_python_location_la_SOURCES = \
+pyexec_LTLIBRARIES = \
+	src/python/_location.la
+
+src_python__location_la_SOURCES = \
 	src/python/locationmodule.c \
 	src/python/locationmodule.h \
 	src/python/as.c \
@@ -162,17 +172,17 @@ src_python_location_la_SOURCES = \
 	src/python/writer.c \
 	src/python/writer.h
 
-src_python_location_la_CFLAGS = \
+src_python__location_la_CFLAGS = \
 	$(AM_CFLAGS) \
 	$(PYTHON_CFLAGS)
 
-src_python_location_la_LDFLAGS = \
+src_python__location_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
 	-shared \
 	-module \
 	-avoid-version
 
-src_python_location_la_LIBADD = \
+src_python__location_la_LIBADD = \
 	src/libloc.la \
 	$(PYTHON_LIBS)
 

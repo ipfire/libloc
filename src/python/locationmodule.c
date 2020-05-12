@@ -29,7 +29,7 @@
 /* Declare global context */
 struct loc_ctx* loc_ctx;
 
-PyMODINIT_FUNC PyInit_location(void);
+PyMODINIT_FUNC PyInit__location(void);
 
 static void location_free(void) {
 	// Release context
@@ -101,14 +101,14 @@ static PyMethodDef location_module_methods[] = {
 
 static struct PyModuleDef location_module = {
 	.m_base = PyModuleDef_HEAD_INIT,
-	.m_name = "location",
+	.m_name = "_location",
 	.m_size = -1,
 	.m_doc = "Python module for libloc",
 	.m_methods = location_module_methods,
 	.m_free = (freefunc)location_free,
 };
 
-PyMODINIT_FUNC PyInit_location(void) {
+PyMODINIT_FUNC PyInit__location(void) {
 	// Initialise loc context
 	int r = loc_new(&loc_ctx);
 	if (r)
