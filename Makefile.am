@@ -154,6 +154,7 @@ CLEANFILES += \
 
 dist_pkgpython_PYTHON = \
 	src/python/__init__.py \
+	src/python/i18n.py \
 	src/python/logger.py
 
 pyexec_LTLIBRARIES = \

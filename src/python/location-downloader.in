@@ -19,7 +19,6 @@
 
 import argparse
 import datetime
-import gettext
 import logging
 import lzma
 import os
@@ -34,6 +33,7 @@ import urllib.request
 
 # Load our location module
 import location
+from location.i18n import _
 
 DATABASE_FILENAME = "test.db.xz"
 MIRRORS = (
@@ -44,14 +44,6 @@ MIRRORS = (
 # Initialise logging
 log = logging.getLogger("location.downloader")
 log.propagate = 1
-
-# i18n
-def _(singular, plural=None, n=None):
-	if plural:
-		return gettext.dngettext("libloc", singular, plural, n)
-
-	return gettext.dgettext("libloc", singular)
-
 
 class Downloader(object):
 	def __init__(self, mirrors):

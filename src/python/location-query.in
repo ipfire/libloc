@@ -18,7 +18,6 @@
 ###############################################################################
 
 import argparse
-import gettext
 import ipaddress
 import os
 import socket
@@ -26,13 +25,7 @@ import sys
 
 # Load our location module
 import location
-
-# i18n
-def _(singular, plural=None, n=None):
-	if plural:
-		return gettext.dngettext("libloc", singular, plural, n)
-
-	return gettext.dgettext("libloc", singular)
+from location.i18n import _
 
 # Output formatters
 
