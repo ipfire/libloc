@@ -112,16 +112,12 @@ class CLI(object):
 		with db.transaction():
 			db.execute("""
 				-- autnums
-				CREATE TABLE IF NOT EXISTS autnums(number integer, name text, organization text);
+				CREATE TABLE IF NOT EXISTS autnums(number integer, name text);
 				CREATE UNIQUE INDEX IF NOT EXISTS autnums_number ON autnums(number);
 
 				-- networks
 				CREATE TABLE IF NOT EXISTS networks(network inet, autnum integer, country text);
 				CREATE UNIQUE INDEX IF NOT EXISTS networks_network ON networks(network);
-
-				-- organizations
-				CREATE TABLE IF NOT EXISTS organizations(handle text, name text, country text);
-				CREATE UNIQUE INDEX IF NOT EXISTS organizations_handle ON organizations(handle);
 			""")
 
 		return db
@@ -130,11 +126,29 @@ class CLI(object):
 		downloader = location.importer.Downloader()
 
 		# Download all sources
-		for source in location.importer.WHOIS_SOURCES:
-			with self.db.transaction():
+		with self.db.transaction():
+			# Create some temporary tables to store parsed data
+			self.db.execute("""
+				CREATE TEMPORARY TABLE _autnums(number integer, organization text)
+					ON COMMIT DROP;
+				CREATE UNIQUE INDEX _autnums_number ON _autnums(number);
+
+				CREATE TEMPORARY TABLE _organizations(handle text, name text)
+					ON COMMIT DROP;
+				CREATE UNIQUE INDEX _organizations_handle ON _organizations(handle);
+			""")
+
+			for source in location.importer.WHOIS_SOURCES:
 				with downloader.request(source, return_blocks=True) as f:
 					for block in f:
 						self._parse_block(block)
+
+			self.db.execute("""
+				INSERT INTO autnums(number, name)
+					SELECT _autnums.number, _organizations.name FROM _autnums
+						LEFT JOIN _organizations ON _autnums.organization = _organizations.handle
+				ON CONFLICT (number) DO UPDATE SET name = excluded.name;
+			""")
 
 		# Download all extended sources
 		for source in location.importer.EXTENDED_SOURCES:
@@ -187,7 +201,7 @@ class CLI(object):
 				if m:
 					autnum["asn"] = m.group(2)
 
-			elif key in ("as-name", "org"):
+			elif key == "org":
 				autnum[key] = val
 
 		# Skip empty objects
@@ -195,10 +209,10 @@ class CLI(object):
 			return
 
 		# Insert into database
-		self.db.execute("INSERT INTO autnums(number, name, organization) \
-			VALUES(%s, %s, %s) ON CONFLICT (number) DO UPDATE SET \
-				name = excluded.name, organization = excluded.organization",
-			autnum.get("asn"), autnum.get("as-name"), autnum.get("org"),
+		self.db.execute("INSERT INTO _autnums(number, organization) \
+			VALUES(%s, %s) ON CONFLICT (number) DO UPDATE SET \
+				organization = excluded.organization",
+			autnum.get("asn"), autnum.get("org"),
 		)
 
 	def _parse_org_block(self, block):
@@ -207,17 +221,17 @@ class CLI(object):
 			# Split line
 			key, val = split_line(line)
 
-			if key in ("organisation", "org-name", "country"):
+			if key in ("organisation", "org-name"):
 				org[key] = val
 
 		# Skip empty objects
 		if not org:
 			return
 
-		self.db.execute("INSERT INTO organizations(handle, name, country) \
-			VALUES(%s, %s, %s) ON CONFLICT (handle) DO \
-			UPDATE SET name = excluded.name, country = excluded.country",
-			org.get("organisation"), org.get("org-name"), org.get("country"),
+		self.db.execute("INSERT INTO _organizations(handle, name) \
+			VALUES(%s, %s) ON CONFLICT (handle) DO \
+			UPDATE SET name = excluded.name",
+			org.get("organisation"), org.get("org-name"),
 		)
 
 	def _parse_line(self, line):
