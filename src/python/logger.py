@@ -22,7 +22,7 @@ import logging.handlers
 
 # Initialise root logger
 log = logging.getLogger("location")
-log.setLevel(logging.INFO)
+log.setLevel(logging.DEBUG)
 
 # Log to console
 handler = logging.StreamHandler()

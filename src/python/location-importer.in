@@ -23,6 +23,7 @@ import sys
 
 # Load our location module
 import location
+import location.database
 import location.importer
 from location.i18n import _
 
@@ -44,6 +45,16 @@ class CLI(object):
 		parser.add_argument("--version", action="version",
 			version="%(prog)s @VERSION@")
 
+		# Database
+		parser.add_argument("--database-host", required=True,
+			help=_("Database Hostname"), metavar=_("HOST"))
+		parser.add_argument("--database-name", required=True,
+			help=_("Database Name"), metavar=_("NAME"))
+		parser.add_argument("--database-username", required=True,
+			help=_("Database Username"), metavar=_("USERNAME"))
+		parser.add_argument("--database-password", required=True,
+			help=_("Database Password"), metavar=_("PASSWORD"))
+
 		args = parser.parse_args()
 
 		# Enable debug logging
@@ -56,8 +67,11 @@ class CLI(object):
 		# Parse command line arguments
 		args = self.parse_cli()
 
+		# Initialise database
+		db = self._setup_database(args)
+
 		# Call function
-		ret = self.handle_import(args)
+		ret = self.handle_import(db, args)
 
 		# Return with exit code
 		if ret:
@@ -66,7 +80,25 @@ class CLI(object):
 		# Otherwise just exit
 		sys.exit(0)
 
-	def handle_import(self, ns):
+	def _setup_database(self, ns):
+		"""
+			Initialise the database
+		"""
+		# Connect to database
+		db = location.database.Connection(
+			host=ns.database_host, database=ns.database_name,
+			user=ns.database_username, password=ns.database_password,
+		)
+
+		with db.transaction():
+			db.execute("""
+				CREATE TABLE IF NOT EXISTS asnums(number integer, name text);
+				CREATE UNIQUE INDEX IF NOT EXISTS asnums_number ON asnums(number);
+			""")
+
+		return db
+
+	def handle_import(self, db, ns):
 		pass
 
 
