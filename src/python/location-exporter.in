@@ -31,7 +31,7 @@ import sys
 import location
 
 def setup_logging(level=logging.INFO):
-	l = logging.getLogger("location-downloader")
+	l = logging.getLogger("location-exporter")
 	l.setLevel(level)
 
 	# Log to console
