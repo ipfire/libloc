@@ -115,19 +115,13 @@ class CLI(object):
 				CREATE TABLE IF NOT EXISTS autnums(number integer, name text, organization text);
 				CREATE UNIQUE INDEX IF NOT EXISTS autnums_number ON autnums(number);
 
-				-- inetnums
-				CREATE TABLE IF NOT EXISTS inetnums(network inet, name text, country text, description text);
-				CREATE UNIQUE INDEX IF NOT EXISTS inetnums_networks ON inetnums(network);
-				CREATE INDEX IF NOT EXISTS inetnums_family ON inetnums(family(network));
+				-- networks
+				CREATE TABLE IF NOT EXISTS networks(network inet, autnum integer, country text);
+				CREATE UNIQUE INDEX IF NOT EXISTS networks_network ON networks(network);
 
 				-- organizations
 				CREATE TABLE IF NOT EXISTS organizations(handle text, name text, country text);
 				CREATE UNIQUE INDEX IF NOT EXISTS organizations_handle ON organizations(handle);
-
-				-- routes
-				CREATE TABLE IF NOT EXISTS routes(network inet, asn integer);
-				CREATE UNIQUE INDEX IF NOT EXISTS routes_network ON routes(network);
-				CREATE INDEX IF NOT EXISTS routes_family ON routes(family(network));
 			""")
 
 		return db
@@ -142,71 +136,47 @@ class CLI(object):
 					for block in f:
 						self._parse_block(block)
 
+		# Download all extended sources
+		for source in location.importer.EXTENDED_SOURCES:
+			with self.db.transaction():
+				# Create some temporary tables to store parsed data
+				self.db.execute("""
+					CREATE TEMPORARY TABLE _autnums(number integer, organization text)
+						ON COMMIT DROP;
+					CREATE INDEX _autnums_organization ON _autnums(organization);
+
+					CREATE TEMPORARY TABLE _inetnums(network inet, country text, organization text)
+						ON COMMIT DROP;
+					CREATE INDEX _inetnums_organization ON _inetnums(organization);
+				""")
+
+				# Download data
+				with downloader.request(source) as f:
+					for line in f:
+						self._parse_line(line)
+
+				# Store information in networks table
+				self.db.execute("""
+					INSERT INTO networks(network, autnum, country)
+						SELECT _inetnums.network, _autnums.number, _inetnums.country FROM _inetnums
+							LEFT JOIN _autnums ON _inetnums.organization = _autnums.organization
+							ORDER BY _autnums.number
+					ON CONFLICT (network) DO NOTHING;
+				""")
+
 	def _parse_block(self, block):
 		# Get first line to find out what type of block this is
 		line = block[0]
 
-		# inetnum
-		if line.startswith("inet6num:") or line.startswith("inetnum:"):
-			return self._parse_inetnum_block(block)
-
-		# route
-		elif line.startswith("route6:") or line.startswith("route:"):
-			return self._parse_route_block(block)
-
 		# aut-num
-		elif line.startswith("aut-num:"):
+		if line.startswith("aut-num:"):
 			return self._parse_autnum_block(block)
 
 		# organisation
 		elif line.startswith("organisation:"):
 			return self._parse_org_block(block)
 
-		# person (ignored)
-		elif line.startswith("person:"):
-			return
-
-		# domain (ignored)
-		elif line.startswith("domain:"):
-			return
-
-		# mntner (ignored)
-		elif line.startswith("mntner:"):
-			return
-
-		# as-block (ignored)
-		elif line.startswith("as-block:"):
-			return
-
-		# as-set (ignored)
-		elif line.startswith("as-set:"):
-			return
-
-		# route-set (ignored)
-		elif line.startswith("route-set:"):
-			return
-
-		# role (ignored)
-		elif line.startswith("role:"):
-			return
-
-		# key-cert (ignored)
-		elif line.startswith("key-cert:"):
-			return
-
-		# irt (ignored)
-		elif line.startswith("irt:"):
-			return
-
-		# Log any unknown blocks
-		else:
-			log.warning("Unknown block:")
-			for line in block:
-				log.warning(line)
-
 	def _parse_autnum_block(self, block):
-		log.debug("Parsing autnum block:")
-
 		autnum = {}
 		for line in block:
 			# Split line
@@ -231,74 +201,6 @@ class CLI(object):
 			autnum.get("asn"), autnum.get("as-name"), autnum.get("org"),
 		)
 
-	def _parse_inetnum_block(self, block):
-		inetnum = {}
-		for line in block:
-			# Split line
-			key, val = split_line(line)
-
-			if key == "inetnum":
-				start_address, delim, end_address = val.partition("-")
-
-				# Strip any excess space
-				start_address, end_address = start_address.rstrip(), end_address.strip()
-
-				# Skip invalid blocks
-				if start_address in INVALID_ADDRESSES:
-					return
-
-				# Convert to IP address
-				try:
-					start_address = ipaddress.ip_address(start_address)
-					end_address   = ipaddress.ip_address(end_address)
-				except ValueError:
-					log.warning("Could not parse line: %s" % line)
-					return
-
-				# Set prefix to default
-				prefix = 32
-
-				# Count number of addresses in this subnet
-				num_addresses = int(end_address) - int(start_address)
-				if num_addresses:
-					prefix -= math.log(num_addresses, 2)
-
-				inetnum["inetnum"] = "%s/%.0f" % (start_address, prefix)
-
-			elif key == "inet6num":
-				# Skip invalid blocks
-				if val in INVALID_ADDRESSES:
-					return
-
-				inetnum[key] = val
-
-			elif key == "netname":
-				inetnum[key] = val
-
-			elif key == "country":
-				if val == "UNITED STATES":
-					val = "US"
-
-				inetnum[key] = val.upper()
-
-			elif key == "descr":
-				if key in inetnum:
-					inetnum[key] += "\n%s" % val
-				else:
-					inetnum[key] = val
-
-		# Skip empty objects
-		if not inetnum:
-			return
-
-		network = ipaddress.ip_network(inetnum.get("inet6num") or inetnum.get("inetnum"), strict=False)
-
-		self.db.execute("INSERT INTO inetnums(network, name, country, description) \
-			VALUES(%s, %s, %s, %s) ON CONFLICT (network) DO \
-			UPDATE SET name = excluded.name, country = excluded.country, description = excluded.description",
-			"%s" % network, inetnum.get("netname"), inetnum.get("country"), inetnum.get("descr"),
-		)
-
 	def _parse_org_block(self, block):
 		org = {}
 		for line in block:
@@ -318,31 +220,92 @@ class CLI(object):
 			org.get("organisation"), org.get("org-name"), org.get("country"),
 		)
 
-	def _parse_route_block(self, block):
-		route = {}
-		for line in block:
-			# Split line
-			key, val = split_line(line)
-
-			# Keep any significant data
-			if key in ("route6", "route"):
-				route[key] = val
-
-			elif key == "origin":
-				m = re.match(r"^(AS|as)(\d+)", val)
-				if m:
-					route["asn"] = m.group(2)
-
-		# Skip empty objects
-		if not route:
+	def _parse_line(self, line):
+		# Skip version line
+		if line.startswith("2"):
 			return
 
-		network = ipaddress.ip_network(route.get("route6") or route.get("route"), strict=False)
+		# Skip comments
+		if line.startswith("#"):
+			return
 
-		self.db.execute("INSERT INTO routes(network, asn) \
-			VALUES(%s, %s) ON CONFLICT (network) DO UPDATE SET asn = excluded.asn",
-			"%s" % network, route.get("asn"),
+		try:
+			registry, country_code, type, line = line.split("|", 3)
+		except:
+			log.warning("Could not parse line: %s" % line)
+			return
+
+		# Skip any lines that are for stats only
+		if country_code == "*":
+			return
+
+		if type in ("ipv6", "ipv4"):
+			return self._parse_ip_line(country_code, type, line)
+
+		elif type == "asn":
+			return self._parse_asn_line(country_code, line)
+
+		else:
+			log.warning("Unknown line type: %s" % type)
+			return
+
+	def _parse_ip_line(self, country, type, line):
+		try:
+			address, prefix, date, status, organization = line.split("|")
+		except ValueError:
+			organization = None
+
+			# Try parsing the line without organization
+			try:
+				address, prefix, date, status = line.split("|")
+			except ValueError:
+				log.warning("Unhandled line format: %s" % line)
+				return
+
+		# Skip anything that isn't properly assigned
+		if not status in ("assigned", "allocated"):
+			return
+
+		# Cast prefix into an integer
+		try:
+			prefix = int(prefix)
+		except:
+			log.warning("Invalid prefix: %s" % prefix)
+
+		# Fix prefix length for IPv4
+		if type == "ipv4":
+			prefix = 32 - int(math.log(prefix, 2))
+
+		# Try to parse the address
+		try:
+			network = ipaddress.ip_network("%s/%s" % (address, prefix), strict=False)
+		except ValueError:
+			log.warning("Invalid IP address: %s" % address)
+			return
+
+		self.db.execute("INSERT INTO _inetnums(network, country, organization) \
+			VALUES(%s, %s, %s)", "%s" % network, country, organization,
 		)
+
+	def _parse_asn_line(self, country, line):
+		try:
+			asn, dunno, date, status, org_id = line.split("|")
+		except ValueError:
+			org_id = None
+
+			# Try parsing the line without org_id
+			try:
+				asn, dunno, date, status = line.split("|")
+			except ValueError:
+				log.warning("Could not parse line: %s" % line)
+				return
+
+		# Skip anything that isn't properly assigned
+		if not status in ("assigned", "allocated"):
+			return
+
+		self.db.execute("INSERT INTO _autnums(number, organization) \
+			VALUES(%s, %s)", asn, org_id)
 
 
 def split_line(line):

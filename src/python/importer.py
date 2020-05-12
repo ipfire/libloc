@@ -30,10 +30,10 @@ WHOIS_SOURCES = (
 	"https://ftp.afrinic.net/pub/pub/dbase/afrinic.db.gz",
 
 	# Asia Pacific Network Information Centre
-	"https://ftp.apnic.net/apnic/whois/apnic.db.inet6num.gz",
-	"https://ftp.apnic.net/apnic/whois/apnic.db.inetnum.gz",
-	"https://ftp.apnic.net/apnic/whois/apnic.db.route6.gz",
-	"https://ftp.apnic.net/apnic/whois/apnic.db.route.gz",
+	#"https://ftp.apnic.net/apnic/whois/apnic.db.inet6num.gz",
+	#"https://ftp.apnic.net/apnic/whois/apnic.db.inetnum.gz",
+	#"https://ftp.apnic.net/apnic/whois/apnic.db.route6.gz",
+	#"https://ftp.apnic.net/apnic/whois/apnic.db.route.gz",
 	"https://ftp.apnic.net/apnic/whois/apnic.db.aut-num.gz",
 	"https://ftp.apnic.net/apnic/whois/apnic.db.organisation.gz",
 
@@ -44,12 +44,29 @@ WHOIS_SOURCES = (
 	# XXX ???
 
 	# Réseaux IP Européens
-	"https://ftp.ripe.net/ripe/dbase/split/ripe.db.inet6num.gz",
-	"https://ftp.ripe.net/ripe/dbase/split/ripe.db.inetnum.gz",
-	"https://ftp.ripe.net/ripe/dbase/split/ripe.db.route6.gz",
-	"https://ftp.ripe.net/ripe/dbase/split/ripe.db.route.gz",
+	#"https://ftp.ripe.net/ripe/dbase/split/ripe.db.inet6num.gz",
+	#"https://ftp.ripe.net/ripe/dbase/split/ripe.db.inetnum.gz",
+	#"https://ftp.ripe.net/ripe/dbase/split/ripe.db.route6.gz",
+	#"https://ftp.ripe.net/ripe/dbase/split/ripe.db.route.gz",
 	"https://ftp.ripe.net/ripe/dbase/split/ripe.db.aut-num.gz",
 	"https://ftp.ripe.net/ripe/dbase/split/ripe.db.organisation.gz",
+)
+
+EXTENDED_SOURCES = (
+	# African Network Information Centre
+	"https://ftp.afrinic.net/pub/stats/afrinic/delegated-afrinic-extended-latest",
+
+	# Asia Pacific Network Information Centre
+	"https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-extended-latest",
+
+	# American Registry for Internet Numbers
+	"https://ftp.arin.net/pub/stats/arin/delegated-arin-extended-latest",
+
+	# Latin America and Caribbean Network Information Centre
+	"http://ftp.lacnic.net/pub/stats/lacnic/delegated-lacnic-extended-latest",
+
+	# Réseaux IP Européens
+	"https://ftp.ripe.net/pub/stats/ripencc/delegated-ripencc-extended-latest",
 )
 
 class Downloader(object):
@@ -107,20 +124,7 @@ class DownloaderContext(object):
 		if self.return_blocks:
 			return iterate_over_blocks(self.body)
 
-		# Store body
-		#body = self.body
-
-		#while True:
-		#	line = body.readline()
-		#	if not line:
-		#		break
-
-		#	# Decode the line
-		#	print(line)
-		#	line = line.decode()
-
-		#	# Strip the ending
-		#	yield line.rstrip()
+		return iterate_over_lines(self.body)
 
 	@property
 	def headers(self):
@@ -188,3 +192,12 @@ def iterate_over_blocks(f, charsets=("utf-8", "latin1")):
 
 		# Reset the block
 		block = []
+
+
+def iterate_over_lines(f):
+	for line in f:
+		# Decode the line
+		line = line.decode()
+
+		# Strip the ending
+		yield line.rstrip()
