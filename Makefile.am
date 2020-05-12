@@ -243,16 +243,19 @@ uninstall-perl:
 bin_SCRIPTS = \
 	src/python/location-downloader \
 	src/python/location-exporter \
+	src/python/location-importer \
 	src/python/location-query
 
 EXTRA_DIST += \
 	src/python/location-downloader.in \
 	src/python/location-exporter.in \
+	src/python/location-importer.in \
 	src/python/location-query.in
 
 CLEANFILES += \
 	src/python/location-downloader \
 	src/python/location-exporter \
+	src/python/location-importer \
 	src/python/location-query
 
 # ------------------------------------------------------------------------------

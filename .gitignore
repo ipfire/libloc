@@ -14,6 +14,7 @@ Makefile.in
 /stamp-h1
 /src/python/location-downloader
 /src/python/location-exporter
+/src/python/location-importer
 /src/python/location-query
 /src/systemd/location-downloader.service
 /src/systemd/location-downloader.timer
