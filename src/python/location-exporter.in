@@ -228,7 +228,7 @@ class CLI(object):
 
 		# version
 		parser.add_argument("--version", action="version",
-			version="%%(prog)s %s" % location.__version__)
+			version="%(prog)s @VERSION@")
 
 		# database
 		parser.add_argument("--database", "-d",
