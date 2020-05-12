@@ -25,6 +25,33 @@ import urllib.request
 log = logging.getLogger("location.importer")
 log.propagate = 1
 
+WHOIS_SOURCES = (
+	# African Network Information Centre
+	"https://ftp.afrinic.net/pub/pub/dbase/afrinic.db.gz",
+
+	# Asia Pacific Network Information Centre
+	"https://ftp.apnic.net/apnic/whois/apnic.db.inet6num.gz",
+	"https://ftp.apnic.net/apnic/whois/apnic.db.inetnum.gz",
+	"https://ftp.apnic.net/apnic/whois/apnic.db.route6.gz",
+	"https://ftp.apnic.net/apnic/whois/apnic.db.route.gz",
+	"https://ftp.apnic.net/apnic/whois/apnic.db.aut-num.gz",
+	"https://ftp.apnic.net/apnic/whois/apnic.db.organisation.gz",
+
+	# American Registry for Internet Numbers
+	"https://ftp.arin.net/pub/rr/arin.db",
+
+	# Latin America and Caribbean Network Information Centre
+	# XXX ???
+
+	# Réseaux IP Européens
+	"https://ftp.ripe.net/ripe/dbase/split/ripe.db.inet6num.gz",
+	"https://ftp.ripe.net/ripe/dbase/split/ripe.db.inetnum.gz",
+	"https://ftp.ripe.net/ripe/dbase/split/ripe.db.route6.gz",
+	"https://ftp.ripe.net/ripe/dbase/split/ripe.db.route.gz",
+	"https://ftp.ripe.net/ripe/dbase/split/ripe.db.aut-num.gz",
+	"https://ftp.ripe.net/ripe/dbase/split/ripe.db.organisation.gz",
+)
+
 class Downloader(object):
 	def __init__(self):
 		self.proxy = None
@@ -36,20 +63,23 @@ class Downloader(object):
 		log.info("Using proxy %s" % url)
 		self.proxy = url
 
-	def request(self, url, data=None):
+	def request(self, url, data=None, return_blocks=False):
 		req = urllib.request.Request(url, data=data)
 
 		# Configure proxy
 		if self.proxy:
 			req.set_proxy(self.proxy, "http")
 
-		return DownloaderContext(self, req)
+		return DownloaderContext(self, req, return_blocks=return_blocks)
 
 
 class DownloaderContext(object):
-	def __init__(self, downloader, request):
+	def __init__(self, downloader, request, return_blocks=False):
 		self.downloader = downloader
 		self.request = request
+
+		# Should we return one block or a single line?
+		self.return_blocks = return_blocks
 
 		# Save the response object
 		self.response = None
@@ -74,19 +104,23 @@ class DownloaderContext(object):
 		"""
 			Makes the object iterable by going through each block
 		"""
+		if self.return_blocks:
+			return iterate_over_blocks(self.body)
+
 		# Store body
-		body = self.body
+		#body = self.body
 
-		while True:
-			line = body.readline()
-			if not line:
-				break
+		#while True:
+		#	line = body.readline()
+		#	if not line:
+		#		break
 
-			# Decode the line
-			line = line.decode()
+		#	# Decode the line
+		#	print(line)
+		#	line = line.decode()
 
-			# Strip the ending
-			yield line.rstrip()
+		#	# Strip the ending
+		#	yield line.rstrip()
 
 	@property
 	def headers(self):
@@ -103,5 +137,54 @@ class DownloaderContext(object):
 			Returns a file-like object with the decoded content
 			of the response.
 		"""
+		content_type = self.get_header("Content-Type")
+
+		# Decompress any gzipped response on the fly
+		if content_type in ("application/x-gzip", "application/gzip"):
+			return gzip.GzipFile(fileobj=self.response, mode="rb")
+
 		# Return the response by default
 		return self.response
+
+
+def iterate_over_blocks(f, charsets=("utf-8", "latin1")):
+	block = []
+
+	for line in f:
+		# Convert to string
+		for charset in charsets:
+			try:
+				line = line.decode(charset)
+			except UnicodeDecodeError:
+				continue
+			else:
+				break
+
+		# Skip commented lines
+		if line.startswith("#") or line.startswith("%"):
+			continue
+
+		# Strip line-endings
+		line = line.rstrip()
+
+		# Remove any comments at the end of line
+		line, hash, comment = line.partition("#")
+
+		if comment:
+			# Strip any whitespace before the comment
+			line = line.rstrip()
+
+			# If the line is now empty, we move on
+			if not line:
+				continue
+
+		if line:
+			block.append(line)
+			continue
+
+		# End the block on an empty line
+		if block:
+			yield block
+
+		# Reset the block
+		block = []
