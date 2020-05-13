@@ -135,6 +135,10 @@ int loc_as_to_database_v0(struct loc_as* as, struct loc_stringpool* pool,
 }
 
 int loc_as_match_string(struct loc_as* as, const char* string) {
+	// Match all AS when no search string is set
+	if (!string)
+		return 1;
+
 	// Search if string is in name
 	if (strcasestr(as->name, string) != NULL)
 		return 1;
