@@ -152,6 +152,23 @@ class DownloaderContext(object):
 		return self.response
 
 
+def read_blocks(f):
+	for block in iterate_over_blocks(f):
+		type = None
+		data = {}
+
+		for i, line in enumerate(block):
+			key, value = line.split(":", 1)
+
+			# The key of the first line defines the type
+			if i == 0:
+				type = key
+
+			# Store value
+			data[key] = value.strip()
+
+		yield type, data
+
 def iterate_over_blocks(f, charsets=("utf-8", "latin1")):
 	block = []
 
