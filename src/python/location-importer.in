@@ -491,6 +491,10 @@ class CLI(object):
 							# Convert network to string
 							network = network.decode()
 
+							# Append /24 for IPv4 addresses
+							if not "/" in network and not ":" in network:
+								network = "%s/24" % network
+
 							# Convert AS number to integer
 							autnum = int(autnum)
 
