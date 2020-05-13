@@ -543,6 +543,10 @@ class CLI(object):
 					-- DELETE IPv6 to IPv4 (6to4) address space
 					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '192.88.99.0/24';
 
+					-- DELETE multicast and reserved address space
+					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '224.0.0.0/4';
+					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '240.0.0.0/4';
+
 					-- Delete networks that are too small to be in the global routing table
 					DELETE FROM announcements WHERE family(network) = 6 AND masklen(network) > 48;
 					DELETE FROM announcements WHERE family(network) = 4 AND masklen(network) > 24;
