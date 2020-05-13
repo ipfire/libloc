@@ -245,37 +245,40 @@ class CLI(object):
 	def handle_lookup(self, db, ns):
 		ret = 0
 
+		format = "  %-24s: %s"
+
 		for address in ns.address:
 			try:
-				n = db.lookup(address)
+				network = db.lookup(address)
 			except ValueError:
 				print(_("Invalid IP address: %s") % address, file=sys.stderr)
 
 			args = {
 				"address" : address,
-				"network" : n,
+				"network" : network,
 			}
 
 			# Nothing found?
-			if not n:
+			if not network:
 				print(_("Nothing found for %(address)s") % args, file=sys.stderr)
 				ret = 1
 				continue
 
-			# Try to retrieve the AS if we have an AS number
-			if n.asn:
-				a = db.get_as(n.asn)
+			print("%s:" % address)
+			print(format % (_("Network"), network))
 
-				# If we have found an AS we will print it in the message
-				if a:
-					args.update({
-						"as" : a,
-					})
+			# Print country
+			if network.country_code:
+				print(format % (_("Country"), network.country_code))
 
-					print(_("%(address)s belongs to %(network)s which is a part of %(as)s") % args)
-					continue
+			# Print AS information
+			if network.asn:
+				autonomous_system = db.get_as(network.asn)
 
-			print(_("%(address)s belongs to %(network)s") % args)
+				print(format % (
+					_("Autonomous System"),
+					autonomous_system or "AS%s" % network.asn),
+				)
 
 		return ret
 
