@@ -207,6 +207,25 @@ static PyObject* new_database_enumerator(PyTypeObject* type, struct loc_database
 	return (PyObject*)self;
 }
 
+static PyObject* Database_iterate_all(DatabaseObject* self, enum loc_database_enumerator_mode what) {
+	struct loc_database_enumerator* enumerator;
+
+	int r = loc_database_enumerator_new(&enumerator, self->db, what);
+	if (r) {
+		PyErr_SetFromErrno(PyExc_SystemError);
+		return NULL;
+	}
+
+	PyObject* obj = new_database_enumerator(&DatabaseEnumeratorType, enumerator);
+	loc_database_enumerator_unref(enumerator);
+
+	return obj;
+}
+
+static PyObject* Database_ases(DatabaseObject* self) {
+	return Database_iterate_all(self, LOC_DB_ENUMERATE_ASES);
+}
+
 static PyObject* Database_search_as(DatabaseObject* self, PyObject* args) {
 	const char* string = NULL;
 
@@ -228,6 +247,10 @@ static PyObject* Database_search_as(DatabaseObject* self, PyObject* args) {
 	loc_database_enumerator_unref(enumerator);
 
 	return obj;
+}
+
+static PyObject* Database_networks(DatabaseObject* self) {
+	return Database_iterate_all(self, LOC_DB_ENUMERATE_NETWORKS);
 }
 
 static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, PyObject* kwargs) {
@@ -335,6 +358,13 @@ static struct PyMethodDef Database_methods[] = {
 
 static struct PyGetSetDef Database_getsetters[] = {
 	{
+		"ases",
+		(getter)Database_ases,
+		NULL,
+		NULL,
+		NULL,
+	},
+	{
 		"created_at",
 		(getter)Database_get_created_at,
 		NULL,
@@ -351,6 +381,13 @@ static struct PyGetSetDef Database_getsetters[] = {
 	{
 		"license",
 		(getter)Database_get_license,
+		NULL,
+		NULL,
+		NULL,
+	},
+	{
+		"networks",
+		(getter)Database_networks,
 		NULL,
 		NULL,
 		NULL,

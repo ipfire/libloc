@@ -22,6 +22,7 @@ import ipaddress
 import os
 import socket
 import sys
+import time
 
 # Load our location module
 import location
@@ -141,6 +142,13 @@ class CLI(object):
 		)
 		lookup.add_argument("address", nargs="+")
 		lookup.set_defaults(func=self.handle_lookup)
+
+		# Dump the whole database
+		dump = subparsers.add_parser("dump",
+			help=_("Dump the entire database"),
+		)
+		dump.add_argument("output", nargs="?", type=argparse.FileType("w"))
+		dump.set_defaults(func=self.handle_dump)
 
 		# Get AS
 		get_as = subparsers.add_parser("get-as",
@@ -270,6 +278,48 @@ class CLI(object):
 			print(_("%(address)s belongs to %(network)s") % args)
 
 		return ret
+
+	def handle_dump(self, db, ns):
+		# Use output file or write to stdout
+		f = ns.output or sys.stdout
+
+		# Write metadata
+		f.write("#\n# Location Database Export\n#\n")
+
+		f.write("# Generated: %s\n" % time.strftime(
+			"%a, %d %b %Y %H:%M:%S GMT", time.gmtime(db.created_at),
+		))
+
+		if db.vendor:
+			f.write("# Vendor:    %s\n" % db.vendor)
+
+		if db.license:
+			f.write("# License:   %s\n" % db.license)
+
+		f.write("#\n")
+
+		if db.description:
+			for line in db.description.splitlines():
+				f.write("# %s\n" % line)
+
+			f.write("#\n")
+
+		# Iterate over all ASes
+		for a in db.ases:
+			f.write("\n")
+			f.write("aut-num:        AS%s\n" % a.number)
+			f.write("name:           %s\n" % a.name)
+
+		# Iterate over all networks
+		for n in db.networks:
+			f.write("\n")
+			f.write("net:            %s\n" % n)
+
+			if n.country_code:
+				f.write("country:        %s\n" % n.country_code)
+
+			if n.asn:
+				f.write("autnum:         %s\n" % n.asn)
 
 	def handle_get_as(self, db, ns):
 		"""
