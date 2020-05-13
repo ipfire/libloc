@@ -524,6 +524,22 @@ class CLI(object):
 					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '172.16.0.0/12';
 					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '192.168.0.0/16';
 
+					-- DELETE test, benchmark and documentation address space
+					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '192.0.0.0/24';
+					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '192.0.2.0/24';
+					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '198.18.0.0/15';
+					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '198.51.100.0/24';
+					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '203.0.113.0/24';
+
+					-- DELETE CGNAT address space (RFC 6598)
+					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '100.64.0.0/10';
+
+					-- DELETE link local address space
+					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '169.254.0.0/16';
+
+					-- DELETE IPv6 to IPv4 (6to4) address space
+					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '192.88.99.0/24';
+
 					-- Delete networks that are too small to be in the global routing table
 					DELETE FROM announcements WHERE family(network) = 6 AND masklen(network) > 48;
 					DELETE FROM announcements WHERE family(network) = 4 AND masklen(network) > 24;
