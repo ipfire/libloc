@@ -221,6 +221,8 @@ class CLI(object):
 				(
 					SELECT networks.country FROM networks
 						WHERE announcements.network <<= networks.network
+						ORDER BY masklen(networks.network) DESC
+						LIMIT 1
 				) AS country,
 
 				-- Flags
