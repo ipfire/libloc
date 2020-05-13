@@ -194,8 +194,17 @@ class CLI(object):
 		log.info("Writing Autonomous Systems...")
 
 		# Select all ASes with a name
-		rows = self.db.query("SELECT * FROM autnums \
-			WHERE name <> %s ORDER BY number", "")
+		rows = self.db.query("""
+			SELECT
+				autnums.number AS number,
+				COALESCE(
+					(SELECT overrides.name FROM autnum_overrides overrides
+						WHERE overrides.number = autnums.number),
+					autnums.name
+				) AS name
+				FROM autnums
+				WHERE name <> %s ORDER BY number
+			""", "")
 
 		for row in rows:
 			a = writer.add_as(row.number)
