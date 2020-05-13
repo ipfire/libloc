@@ -23,6 +23,7 @@ import logging
 import math
 import re
 import sys
+import telnetlib
 
 # Load our location module
 import location
@@ -62,6 +63,13 @@ class CLI(object):
 		# Update WHOIS
 		update_whois = subparsers.add_parser("update-whois", help=_("Update WHOIS Information"))
 		update_whois.set_defaults(func=self.handle_update_whois)
+
+		# Update announcements
+		update_announcements = subparsers.add_parser("update-announcements",
+			help=_("Update BGP Annoucements"))
+		update_announcements.set_defaults(func=self.handle_update_announcements)
+		update_announcements.add_argument("server", nargs=1,
+			help=_("Route Server to connect to"), metavar=_("SERVER"))
 
 		args = parser.parse_args()
 
@@ -105,13 +113,21 @@ class CLI(object):
 
 		with db.transaction():
 			db.execute("""
+				-- announcements
+				CREATE TABLE IF NOT EXISTS announcements(network inet, autnum bigint,
+					first_seen_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
+					last_seen_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP);
+				CREATE UNIQUE INDEX IF NOT EXISTS announcements_networks ON announcements(network);
+				CREATE INDEX IF NOT EXISTS announcements_family ON announcements(family(network));
+
 				-- autnums
-				CREATE TABLE IF NOT EXISTS autnums(number integer, name text);
+				CREATE TABLE IF NOT EXISTS autnums(number bigint, name text);
 				CREATE UNIQUE INDEX IF NOT EXISTS autnums_number ON autnums(number);
 
 				-- networks
-				CREATE TABLE IF NOT EXISTS networks(network inet, autnum integer, country text);
+				CREATE TABLE IF NOT EXISTS networks(network inet, country text);
 				CREATE UNIQUE INDEX IF NOT EXISTS networks_network ON networks(network);
+				CREATE INDEX IF NOT EXISTS networks_search ON networks USING GIST(network inet_ops);
 			""")
 
 		return db
@@ -269,6 +285,100 @@ class CLI(object):
 			UPDATE SET country = excluded.country",
 			"%s" % network, country,
 		)
+
+	def handle_update_announcements(self, ns):
+		server = ns.server[0]
+
+		# Pre-compile regular expression for routes
+		#route = re.compile(b"^\*>?\s[\si]?([^\s]+)[.\s]*?(\d+)\si$", re.MULTILINE)
+		route = re.compile(b"^\*[\s\>]i([^\s]+).+?(\d+)\si\r\n", re.MULTILINE|re.DOTALL)
+
+		with telnetlib.Telnet(server) as t:
+			# Enable debug mode
+			#if ns.debug:
+			#	t.set_debuglevel(10)
+
+			# Wait for console greeting
+			greeting = t.read_until(b"> ")
+			log.debug(greeting.decode())
+
+			# Disable pagination
+			t.write(b"terminal length 0\n")
+
+			# Wait for the prompt to return
+			t.read_until(b"> ")
+
+			# Fetch the routing tables
+			with self.db.transaction():
+				for protocol in ("ipv6", "ipv4"):
+					log.info("Requesting %s routing table" % protocol)
+
+					# Request the full unicast routing table
+					t.write(b"show bgp %s unicast\n" % protocol.encode())
+
+					# Read entire header which ends with "Path"
+					t.read_until(b"Path\r\n")
+
+					while True:
+						# Try reading a full entry
+						# Those might be broken across multiple lines but ends with i
+						line = t.read_until(b"i\r\n", timeout=5)
+						if not line:
+							break
+
+						# Show line for debugging
+						#log.debug(repr(line))
+
+						# Try finding a route in here
+						m = route.match(line)
+						if m:
+							network, autnum = m.groups()
+
+							# Convert network to string
+							network = network.decode()
+
+							# Convert AS number to integer
+							autnum = int(autnum)
+
+							log.info("Found announcement for %s by %s" % (network, autnum))
+
+							self.db.execute("INSERT INTO announcements(network, autnum) \
+								VALUES(%s, %s) ON CONFLICT (network) DO \
+								UPDATE SET autnum = excluded.autnum, last_seen_at = CURRENT_TIMESTAMP",
+								network, autnum,
+							)
+
+					log.info("Finished reading the %s routing table" % protocol)
+
+				# Purge anything we never want here
+				self.db.execute("""
+					-- Delete default routes
+					DELETE FROM announcements WHERE network = '::/0' OR network = '0.0.0.0/0';
+
+					-- Delete anything that is not global unicast address space
+					DELETE FROM announcements WHERE family(network) = 6 AND NOT network <<= '2000::/3';
+
+					-- DELETE RFC1918 address space
+					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '10.0.0.0/8';
+					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '172.16.0.0/12';
+					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '192.168.0.0/16';
+
+					-- Delete networks that are too small to be in the global routing table
+					DELETE FROM announcements WHERE family(network) = 6 AND masklen(network) > 48;
+					DELETE FROM announcements WHERE family(network) = 4 AND masklen(network) > 24;
+
+					-- Delete any non-public or reserved ASNs
+					DELETE FROM announcements WHERE NOT (
+						(autnum >= 1 AND autnum <= 23455)
+						OR
+						(autnum >= 23457 AND autnum <= 64495)
+						OR
+						(autnum >= 131072 AND autnum <= 4199999999)
+					);
+
+					-- Delete everything that we have not seen for 14 days
+					DELETE FROM announcements WHERE last_seen_at <= CURRENT_TIMESTAMP - INTERVAL '14 days';
+				""")
 
 
 def split_line(line):
