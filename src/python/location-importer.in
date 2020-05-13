@@ -34,12 +34,6 @@ from location.i18n import _
 log = logging.getLogger("location.importer")
 log.propagate = 1
 
-INVALID_ADDRESSES = (
-	"0.0.0.0",
-	"::/0",
-	"0::/0",
-)
-
 class CLI(object):
 	def parse_cli(self):
 		parser = argparse.ArgumentParser(
