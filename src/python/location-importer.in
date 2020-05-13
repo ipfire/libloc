@@ -60,6 +60,15 @@ class CLI(object):
 		parser.add_argument("--database-password", required=True,
 			help=_("Database Password"), metavar=_("PASSWORD"))
 
+		# Write Database
+		write = subparsers.add_parser("write", help=_("Write database to file"))
+		write.set_defaults(func=self.handle_write)
+		write.add_argument("file", nargs=1, help=_("Database File"))
+		write.add_argument("--signing-key", nargs="?", type=open, help=_("Signing Key"))
+		write.add_argument("--vendor", nargs="?", help=_("Sets the vendor"))
+		write.add_argument("--description", nargs="?", help=_("Sets a description"))
+		write.add_argument("--license", nargs="?", help=_("Sets the license"))
+
 		# Update WHOIS
 		update_whois = subparsers.add_parser("update-whois", help=_("Update WHOIS Information"))
 		update_whois.set_defaults(func=self.handle_update_whois)
@@ -130,7 +139,7 @@ class CLI(object):
 				CREATE INDEX IF NOT EXISTS announcements_family ON announcements(family(network));
 
 				-- autnums
-				CREATE TABLE IF NOT EXISTS autnums(number bigint, name text);
+				CREATE TABLE IF NOT EXISTS autnums(number bigint, name text NOT NULL);
 				CREATE UNIQUE INDEX IF NOT EXISTS autnums_number ON autnums(number);
 
 				-- networks
@@ -161,6 +170,77 @@ class CLI(object):
 			""")
 
 		return db
+
+	def handle_write(self, ns):
+		"""
+			Compiles a database in libloc format out of what is in the database
+		"""
+		print(ns)
+
+		# Allocate a writer
+		writer = location.Writer(ns.signing_key)
+
+		# Set all metadata
+		if ns.vendor:
+			writer.vendor = ns.vendor
+
+		if ns.description:
+			writer.description = ns.description
+
+		if ns.license:
+			writer.license = ns.license
+
+		# Add all Autonomous Systems
+		log.info("Writing Autonomous Systems...")
+
+		# Select all ASes with a name
+		rows = self.db.query("SELECT * FROM autnums \
+			WHERE name <> %s ORDER BY number", "")
+
+		for row in rows:
+			a = writer.add_as(row.number)
+			a.name = row.name
+
+		# Add all networks
+		log.info("Writing networks...")
+
+		# Select all known networks
+		rows = self.db.query("""
+			SELECT
+				announcements.network AS network,
+				announcements.autnum AS autnum,
+				(
+					SELECT networks.country FROM networks
+						WHERE announcements.network <<= networks.network
+				) AS country,
+
+				-- Flags
+				FALSE AS is_anonymous_proxy,
+				FALSE AS is_satellite_provider,
+				FALSE AS is_anycast
+			FROM announcements
+		""")
+
+		for row in rows:
+			network = writer.add_network(row.network)
+
+			# Save AS & country
+			network.asn, network.country_code = row.autnum, row.country
+
+			# Set flags
+			if row.is_anonymous_proxy:
+				network.set_flag(location.NETWORK_FLAG_ANONYMOUS_PROXY)
+
+			if row.is_satellite_provider:
+				network.set_flag(location.NETWORK_FLAG_SATELLITE_PROVIDER)
+
+			if row.is_anycast:
+				network.set_flag(location.NETWORK_FLAG_ANYCAST)
+
+		# Write everything to file
+		log.info("Writing database to file...")
+		for file in ns.file:
+			writer.write(file)
 
 	def handle_update_whois(self, ns):
 		downloader = location.importer.Downloader()
