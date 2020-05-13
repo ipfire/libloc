@@ -516,10 +516,13 @@ class CLI(object):
 					-- Delete anything that is not global unicast address space
 					DELETE FROM announcements WHERE family(network) = 6 AND NOT network <<= '2000::/3';
 
+					-- DELETE "current network" address space
+					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '0.0.0.0/8';
+
 					-- DELETE local loopback address space
 					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '127.0.0.0/8';
 
-					-- DELETE RFC1918 address space
+					-- DELETE RFC 1918 address space
 					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '10.0.0.0/8';
 					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '172.16.0.0/12';
 					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '192.168.0.0/16';
