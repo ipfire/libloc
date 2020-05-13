@@ -97,7 +97,7 @@ LOC_EXPORT int loc_discover_latest_version(struct loc_ctx* ctx, const char* doma
 
     // Walk through CNAMEs
     unsigned int size = 0;
-    int ttl;
+    int ttl __attribute__ ((unused));
     do {
         payload += size;
 
