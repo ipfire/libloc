@@ -47,7 +47,7 @@ static int Writer_init(WriterObject* self, PyObject* args, PyObject* kwargs) {
 		return -1;
 
 	// Convert into FILE*
-	if (private_key) {
+	if (private_key && private_key != Py_None) {
 		int fd = PyObject_AsFileDescriptor(private_key);
 		if (fd < 0)
 			return -1;
