@@ -226,9 +226,42 @@ class CLI(object):
 				) AS country,
 
 				-- Flags
-				FALSE AS is_anonymous_proxy,
-				FALSE AS is_satellite_provider,
-				FALSE AS is_anycast
+				COALESCE(
+					(
+						SELECT is_anonymous_proxy FROM network_overrides overrides
+							WHERE announcements.network <<= overrides.network
+							ORDER BY masklen(overrides.network) DESC
+							LIMIT 1
+					),
+					(
+						SELECT is_anonymous_proxy FROM autnum_overrides overrides
+							WHERE announcements.autnum = overrides.number
+					)
+				) AS is_anonymous_proxy,
+				COALESCE(
+					(
+						SELECT is_satellite_provider FROM network_overrides overrides
+							WHERE announcements.network <<= overrides.network
+							ORDER BY masklen(overrides.network) DESC
+							LIMIT 1
+					),
+					(
+						SELECT is_satellite_provider FROM autnum_overrides overrides
+							WHERE announcements.autnum = overrides.number
+					)
+				) AS is_satellite_provider,
+				COALESCE(
+					(
+						SELECT is_anycast FROM network_overrides overrides
+							WHERE announcements.network <<= overrides.network
+							ORDER BY masklen(overrides.network) DESC
+							LIMIT 1
+					),
+					(
+						SELECT is_anycast FROM autnum_overrides overrides
+							WHERE announcements.autnum = overrides.number
+					)
+				) AS is_anycast
 			FROM announcements
 		""")
 
