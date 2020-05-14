@@ -422,6 +422,7 @@ class CLI(object):
 			prefix = int(prefix)
 		except:
 			log.warning("Invalid prefix: %s" % prefix)
+			return
 
 		# Fix prefix length for IPv4
 		if type == "ipv4":
