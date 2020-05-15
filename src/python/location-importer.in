@@ -179,8 +179,6 @@ class CLI(object):
 		"""
 			Compiles a database in libloc format out of what is in the database
 		"""
-		print(ns)
-
 		# Allocate a writer
 		writer = location.Writer(ns.signing_key)
 
