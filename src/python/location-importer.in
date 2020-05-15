@@ -590,6 +590,11 @@ class CLI(object):
 								log.warning("Invalid IP network: %s: %s" % (network, e))
 								continue
 
+							# Prevent that we overwrite all networks
+							if network.prefixlen == 0:
+								log.warning("Skipping %s: You cannot overwrite default" % network)
+								continue
+
 							self.db.execute("""
 								INSERT INTO network_overrides(
 									network,
