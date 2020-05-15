@@ -595,7 +595,7 @@ class CLI(object):
 									is_anonymous_proxy,
 									is_satellite_provider,
 									is_anycast
-								) VALUES (%s, %s, %s, %s)
+								) VALUES (%s, %s, %s, %s, %s)
 								ON CONFLICT (network) DO NOTHING""",
 								"%s" % network,
 								block.get("country"),
