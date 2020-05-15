@@ -35,10 +35,9 @@ import urllib.request
 import location
 from location.i18n import _
 
-DATABASE_FILENAME = "test.db.xz"
+DATABASE_FILENAME = "location.db.xz"
 MIRRORS = (
 	"https://location.ipfire.org/databases/",
-	"https://people.ipfire.org/~ms/location/",
 )
 
 # Initialise logging
