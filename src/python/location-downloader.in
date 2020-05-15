@@ -219,6 +219,8 @@ class CLI(object):
 		# Global configuration flags
 		parser.add_argument("--debug", action="store_true",
 			help=_("Enable debug output"))
+		parser.add_argument("--quiet", action="store_true",
+			help=_("Enable quiet mode"))
 
 		# version
 		parser.add_argument("--version", action="version",
@@ -245,9 +247,11 @@ class CLI(object):
 
 		args = parser.parse_args()
 
-		# Enable debug logging
+		# Configure logging
 		if args.debug:
 			location.logger.set_level(logging.DEBUG)
+		elif args.quiet:
+			location.logger.set_level(logging.WARNING)
 
 		# Print usage if no action was given
 		if not "func" in args:
