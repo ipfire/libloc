@@ -288,6 +288,24 @@ class CLI(object):
 					autonomous_system or "AS%s" % network.asn),
 				)
 
+			# Anonymous Proxy
+			if network.has_flag(location.NETWORK_FLAG_ANONYMOUS_PROXY):
+				print(format % (
+					_("Anonymous Proxy"), _("yes"),
+				))
+
+			# Satellite Provider
+			if network.has_flag(location.NETWORK_FLAG_SATELLITE_PROVIDER):
+				print(format % (
+					_("Satellite Provider"), _("yes"),
+				))
+
+			# Anycast
+			if network.has_flag(location.NETWORK_FLAG_ANYCAST):
+				print(format % (
+					_("Anycast"), _("yes"),
+				))
+
 		return ret
 
 	def handle_dump(self, db, ns):
