@@ -312,6 +312,9 @@ class CLI(object):
 		# Use output file or write to stdout
 		f = ns.output or sys.stdout
 
+		# Format everything like this
+		format = "%-24s %s\n"
+
 		# Write metadata
 		f.write("#\n# Location Database Export\n#\n")
 
@@ -336,19 +339,30 @@ class CLI(object):
 		# Iterate over all ASes
 		for a in db.ases:
 			f.write("\n")
-			f.write("aut-num:        AS%s\n" % a.number)
-			f.write("name:           %s\n" % a.name)
+			f.write(format % ("aut-num:", "AS%s" % a.number))
+			f.write(format % ("name:", a.name))
+
+		flags = {
+			location.NETWORK_FLAG_ANONYMOUS_PROXY    : "is-anonymous-proxy:",
+			location.NETWORK_FLAG_SATELLITE_PROVIDER : "is-satellite-provider:",
+			location.NETWORK_FLAG_ANYCAST            : "is-anycast:",
+		}
 
 		# Iterate over all networks
 		for n in db.networks:
 			f.write("\n")
-			f.write("net:            %s\n" % n)
+			f.write(format % ("net:", n))
 
 			if n.country_code:
-				f.write("country:        %s\n" % n.country_code)
+				f.write(format % ("country:", n.country_code))
 
 			if n.asn:
-				f.write("autnum:         %s\n" % n.asn)
+				f.write(format % ("autnum:", n.asn))
+
+			# Print all flags
+			for flag in flags:
+				if n.has_flag(flag):
+					f.write(format % (flags[flag], "yes"))
 
 	def handle_get_as(self, db, ns):
 		"""
