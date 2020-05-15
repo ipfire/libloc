@@ -22,7 +22,7 @@ import logging.handlers
 
 # Initialise root logger
 log = logging.getLogger("location")
-log.setLevel(logging.DEBUG)
+log.setLevel(logging.INFO)
 
 # Log to console
 handler = logging.StreamHandler()
@@ -38,3 +38,9 @@ log.addHandler(handler)
 # Format syslog messages
 formatter = logging.Formatter("%(message)s")
 handler.setFormatter(formatter)
+
+def set_level(level):
+	"""
+		Sets the log level for the root logger
+	"""
+	log.setLevel(level)

@@ -204,6 +204,10 @@ class CLI(object):
 
 		args = parser.parse_args()
 
+		# Enable debug logging
+		if args.debug:
+			location.logger.set_level(logging.DEBUG)
+
 		# Print usage if no action was given
 		if not "func" in args:
 			parser.print_usage()

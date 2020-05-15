@@ -93,7 +93,7 @@ class CLI(object):
 
 		# Enable debug logging
 		if args.debug:
-			log.setLevel(logging.DEBUG)
+			location.logger.set_level(logging.DEBUG)
 
 		# Print usage if no action was given
 		if not "func" in args:
