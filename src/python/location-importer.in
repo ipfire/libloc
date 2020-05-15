@@ -611,8 +611,8 @@ class CLI(object):
 								block.get("is-anycast") == "yes",
 							)
 
-						elif type == "autnum":
-							autnum = block.get("autnum")
+						elif type == "aut-num":
+							autnum = block.get("aut-num")
 
 							# Check if AS number begins with "AS"
 							if not autnum.startswith("AS"):
