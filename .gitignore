@@ -1,3 +1,5 @@
+*.db
+*.db.xz
 *.log
 *.o
 *.tar.xz
