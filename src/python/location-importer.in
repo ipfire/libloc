@@ -216,14 +216,13 @@ class CLI(object):
 		# Select all known networks
 		rows = self.db.query("""
 			SELECT
+				DISTINCT ON (announcements.network)
 				announcements.network AS network,
 				announcements.autnum AS autnum,
-				(
-					SELECT networks.country FROM networks
-						WHERE announcements.network <<= networks.network
-						ORDER BY masklen(networks.network) DESC
-						LIMIT 1
-				) AS country,
+				networks.country AS country,
+
+				-- Must be part of returned values for ORDER BY clause
+				masklen(networks.network) AS sort,
 
 				-- Flags
 				COALESCE(
@@ -263,6 +262,8 @@ class CLI(object):
 					)
 				) AS is_anycast
 			FROM announcements
+				LEFT JOIN networks ON announcements.network <<= networks.network
+			ORDER BY announcements.network, sort DESC
 		""")
 
 		for row in rows:
