@@ -27,8 +27,7 @@
 
 struct loc_writer;
 
-int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer,
-    enum loc_database_version version, FILE* fkey);
+int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer, FILE* fkey);
 
 struct loc_writer* loc_writer_ref(struct loc_writer* writer);
 struct loc_writer* loc_writer_unref(struct loc_writer* writer);
@@ -44,6 +43,6 @@ int loc_writer_add_as(struct loc_writer* writer, struct loc_as** as, uint32_t nu
 int loc_writer_add_network(struct loc_writer* writer, struct loc_network** network, const char* string);
 int loc_writer_add_country(struct loc_writer* writer, struct loc_country** country, const char* country_code);
 
-int loc_writer_write(struct loc_writer* writer, FILE* f);
+int loc_writer_write(struct loc_writer* writer, FILE* f, enum loc_database_version);
 
 #endif

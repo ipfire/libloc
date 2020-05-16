@@ -40,11 +40,10 @@ static void Writer_dealloc(WriterObject* self) {
 
 static int Writer_init(WriterObject* self, PyObject* args, PyObject* kwargs) {
 	PyObject* private_key = NULL;
-	int version = -1;
 	FILE* f = NULL;
 
 	// Parse arguments
-	if (!PyArg_ParseTuple(args, "|Oi", &private_key, &version))
+	if (!PyArg_ParseTuple(args, "|O", &private_key))
 		return -1;
 
 	// Convert into FILE*
@@ -62,8 +61,7 @@ static int Writer_init(WriterObject* self, PyObject* args, PyObject* kwargs) {
 	}
 
 	// Create the writer object
-	int r = loc_writer_new(loc_ctx, &self->writer,
-		(enum loc_database_version)version, f);
+	int r = loc_writer_new(loc_ctx, &self->writer, f);
 
 	return r;
 }
@@ -197,8 +195,9 @@ static PyObject* Writer_add_network(WriterObject* self, PyObject* args) {
 
 static PyObject* Writer_write(WriterObject* self, PyObject* args) {
 	const char* path = NULL;
+	int version = LOC_DATABASE_VERSION_UNSET;
 
-	if (!PyArg_ParseTuple(args, "s", &path))
+	if (!PyArg_ParseTuple(args, "s|i", &path, &version))
 		return NULL;
 
 	FILE* f = fopen(path, "w+");
@@ -207,7 +206,7 @@ static PyObject* Writer_write(WriterObject* self, PyObject* args) {
 		return NULL;
 	}
 
-	int r = loc_writer_write(self->writer, f);
+	int r = loc_writer_write(self->writer, f, (enum loc_database_version)version);
 	fclose(f);
 
 	// Raise any errors

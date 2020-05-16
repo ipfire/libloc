@@ -44,7 +44,6 @@
 struct loc_writer {
 	struct loc_ctx* ctx;
 	int refcount;
-	enum loc_database_version version;
 
 	struct loc_stringpool* pool;
 	off_t vendor;
@@ -82,30 +81,13 @@ static int parse_private_key(struct loc_writer* writer, FILE* f) {
 	return 0;
 }
 
-LOC_EXPORT int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer,
-		enum loc_database_version version, FILE* fkey) {
+LOC_EXPORT int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer, FILE* fkey) {
 	struct loc_writer* w = calloc(1, sizeof(*w));
 	if (!w)
 		return -ENOMEM;
 
 	w->ctx = loc_ref(ctx);
 	w->refcount = 1;
-
-	// Check version
-	switch (version) {
-		case LOC_DATABASE_VERSION_1:
-			w->version = version;
-			break;
-
-		case LOC_DATABASE_VERSION_UNSET:
-			w->version = LOC_DATABASE_VERSION_LATEST;
-			break;
-
-		default:
-			ERROR(ctx, "Invalid database version: %d\n", version);
-			loc_writer_unref(w);
-			return -1;
-	}
 
 	int r = loc_stringpool_new(ctx, &w->pool);
 	if (r) {
@@ -277,13 +259,14 @@ LOC_EXPORT int loc_writer_add_country(struct loc_writer* writer, struct loc_coun
 	return 0;
 }
 
-static void make_magic(struct loc_writer* writer, struct loc_database_magic* magic) {
+static void make_magic(struct loc_writer* writer, struct loc_database_magic* magic,
+		enum loc_database_version version) {
 	// Copy magic bytes
 	for (unsigned int i = 0; i < strlen(LOC_DATABASE_MAGIC); i++)
 		magic->magic[i] = LOC_DATABASE_MAGIC[i];
 
 	// Set version
-	magic->version = htobe16(writer->version);
+	magic->version = version;
 }
 
 static void align_page_boundary(off_t* offset, FILE* f) {
@@ -615,9 +598,25 @@ END:
 	return r;
 }
 
-LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f) {
+LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f, enum loc_database_version version) {
+	// Check version
+	switch (version) {
+		case LOC_DATABASE_VERSION_UNSET:
+			version = LOC_DATABASE_VERSION_LATEST;
+			break;
+
+		case LOC_DATABASE_VERSION_1:
+			break;
+
+		default:
+			ERROR(writer->ctx, "Invalid database version: %d\n", version);
+			return -1;
+	}
+
+	DEBUG(writer->ctx, "Writing database in version %d\n", version);
+
 	struct loc_database_magic magic;
-	make_magic(writer, &magic);
+	make_magic(writer, &magic, version);
 
 	// Make the header
 	struct loc_database_header_v1 header;

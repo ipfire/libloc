@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
 
 	// Create an empty database
 	struct loc_writer* writer;
-	err = loc_writer_new(ctx, &writer, LOC_DATABASE_VERSION_LATEST, private_key);
+	err = loc_writer_new(ctx, &writer, private_key);
 	if (err < 0)
 		exit(EXIT_FAILURE);
 
@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	err = loc_writer_write(writer, f);
+	err = loc_writer_write(writer, f, LOC_DATABASE_VERSION_UNSET);
 	if (err) {
 		fprintf(stderr, "Could not write database: %s\n", strerror(err));
 		exit(EXIT_FAILURE);

@@ -52,7 +52,7 @@ struct loc_database {
 
 	FILE* f;
 
-	unsigned int version;
+	enum loc_database_version version;
 	time_t created_at;
 	off_t vendor;
 	off_t description;
@@ -129,13 +129,12 @@ static int loc_database_read_magic(struct loc_database* db) {
 		DEBUG(db->ctx, "Magic value matches\n");
 
 		// Parse version
-		db->version = be16toh(magic.version);
-		DEBUG(db->ctx, "Database version is %u\n", db->version);
+		db->version = magic.version;
 
 		return 0;
 	}
 
-	ERROR(db->ctx, "Database format is not compatible\n");
+	ERROR(db->ctx, "Unrecognized file type\n");
 
 	// Return an error
 	return 1;
@@ -300,8 +299,10 @@ static int loc_database_read_header_v1(struct loc_database* db) {
 }
 
 static int loc_database_read_header(struct loc_database* db) {
+	DEBUG(db->ctx, "Database version is %u\n", db->version);
+
 	switch (db->version) {
-		case 0:
+		case LOC_DATABASE_VERSION_1:
 			return loc_database_read_header_v1(db);
 
 		default:
@@ -486,7 +487,7 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 	struct loc_database_header_v1 header_v1;
 
 	switch (db->version) {
-		case 0:
+		case LOC_DATABASE_VERSION_1:
 			fread(&header_v1, 1, sizeof(header_v1), db->f);
 
 			// Clear signature
@@ -590,7 +591,7 @@ static int loc_database_fetch_as(struct loc_database* db, struct loc_as** as, of
 
 	int r;
 	switch (db->version) {
-		case 0:
+		case LOC_DATABASE_VERSION_1:
 			r = loc_as_new_from_database_v1(db->ctx, db->pool, as, db->as_v1 + pos);
 			break;
 
@@ -663,7 +664,7 @@ static int loc_database_fetch_network(struct loc_database* db, struct loc_networ
 
 	int r;
 	switch (db->version) {
-		case 0:
+		case LOC_DATABASE_VERSION_1:
 			r = loc_network_new_from_database_v1(db->ctx, network,
 				address, prefix, db->networks_v1 + pos);
 			break;
@@ -807,7 +808,7 @@ static int loc_database_fetch_country(struct loc_database* db,
 
 	int r;
 	switch (db->version) {
-		case 0:
+		case LOC_DATABASE_VERSION_1:
 			r = loc_country_new_from_database_v1(db->ctx, db->pool, country, db->countries_v1 + pos);
 			break;
 
