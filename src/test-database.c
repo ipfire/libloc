@@ -37,12 +37,48 @@ const char* DESCRIPTION =
 	"Maecenas ut venenatis nunc.";
 const char* LICENSE = "CC";
 
+static int attempt_to_open(struct loc_ctx* ctx, char* path) {
+	FILE* f = fopen(path, "r");
+	if (!f)
+		return -1;
+
+	struct loc_database* db;
+	int r = loc_database_new(ctx, &db, f);
+
+	if (r == 0) {
+		fprintf(stderr, "Opening %s was unexpectedly successful\n", path);
+		loc_database_unref(db);
+
+		r = 1;
+	}
+
+	// Close the file again
+	fclose(f);
+
+	return r;
+}
+
 int main(int argc, char** argv) {
 	int err;
 
 	struct loc_ctx* ctx;
 	err = loc_new(&ctx);
 	if (err < 0)
+		exit(EXIT_FAILURE);
+
+	// Try opening an empty file
+	err = attempt_to_open(ctx, "/dev/null");
+	if (err == 0)
+		exit(EXIT_FAILURE);
+
+	// Try opening a file with all zeroes
+	err = attempt_to_open(ctx, "/dev/zero");
+	if (err == 0)
+		exit(EXIT_FAILURE);
+
+	// Try opening a file with random data
+	err = attempt_to_open(ctx, "/dev/urandom");
+	if (err == 0)
 		exit(EXIT_FAILURE);
 
 	// Create a database
