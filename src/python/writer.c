@@ -40,10 +40,11 @@ static void Writer_dealloc(WriterObject* self) {
 
 static int Writer_init(WriterObject* self, PyObject* args, PyObject* kwargs) {
 	PyObject* private_key = NULL;
+	int version = -1;
 	FILE* f = NULL;
 
 	// Parse arguments
-	if (!PyArg_ParseTuple(args, "|O", &private_key))
+	if (!PyArg_ParseTuple(args, "|Oi", &private_key, &version))
 		return -1;
 
 	// Convert into FILE*
@@ -61,7 +62,8 @@ static int Writer_init(WriterObject* self, PyObject* args, PyObject* kwargs) {
 	}
 
 	// Create the writer object
-	int r = loc_writer_new(loc_ctx, &self->writer, f);
+	int r = loc_writer_new(loc_ctx, &self->writer,
+		(enum loc_database_version)version, f);
 
 	return r;
 }

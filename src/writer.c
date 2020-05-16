@@ -44,6 +44,7 @@
 struct loc_writer {
 	struct loc_ctx* ctx;
 	int refcount;
+	enum loc_database_version version;
 
 	struct loc_stringpool* pool;
 	off_t vendor;
@@ -81,13 +82,30 @@ static int parse_private_key(struct loc_writer* writer, FILE* f) {
 	return 0;
 }
 
-LOC_EXPORT int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer, FILE* fkey) {
+LOC_EXPORT int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer,
+		enum loc_database_version version, FILE* fkey) {
 	struct loc_writer* w = calloc(1, sizeof(*w));
 	if (!w)
 		return -ENOMEM;
 
 	w->ctx = loc_ref(ctx);
 	w->refcount = 1;
+
+	// Check version
+	switch (version) {
+		case LOC_DATABASE_VERSION_1:
+			w->version = version;
+			break;
+
+		case LOC_DATABASE_VERSION_UNSET:
+			w->version = LOC_DATABASE_VERSION_LATEST;
+			break;
+
+		default:
+			ERROR(ctx, "Invalid database version: %d\n", version);
+			loc_writer_unref(w);
+			return -1;
+	}
 
 	int r = loc_stringpool_new(ctx, &w->pool);
 	if (r) {
@@ -265,7 +283,7 @@ static void make_magic(struct loc_writer* writer, struct loc_database_magic* mag
 		magic->magic[i] = LOC_DATABASE_MAGIC[i];
 
 	// Set version
-	magic->version = htobe16(LOC_DATABASE_VERSION);
+	magic->version = htobe16(writer->version);
 }
 
 static void align_page_boundary(off_t* offset, FILE* f) {
@@ -275,7 +293,7 @@ static void align_page_boundary(off_t* offset, FILE* f) {
 }
 
 static int loc_database_write_pool(struct loc_writer* writer,
-		struct loc_database_header_v0* header, off_t* offset, FILE* f) {
+		struct loc_database_header_v1* header, off_t* offset, FILE* f) {
 	// Save the offset of the pool section
 	DEBUG(writer->ctx, "Pool starts at %jd bytes\n", (intmax_t)*offset);
 	header->pool_offset = htobe32(*offset);
@@ -291,16 +309,16 @@ static int loc_database_write_pool(struct loc_writer* writer,
 }
 
 static int loc_database_write_as_section(struct loc_writer* writer,
-		struct loc_database_header_v0* header, off_t* offset, FILE* f) {
+		struct loc_database_header_v1* header, off_t* offset, FILE* f) {
 	DEBUG(writer->ctx, "AS section starts at %jd bytes\n", (intmax_t)*offset);
 	header->as_offset = htobe32(*offset);
 
 	size_t as_length = 0;
 
-	struct loc_database_as_v0 as;
+	struct loc_database_as_v1 as;
 	for (unsigned int i = 0; i < writer->as_count; i++) {
 		// Convert AS into database format
-		loc_as_to_database_v0(writer->as[i], writer->pool, &as);
+		loc_as_to_database_v1(writer->as[i], writer->pool, &as);
 
 		// Write to disk
 		*offset += fwrite(&as, 1, sizeof(as), f);
@@ -365,7 +383,7 @@ static void free_network(struct network* network) {
 }
 
 static int loc_database_write_networks(struct loc_writer* writer,
-		struct loc_database_header_v0* header, off_t* offset, FILE* f) {
+		struct loc_database_header_v1* header, off_t* offset, FILE* f) {
 	// Write the network tree
 	DEBUG(writer->ctx, "Network tree starts at %jd bytes\n", (intmax_t)*offset);
 	header->network_tree_offset = htobe32(*offset);
@@ -379,8 +397,8 @@ static int loc_database_write_networks(struct loc_writer* writer,
 	uint32_t index = 0;
 	uint32_t network_index = 0;
 
-	struct loc_database_network_v0 db_network;
-	struct loc_database_network_node_v0 db_node;
+	struct loc_database_network_v1 db_network;
+	struct loc_database_network_node_v1 db_node;
 
 	// Initialize queue for nodes
 	TAILQ_HEAD(node_t, node) nodes;
@@ -467,7 +485,7 @@ static int loc_database_write_networks(struct loc_writer* writer,
 		TAILQ_REMOVE(&networks, nw, networks);
 
 		// Prepare what we are writing to disk
-		int r = loc_network_to_database_v0(nw->network, &db_network);
+		int r = loc_network_to_database_v1(nw->network, &db_network);
 		if (r)
 			return r;
 
@@ -485,16 +503,16 @@ static int loc_database_write_networks(struct loc_writer* writer,
 }
 
 static int loc_database_write_countries(struct loc_writer* writer,
-		struct loc_database_header_v0* header, off_t* offset, FILE* f) {
+		struct loc_database_header_v1* header, off_t* offset, FILE* f) {
 	DEBUG(writer->ctx, "Countries section starts at %jd bytes\n", (intmax_t)*offset);
 	header->countries_offset = htobe32(*offset);
 
 	size_t countries_length = 0;
 
-	struct loc_database_country_v0 country;
+	struct loc_database_country_v1 country;
 	for (unsigned int i = 0; i < writer->countries_count; i++) {
 		// Convert country into database format
-		loc_country_to_database_v0(writer->countries[i], writer->pool, &country);
+		loc_country_to_database_v1(writer->countries[i], writer->pool, &country);
 
 		// Write to disk
 		*offset += fwrite(&country, 1, sizeof(country), f);
@@ -510,7 +528,7 @@ static int loc_database_write_countries(struct loc_writer* writer,
 }
 
 static int loc_writer_create_signature(struct loc_writer* writer,
-		struct loc_database_header_v0* header, FILE* f) {
+		struct loc_database_header_v1* header, FILE* f) {
 	DEBUG(writer->ctx, "Signing database...\n");
 
 	// Read file from the beginning
@@ -602,7 +620,7 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f) {
 	make_magic(writer, &magic);
 
 	// Make the header
-	struct loc_database_header_v0 header;
+	struct loc_database_header_v1 header;
 	header.vendor      = htobe32(writer->vendor);
 	header.description = htobe32(writer->description);
 	header.license     = htobe32(writer->license);

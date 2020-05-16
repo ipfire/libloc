@@ -105,8 +105,8 @@ LOC_EXPORT int loc_as_cmp(struct loc_as* as1, struct loc_as* as2) {
 	return 0;
 }
 
-int loc_as_new_from_database_v0(struct loc_ctx* ctx, struct loc_stringpool* pool,
-		struct loc_as** as, const struct loc_database_as_v0* dbobj) {
+int loc_as_new_from_database_v1(struct loc_ctx* ctx, struct loc_stringpool* pool,
+		struct loc_as** as, const struct loc_database_as_v1* dbobj) {
 	uint32_t number = be32toh(dbobj->number);
 
 	int r = loc_as_new(ctx, as, number);
@@ -123,8 +123,8 @@ int loc_as_new_from_database_v0(struct loc_ctx* ctx, struct loc_stringpool* pool
 	return 0;
 }
 
-int loc_as_to_database_v0(struct loc_as* as, struct loc_stringpool* pool,
-		struct loc_database_as_v0* dbobj) {
+int loc_as_to_database_v1(struct loc_as* as, struct loc_stringpool* pool,
+		struct loc_database_as_v1* dbobj) {
 	dbobj->number = htobe32(as->number);
 
 	// Save the name string in the string pool

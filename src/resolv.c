@@ -53,7 +53,7 @@ LOC_EXPORT int loc_discover_latest_version(struct loc_ctx* ctx, const char* doma
 
     // Fall back to default domain
     if (!domain)
-        domain = LOC_DATABASE_DOMAIN_LATEST(LOC_DATABASE_VERSION);
+        domain = LOC_DATABASE_DOMAIN(LOC_DATABASE_VERSION_LATEST);
 
     unsigned char answer[PACKETSZ];
     int len;

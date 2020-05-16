@@ -62,19 +62,19 @@ struct loc_database {
 	size_t signature_length;
 
 	// ASes in the database
-	struct loc_database_as_v0* as_v0;
+	struct loc_database_as_v1* as_v1;
 	size_t as_count;
 
 	// Network tree
-	struct loc_database_network_node_v0* network_nodes_v0;
+	struct loc_database_network_node_v1* network_nodes_v1;
 	size_t network_nodes_count;
 
 	// Networks
-	struct loc_database_network_v0* networks_v0;
+	struct loc_database_network_v1* networks_v1;
 	size_t networks_count;
 
 	// Countries
-	struct loc_database_country_v0* countries_v0;
+	struct loc_database_country_v1* countries_v1;
 	size_t countries_count;
 
 	struct loc_stringpool* pool;
@@ -141,30 +141,30 @@ static int loc_database_read_magic(struct loc_database* db) {
 	return 1;
 }
 
-static int loc_database_read_as_section_v0(struct loc_database* db,
-		const struct loc_database_header_v0* header) {
+static int loc_database_read_as_section_v1(struct loc_database* db,
+		const struct loc_database_header_v1* header) {
 	off_t as_offset  = be32toh(header->as_offset);
 	size_t as_length = be32toh(header->as_length);
 
 	DEBUG(db->ctx, "Reading AS section from %jd (%zu bytes)\n", (intmax_t)as_offset, as_length);
 
 	if (as_length > 0) {
-		db->as_v0 = mmap(NULL, as_length, PROT_READ,
+		db->as_v1 = mmap(NULL, as_length, PROT_READ,
 			MAP_SHARED, fileno(db->f), as_offset);
 
-		if (db->as_v0 == MAP_FAILED)
+		if (db->as_v1 == MAP_FAILED)
 			return -errno;
 	}
 
-	db->as_count = as_length / sizeof(*db->as_v0);
+	db->as_count = as_length / sizeof(*db->as_v1);
 
 	INFO(db->ctx, "Read %zu ASes from the database\n", db->as_count);
 
 	return 0;
 }
 
-static int loc_database_read_network_nodes_section_v0(struct loc_database* db,
-		const struct loc_database_header_v0* header) {
+static int loc_database_read_network_nodes_section_v1(struct loc_database* db,
+		const struct loc_database_header_v1* header) {
 	off_t network_nodes_offset  = be32toh(header->network_tree_offset);
 	size_t network_nodes_length = be32toh(header->network_tree_length);
 
@@ -172,22 +172,22 @@ static int loc_database_read_network_nodes_section_v0(struct loc_database* db,
 		(intmax_t)network_nodes_offset, network_nodes_length);
 
 	if (network_nodes_length > 0) {
-		db->network_nodes_v0 = mmap(NULL, network_nodes_length, PROT_READ,
+		db->network_nodes_v1 = mmap(NULL, network_nodes_length, PROT_READ,
 			MAP_SHARED, fileno(db->f), network_nodes_offset);
 
-		if (db->network_nodes_v0 == MAP_FAILED)
+		if (db->network_nodes_v1 == MAP_FAILED)
 			return -errno;
 	}
 
-	db->network_nodes_count = network_nodes_length / sizeof(*db->network_nodes_v0);
+	db->network_nodes_count = network_nodes_length / sizeof(*db->network_nodes_v1);
 
 	INFO(db->ctx, "Read %zu network nodes from the database\n", db->network_nodes_count);
 
 	return 0;
 }
 
-static int loc_database_read_networks_section_v0(struct loc_database* db,
-		const struct loc_database_header_v0* header) {
+static int loc_database_read_networks_section_v1(struct loc_database* db,
+		const struct loc_database_header_v1* header) {
 	off_t networks_offset  = be32toh(header->network_data_offset);
 	size_t networks_length = be32toh(header->network_data_length);
 
@@ -195,22 +195,22 @@ static int loc_database_read_networks_section_v0(struct loc_database* db,
 		(intmax_t)networks_offset, networks_length);
 
 	if (networks_length > 0) {
-		db->networks_v0 = mmap(NULL, networks_length, PROT_READ,
+		db->networks_v1 = mmap(NULL, networks_length, PROT_READ,
 			MAP_SHARED, fileno(db->f), networks_offset);
 
-		if (db->networks_v0 == MAP_FAILED)
+		if (db->networks_v1 == MAP_FAILED)
 			return -errno;
 	}
 
-	db->networks_count = networks_length / sizeof(*db->networks_v0);
+	db->networks_count = networks_length / sizeof(*db->networks_v1);
 
 	INFO(db->ctx, "Read %zu networks from the database\n", db->networks_count);
 
 	return 0;
 }
 
-static int loc_database_read_countries_section_v0(struct loc_database* db,
-		const struct loc_database_header_v0* header) {
+static int loc_database_read_countries_section_v1(struct loc_database* db,
+		const struct loc_database_header_v1* header) {
 	off_t countries_offset  = be32toh(header->countries_offset);
 	size_t countries_length = be32toh(header->countries_length);
 
@@ -218,14 +218,14 @@ static int loc_database_read_countries_section_v0(struct loc_database* db,
 		(intmax_t)countries_offset, countries_length);
 
 	if (countries_length > 0) {
-		db->countries_v0 = mmap(NULL, countries_length, PROT_READ,
+		db->countries_v1 = mmap(NULL, countries_length, PROT_READ,
 			MAP_SHARED, fileno(db->f), countries_offset);
 
-		if (db->countries_v0 == MAP_FAILED)
+		if (db->countries_v1 == MAP_FAILED)
 			return -errno;
 	}
 
-	db->countries_count = countries_length / sizeof(*db->countries_v0);
+	db->countries_count = countries_length / sizeof(*db->countries_v1);
 
 	INFO(db->ctx, "Read %zu countries from the database\n",
 		db->countries_count);
@@ -233,8 +233,8 @@ static int loc_database_read_countries_section_v0(struct loc_database* db,
 	return 0;
 }
 
-static int loc_database_read_header_v0(struct loc_database* db) {
-	struct loc_database_header_v0 header;
+static int loc_database_read_header_v1(struct loc_database* db) {
+	struct loc_database_header_v1 header;
 
 	// Read from file
 	size_t size = fread(&header, 1, sizeof(header), db->f);
@@ -277,22 +277,22 @@ static int loc_database_read_header_v0(struct loc_database* db) {
 		return r;
 
 	// AS section
-	r = loc_database_read_as_section_v0(db, &header);
+	r = loc_database_read_as_section_v1(db, &header);
 	if (r)
 		return r;
 
 	// Network Nodes
-	r = loc_database_read_network_nodes_section_v0(db, &header);
+	r = loc_database_read_network_nodes_section_v1(db, &header);
 	if (r)
 		return r;
 
 	// Networks
-	r = loc_database_read_networks_section_v0(db, &header);
+	r = loc_database_read_networks_section_v1(db, &header);
 	if (r)
 		return r;
 
 	// countries
-	r = loc_database_read_countries_section_v0(db, &header);
+	r = loc_database_read_countries_section_v1(db, &header);
 	if (r)
 		return r;
 
@@ -302,7 +302,7 @@ static int loc_database_read_header_v0(struct loc_database* db) {
 static int loc_database_read_header(struct loc_database* db) {
 	switch (db->version) {
 		case 0:
-			return loc_database_read_header_v0(db);
+			return loc_database_read_header_v1(db);
 
 		default:
 			ERROR(db->ctx, "Incompatible database version: %u\n", db->version);
@@ -388,22 +388,22 @@ static void loc_database_free(struct loc_database* db) {
 	DEBUG(db->ctx, "Releasing database %p\n", db);
 
 	// Removing all ASes
-	if (db->as_v0) {
-		r = munmap(db->as_v0, db->as_count * sizeof(*db->as_v0));
+	if (db->as_v1) {
+		r = munmap(db->as_v1, db->as_count * sizeof(*db->as_v1));
 		if (r)
 			ERROR(db->ctx, "Could not unmap AS section: %s\n", strerror(errno));
 	}
 
 	// Remove mapped network sections
-	if (db->networks_v0) {
-		r = munmap(db->networks_v0, db->networks_count * sizeof(*db->networks_v0));
+	if (db->networks_v1) {
+		r = munmap(db->networks_v1, db->networks_count * sizeof(*db->networks_v1));
 		if (r)
 			ERROR(db->ctx, "Could not unmap networks section: %s\n", strerror(errno));
 	}
 
 	// Remove mapped network nodes section
-	if (db->network_nodes_v0) {
-		r = munmap(db->network_nodes_v0, db->network_nodes_count * sizeof(*db->network_nodes_v0));
+	if (db->network_nodes_v1) {
+		r = munmap(db->network_nodes_v1, db->network_nodes_count * sizeof(*db->network_nodes_v1));
 		if (r)
 			ERROR(db->ctx, "Could not unmap network nodes section: %s\n", strerror(errno));
 	}
@@ -482,21 +482,21 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 	}
 
 	// Read the header
-	struct loc_database_header_v0 header_v0;
+	struct loc_database_header_v1 header_v1;
 
 	switch (db->version) {
 		case 0:
-			fread(&header_v0, 1, sizeof(header_v0), db->f);
+			fread(&header_v1, 1, sizeof(header_v1), db->f);
 
 			// Clear signature
-			for (unsigned int i = 0; i < sizeof(header_v0.signature); i++) {
-				header_v0.signature[i] = '\0';
+			for (unsigned int i = 0; i < sizeof(header_v1.signature); i++) {
+				header_v1.signature[i] = '\0';
 			}
 
-			hexdump(db->ctx, &header_v0, sizeof(header_v0));
+			hexdump(db->ctx, &header_v1, sizeof(header_v1));
 
 			// Feed header into the hash
-			r = EVP_DigestVerifyUpdate(mdctx, &header_v0, sizeof(header_v0));
+			r = EVP_DigestVerifyUpdate(mdctx, &header_v1, sizeof(header_v1));
 			if (r != 1) {
 				ERROR(db->ctx, "%s\n", ERR_error_string(ERR_get_error(), NULL));
 				r = 1;
@@ -590,7 +590,7 @@ static int loc_database_fetch_as(struct loc_database* db, struct loc_as** as, of
 	int r;
 	switch (db->version) {
 		case 0:
-			r = loc_as_new_from_database_v0(db->ctx, db->pool, as, db->as_v0 + pos);
+			r = loc_as_new_from_database_v1(db->ctx, db->pool, as, db->as_v1 + pos);
 			break;
 
 		default:
@@ -663,8 +663,8 @@ static int loc_database_fetch_network(struct loc_database* db, struct loc_networ
 	int r;
 	switch (db->version) {
 		case 0:
-			r = loc_network_new_from_database_v0(db->ctx, network,
-				address, prefix, db->networks_v0 + pos);
+			r = loc_network_new_from_database_v1(db->ctx, network,
+				address, prefix, db->networks_v1 + pos);
 			break;
 
 		default:
@@ -680,16 +680,16 @@ static int loc_database_fetch_network(struct loc_database* db, struct loc_networ
 	return r;
 }
 
-static int __loc_database_node_is_leaf(const struct loc_database_network_node_v0* node) {
+static int __loc_database_node_is_leaf(const struct loc_database_network_node_v1* node) {
 	return (node->network != htobe32(0xffffffff));
 }
 
 static int __loc_database_lookup_handle_leaf(struct loc_database* db, const struct in6_addr* address,
 		struct loc_network** network, struct in6_addr* network_address, unsigned int prefix,
-		const struct loc_database_network_node_v0* node) {
+		const struct loc_database_network_node_v1* node) {
 	off_t network_index = be32toh(node->network);
 
-	DEBUG(db->ctx, "Handling leaf node at %jd (%jd)\n", (intmax_t)(node - db->network_nodes_v0), (intmax_t)network_index);
+	DEBUG(db->ctx, "Handling leaf node at %jd (%jd)\n", (intmax_t)(node - db->network_nodes_v1), (intmax_t)network_index);
 
 	// Fetch the network
 	int r = loc_database_fetch_network(db, network,
@@ -716,7 +716,7 @@ static int __loc_database_lookup_handle_leaf(struct loc_database* db, const stru
 // Searches for an exact match along the path
 static int __loc_database_lookup(struct loc_database* db, const struct in6_addr* address,
 		struct loc_network** network, struct in6_addr* network_address,
-		const struct loc_database_network_node_v0* node, unsigned int level) {
+		const struct loc_database_network_node_v1* node, unsigned int level) {
 	int r;
 	off_t node_index;
 
@@ -738,7 +738,7 @@ static int __loc_database_lookup(struct loc_database* db, const struct in6_addr*
 
 		// Move on to the next node
 		r = __loc_database_lookup(db, address, network, network_address,
-			db->network_nodes_v0 + node_index, level + 1);
+			db->network_nodes_v1 + node_index, level + 1);
 
 		// End here if a result was found
 		if (r == 0)
@@ -774,7 +774,7 @@ LOC_EXPORT int loc_database_lookup(struct loc_database* db,
 	clock_t start = clock();
 
 	int r = __loc_database_lookup(db, address, network, &network_address,
-		db->network_nodes_v0, 0);
+		db->network_nodes_v1, 0);
 
 	clock_t end = clock();
 
@@ -807,7 +807,7 @@ static int loc_database_fetch_country(struct loc_database* db,
 	int r;
 	switch (db->version) {
 		case 0:
-			r = loc_country_new_from_database_v0(db->ctx, db->pool, country, db->countries_v0 + pos);
+			r = loc_country_new_from_database_v1(db->ctx, db->pool, country, db->countries_v1 + pos);
 			break;
 
 		default:
@@ -1083,8 +1083,8 @@ LOC_EXPORT int loc_database_enumerator_next_network(
 		enumerator->networks_visited[node->offset]++;
 
 		// Pop node from top of the stack
-		struct loc_database_network_node_v0* n =
-			enumerator->db->network_nodes_v0 + node->offset;
+		struct loc_database_network_node_v1* n =
+			enumerator->db->network_nodes_v1 + node->offset;
 
 		// Add edges to stack
 		r = loc_database_enumerator_stack_push_node(enumerator,

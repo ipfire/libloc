@@ -42,10 +42,10 @@ int loc_country_code_is_valid(const char* cc);
 
 #include <string.h>
 
-int loc_country_new_from_database_v0(struct loc_ctx* ctx, struct loc_stringpool* pool,
-		struct loc_country** country, const struct loc_database_country_v0* dbobj);
-int loc_country_to_database_v0(struct loc_country* country,
-    struct loc_stringpool* pool, struct loc_database_country_v0* dbobj);
+int loc_country_new_from_database_v1(struct loc_ctx* ctx, struct loc_stringpool* pool,
+		struct loc_country** country, const struct loc_database_country_v1* dbobj);
+int loc_country_to_database_v1(struct loc_country* country,
+    struct loc_stringpool* pool, struct loc_database_country_v1* dbobj);
 
 static inline void loc_country_code_copy(char* dst, const char* src) {
     for (unsigned int i = 0; i < 2; i++) {

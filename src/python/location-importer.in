@@ -70,6 +70,7 @@ class CLI(object):
 		write.add_argument("--vendor", nargs="?", help=_("Sets the vendor"))
 		write.add_argument("--description", nargs="?", help=_("Sets a description"))
 		write.add_argument("--license", nargs="?", help=_("Sets the license"))
+		write.add_argument("--version", type=int, help=_("Database Format Version"))
 
 		# Update WHOIS
 		update_whois = subparsers.add_parser("update-whois", help=_("Update WHOIS Information"))

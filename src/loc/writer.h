@@ -22,11 +22,13 @@
 #include <loc/libloc.h>
 #include <loc/as.h>
 #include <loc/country.h>
+#include <loc/database.h>
 #include <loc/network.h>
 
 struct loc_writer;
 
-int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer, FILE* fkey);
+int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer,
+    enum loc_database_version version, FILE* fkey);
 
 struct loc_writer* loc_writer_ref(struct loc_writer* writer);
 struct loc_writer* loc_writer_unref(struct loc_writer* writer);

@@ -118,8 +118,8 @@ LOC_EXPORT int loc_country_cmp(struct loc_country* country1, struct loc_country*
 	return strcmp(country1->code, country2->code);
 }
 
-int loc_country_new_from_database_v0(struct loc_ctx* ctx, struct loc_stringpool* pool,
-		struct loc_country** country, const struct loc_database_country_v0* dbobj) {
+int loc_country_new_from_database_v1(struct loc_ctx* ctx, struct loc_stringpool* pool,
+		struct loc_country** country, const struct loc_database_country_v1* dbobj) {
 	char buffer[3];
 
 	// Read country code
@@ -152,8 +152,8 @@ FAIL:
 	return r;
 }
 
-int loc_country_to_database_v0(struct loc_country* country,
-		struct loc_stringpool* pool, struct loc_database_country_v0* dbobj) {
+int loc_country_to_database_v1(struct loc_country* country,
+		struct loc_stringpool* pool, struct loc_database_country_v1* dbobj) {
 	// Add country code
 	for (unsigned int i = 0; i < 2; i++) {
 		dbobj->code[i] = country->code[i] ? country->code[i] : '\0';

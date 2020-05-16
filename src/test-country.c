@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
 
 	// Create a database
 	struct loc_writer* writer;
-	err = loc_writer_new(ctx, &writer, NULL);
+	err = loc_writer_new(ctx, &writer, LOC_DATABASE_VERSION_LATEST, NULL);
 	if (err < 0)
 		exit(EXIT_FAILURE);
 

@@ -21,12 +21,17 @@
 
 #define LOC_DATABASE_MAGIC      "LOCDBXX"
 
+enum loc_database_version {
+	LOC_DATABASE_VERSION_UNSET = 0,
+	LOC_DATABASE_VERSION_1     = 1,
+};
+
 #ifdef LIBLOC_PRIVATE
 
-#define LOC_DATABASE_VERSION    0
+#define LOC_DATABASE_VERSION_LATEST LOC_DATABASE_VERSION_1
 
 #define STR(x) #x
-#define LOC_DATABASE_DOMAIN_LATEST(version) "_latest._v" STR(version) ".location.ipfire.org"
+#define LOC_DATABASE_DOMAIN(version) "_v" STR(version) "._db.location.ipfire.org"
 
 #define LOC_DATABASE_PAGE_SIZE  4096
 
@@ -39,7 +44,7 @@ struct loc_database_magic {
 	uint8_t version;
 };
 
-struct loc_database_header_v0 {
+struct loc_database_header_v1 {
 	// UNIX timestamp when the database was created
 	uint64_t created_at;
 
@@ -80,14 +85,14 @@ struct loc_database_header_v0 {
 	char padding[32];
 };
 
-struct loc_database_network_node_v0 {
+struct loc_database_network_node_v1 {
 	uint32_t zero;
 	uint32_t one;
 
 	uint32_t network;
 };
 
-struct loc_database_network_v0 {
+struct loc_database_network_v1 {
 	// The start address and prefix will be encoded in the tree
 
 	// The country this network is located in
@@ -103,7 +108,7 @@ struct loc_database_network_v0 {
 	char padding[2];
 };
 
-struct loc_database_as_v0 {
+struct loc_database_as_v1 {
 	// The AS number
 	uint32_t number;
 
@@ -111,7 +116,7 @@ struct loc_database_as_v0 {
 	uint32_t name;
 };
 
-struct loc_database_country_v0 {
+struct loc_database_country_v1 {
 	char code[2];
 	char continent_code[2];
 
