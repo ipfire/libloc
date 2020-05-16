@@ -43,7 +43,8 @@ static int parse_timestamp(const unsigned char* txt, time_t* t) {
     return 0;
 }
 
-LOC_EXPORT int loc_discover_latest_version(struct loc_ctx* ctx, const char* domain, time_t* t) {
+LOC_EXPORT int loc_discover_latest_version(struct loc_ctx* ctx,
+        unsigned int version, time_t* t) {
     // Initialise the resolver
     int r = res_init();
     if (r) {
@@ -51,9 +52,9 @@ LOC_EXPORT int loc_discover_latest_version(struct loc_ctx* ctx, const char* doma
         return r;
     }
 
-    // Fall back to default domain
-    if (!domain)
-        domain = LOC_DATABASE_DOMAIN(LOC_DATABASE_VERSION_LATEST);
+    // Make domain
+    char domain[64];
+    snprintf(domain, 63, LOC_DATABASE_DOMAIN, version);
 
     unsigned char answer[PACKETSZ];
     int len;

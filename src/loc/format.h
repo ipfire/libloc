@@ -26,12 +26,11 @@ enum loc_database_version {
 	LOC_DATABASE_VERSION_1     = 1,
 };
 
-#ifdef LIBLOC_PRIVATE
-
 #define LOC_DATABASE_VERSION_LATEST LOC_DATABASE_VERSION_1
 
-#define STR(x) #x
-#define LOC_DATABASE_DOMAIN(version) "_v" STR(version) "._db.location.ipfire.org"
+#ifdef LIBLOC_PRIVATE
+
+#define LOC_DATABASE_DOMAIN "_v%u._db.location.ipfire.org"
 
 #define LOC_DATABASE_PAGE_SIZE  4096
 

@@ -45,7 +45,8 @@ log = logging.getLogger("location.downloader")
 log.propagate = 1
 
 class Downloader(object):
-	def __init__(self, mirrors):
+	def __init__(self, version, mirrors):
+		self.version = version
 		self.mirrors = list(mirrors)
 
 		# Randomize mirrors
@@ -207,7 +208,10 @@ class Downloader(object):
 
 class CLI(object):
 	def __init__(self):
-		self.downloader = Downloader(mirrors=MIRRORS)
+		# Which version are we downloading?
+		self.version = location.DATABASE_VERSION_LATEST
+
+		self.downloader = Downloader(version=self.version, mirrors=MIRRORS)
 
 	def parse_cli(self):
 		parser = argparse.ArgumentParser(
@@ -274,21 +278,18 @@ class CLI(object):
 		sys.exit(0)
 
 	def handle_update(self, ns):
-		# Fetch the version we need from DNS
-		t = location.discover_latest_version()
+		# Fetch the timestamp we need from DNS
+		t = location.discover_latest_version(self.version)
 
 		# Parse timestamp into datetime format
-		try:
-			timestamp = datetime.datetime.fromtimestamp(t)
-		except:
-			raise
+		timestamp = datetime.datetime.fromtimestamp(t) if t else None
 
 		# Open database
 		try:
 			db = location.Database(ns.database)
 
 			# Check if we are already on the latest version
-			if db.created_at >= timestamp.timestamp():
+			if timestamp and db.created_at >= timestamp.timestamp():
 				log.info("Already on the latest version")
 				return
 
@@ -297,7 +298,7 @@ class CLI(object):
 
 		# Try downloading a new database
 		try:
-			t = self.downloader.download(DATABASE_FILENAME,
+			t = self.downloader.download("%s/%s" % (self.version, DATABASE_FILENAME),
 				public_key=ns.public_key, timestamp=timestamp)
 
 		# If no file could be downloaded, log a message

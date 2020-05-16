@@ -17,6 +17,7 @@
 #include <Python.h>
 #include <syslog.h>
 
+#include <loc/format.h>
 #include <loc/resolv.h>
 
 #include "locationmodule.h"
@@ -49,18 +50,16 @@ static PyObject* set_log_level(PyObject* m, PyObject* args) {
 }
 
 static PyObject* discover_latest_version(PyObject* m, PyObject* args) {
-	const char* domain = NULL;
+	unsigned int version = 0;
 
-	if (!PyArg_ParseTuple(args, "|s", &domain))
+	if (!PyArg_ParseTuple(args, "i", &version))
 		return NULL;
 
 	time_t t = 0;
 
-	int r = loc_discover_latest_version(loc_ctx, domain, &t);
-	if (r) {
-		PyErr_SetFromErrno(PyExc_OSError);
-		return NULL;
-	}
+	int r = loc_discover_latest_version(loc_ctx, version, &t);
+	if (r)
+		Py_RETURN_NONE;
 
 	return PyLong_FromUnsignedLong(t);
 }
@@ -168,6 +167,10 @@ PyMODINIT_FUNC PyInit__location(void) {
 		return NULL;
 
 	if (PyModule_AddIntConstant(m, "NETWORK_FLAG_ANYCAST", LOC_NETWORK_FLAG_ANYCAST))
+		return NULL;
+
+	// Add latest database version
+	if (PyModule_AddIntConstant(m, "DATABASE_VERSION_LATEST", LOC_DATABASE_VERSION_LATEST))
 		return NULL;
 
 	return m;

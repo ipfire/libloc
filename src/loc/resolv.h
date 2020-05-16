@@ -21,6 +21,6 @@
 
 #include <loc/libloc.h>
 
-int loc_discover_latest_version(struct loc_ctx* ctx, const char* domain, time_t* t);
+int loc_discover_latest_version(struct loc_ctx* ctx, unsigned int version, time_t* t);
 
 #endif
