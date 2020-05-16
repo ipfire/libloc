@@ -463,7 +463,6 @@ class CLI(object):
 		server = ns.server[0]
 
 		# Pre-compile regular expression for routes
-		#route = re.compile(b"^\*>?\s[\si]?([^\s]+)[.\s]*?(\d+)\si$", re.MULTILINE)
 		route = re.compile(b"^\*[\s\>]i([^\s]+).+?(\d+)\si\r\n", re.MULTILINE|re.DOTALL)
 
 		with telnetlib.Telnet(server) as t:
