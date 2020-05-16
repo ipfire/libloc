@@ -472,8 +472,10 @@ class CLI(object):
 			#	t.set_debuglevel(10)
 
 			# Wait for console greeting
-			greeting = t.read_until(b"> ")
-			log.debug(greeting.decode())
+			greeting = t.read_until(b"> ", timeout=30)
+			if not greeting:
+				log.error("Could not get a console prompt")
+				return 1
 
 			# Disable pagination
 			t.write(b"terminal length 0\n")
