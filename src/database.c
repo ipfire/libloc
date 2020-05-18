@@ -501,6 +501,7 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 			for (unsigned int i = 0; i < sizeof(header_v1.signature); i++) {
 				header_v1.signature[i] = '\0';
 			}
+			header_v1.signature_length = 0;
 
 			hexdump(db->ctx, &header_v1, sizeof(header_v1));
 
