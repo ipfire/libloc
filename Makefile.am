@@ -9,11 +9,6 @@ BINDINGS =
 
 OS = $(shell uname -s)
 
-DEBIAN_TARBALL_NAME = $(PACKAGE_NAME)_$(PACKAGE_VERSION).orig.tar.xz
-
-CLEANFILES += \
-	$(DEBIAN_TARBALL_NAME)
-
 if ENABLE_PERL
 BINDINGS += perl
 endif
@@ -444,9 +439,22 @@ man/%.html: man/%.txt man/asciidoc.conf
 upload-man: $(MANPAGES_HTML)
 	rsync -avHz --delete --progress $(MANPAGES_HTML) ms@fs01.haj.ipfire.org:/pub/man-pages/$(PACKAGE_NAME)/
 
-$(DEBIAN_TARBALL_NAME): dist
-	cp -v $(distdir).tar.xz $@
+EXTRA_DIST += \
+	debian/autoreconf.after \
+	debian/autoreconf.before \
+	debian/build.sh \
+	debian/changelog \
+	debian/compat \
+	debian/control \
+	debian/copyright \
+	debian/libloc-dev.install \
+	debian/libloc.install \
+	debian/libloc.lintian-overrides \
+	debian/libloc.manpages \
+	debian/libloc-perl.install \
+	debian/rules \
+	debian/source/format
 
 .PHONY: debian
-debian: $(DEBIAN_TARBALL_NAME)
-	debuild -i -us -uc -b
+debian: dist
+	$(SHELL) debian/build.sh $(PACKAGE_NAME)-$(PACKAGE_VERSION) $(distdir).tar.xz
