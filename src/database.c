@@ -485,10 +485,17 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 
 	// Read the header
 	struct loc_database_header_v1 header_v1;
+	size_t bytes_read;
 
 	switch (db->version) {
 		case LOC_DATABASE_VERSION_1:
-			fread(&header_v1, 1, sizeof(header_v1), db->f);
+			bytes_read = fread(&header_v1, 1, sizeof(header_v1), db->f);
+			if (bytes_read < sizeof(header_v1)) {
+				ERROR(db->ctx, "Could not read header\n");
+				r = 1;
+
+				goto CLEANUP;
+			}
 
 			// Clear signature
 			for (unsigned int i = 0; i < sizeof(header_v1.signature); i++) {
@@ -518,7 +525,7 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 	char buffer[64 * 1024];
 
 	while (!feof(db->f)) {
-		size_t bytes_read = fread(buffer, 1, sizeof(buffer), db->f);
+		bytes_read = fread(buffer, 1, sizeof(buffer), db->f);
 
 		hexdump(db->ctx, buffer, bytes_read);
 
