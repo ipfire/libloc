@@ -296,7 +296,8 @@ TESTS = \
 	src/test-database \
 	src/test-as \
 	src/test-network \
-	src/test-country
+	src/test-country \
+	src/test-signature
 
 CLEANFILES += \
 	test.db \
