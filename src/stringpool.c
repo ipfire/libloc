@@ -44,6 +44,67 @@ struct loc_stringpool {
 	char* pos;
 };
 
+static off_t loc_stringpool_get_offset(struct loc_stringpool* pool, const char* pos) {
+	if (pos < pool->data)
+		return -EFAULT;
+
+	if (pos > (pool->data + pool->length))
+		return -EFAULT;
+
+	return pos - pool->data;
+}
+
+static char* __loc_stringpool_get(struct loc_stringpool* pool, off_t offset) {
+	if (offset < 0 || offset >= pool->length)
+		return NULL;
+
+	return pool->data + offset;
+}
+
+static int loc_stringpool_grow(struct loc_stringpool* pool, size_t length) {
+	DEBUG(pool->ctx, "Growing string pool to %zu bytes\n", length);
+
+	// Save pos pointer
+	off_t pos = loc_stringpool_get_offset(pool, pool->pos);
+
+	// Reallocate data section
+	pool->data = realloc(pool->data, length);
+	if (!pool->data)
+		return -ENOMEM;
+
+	pool->length = length;
+
+	// Restore pos
+	pool->pos = __loc_stringpool_get(pool, pos);
+
+	return 0;
+}
+
+static off_t loc_stringpool_append(struct loc_stringpool* pool, const char* string) {
+	if (!string || !*string)
+		return -EINVAL;
+
+	DEBUG(pool->ctx, "Appending '%s' to string pool at %p\n", string, pool);
+
+	// Make sure we have enough space
+	int r = loc_stringpool_grow(pool, pool->length + strlen(string) + 1);
+	if (r) {
+		errno = r;
+		return -1;
+	}
+
+	off_t offset = loc_stringpool_get_offset(pool, pool->pos);
+
+	// Copy string byte by byte
+	while (*string)
+		*pool->pos++ = *string++;
+
+	// Terminate the string
+	*pool->pos++ = '\0';
+
+	return offset;
+}
+
 static int __loc_stringpool_new(struct loc_ctx* ctx, struct loc_stringpool** pool, enum loc_stringpool_mode mode) {
 	struct loc_stringpool* p = calloc(1, sizeof(*p));
 	if (!p)
@@ -61,7 +122,14 @@ static int __loc_stringpool_new(struct loc_ctx* ctx, struct loc_stringpool** poo
 }
 
 LOC_EXPORT int loc_stringpool_new(struct loc_ctx* ctx, struct loc_stringpool** pool) {
-	return __loc_stringpool_new(ctx, pool, STRINGPOOL_DEFAULT);
+	int r = __loc_stringpool_new(ctx, pool, STRINGPOOL_DEFAULT);
+	if (r)
+		return r;
+
+	// Add an empty string to new string pools
+	loc_stringpool_append(*pool, "");
+
+	return r;
 }
 
 static int loc_stringpool_mmap(struct loc_stringpool* pool, FILE* f, size_t length, off_t offset) {
@@ -138,27 +206,10 @@ LOC_EXPORT struct loc_stringpool* loc_stringpool_unref(struct loc_stringpool* po
 	return NULL;
 }
 
-static off_t loc_stringpool_get_offset(struct loc_stringpool* pool, const char* pos) {
-	if (pos < pool->data)
-		return -EFAULT;
-
-	if (pos > (pool->data + pool->length))
-		return -EFAULT;
-
-	return pos - pool->data;
-}
-
 static off_t loc_stringpool_get_next_offset(struct loc_stringpool* pool, off_t offset) {
 	const char* string = loc_stringpool_get(pool, offset);
 
 	return offset + strlen(string) + 1;
-}
-
-static char* __loc_stringpool_get(struct loc_stringpool* pool, off_t offset) {
-	if (offset < 0 || offset >= pool->length)
-		return NULL;
-
-	return pool->data + offset;
 }
 
 LOC_EXPORT const char* loc_stringpool_get(struct loc_stringpool* pool, off_t offset) {
@@ -187,50 +238,6 @@ static off_t loc_stringpool_find(struct loc_stringpool* pool, const char* s) {
 	}
 
 	return -ENOENT;
-}
-
-static int loc_stringpool_grow(struct loc_stringpool* pool, size_t length) {
-	DEBUG(pool->ctx, "Growing string pool to %zu bytes\n", length);
-
-	// Save pos pointer
-	off_t pos = loc_stringpool_get_offset(pool, pool->pos);
-
-	// Reallocate data section
-	pool->data = realloc(pool->data, length);
-	if (!pool->data)
-		return -ENOMEM;
-
-	pool->length = length;
-
-	// Restore pos
-	pool->pos = __loc_stringpool_get(pool, pos);
-
-	return 0;
-}
-
-static off_t loc_stringpool_append(struct loc_stringpool* pool, const char* string) {
-	if (!string || !*string)
-		return -EINVAL;
-
-	DEBUG(pool->ctx, "Appending '%s' to string pool at %p\n", string, pool);
-
-	// Make sure we have enough space
-	int r = loc_stringpool_grow(pool, pool->length + strlen(string) + 1);
-	if (r) {
-		errno = r;
-		return -1;
-	}
-
-	off_t offset = loc_stringpool_get_offset(pool, pool->pos);
-
-	// Copy string byte by byte
-	while (*string)
-		*pool->pos++ = *string++;
-
-	// Terminate the string
-	*pool->pos++ = '\0';
-
-	return offset;
 }
 
 LOC_EXPORT off_t loc_stringpool_add(struct loc_stringpool* pool, const char* string) {
