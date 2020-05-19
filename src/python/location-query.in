@@ -292,7 +292,12 @@ class CLI(object):
 
 			# Print country
 			if network.country_code:
-				print(format % (_("Country"), network.country_code))
+				country = db.get_country(network.country_code)
+
+				print(format % (
+					_("Country"),
+					country.name if country else network.country_code),
+				)
 
 			# Print AS information
 			if network.asn:
