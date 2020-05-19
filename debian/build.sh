@@ -27,13 +27,14 @@ main() {
     local tmp="$(mktemp -d)"
 
     # Extract the sources into it
-    tar xvfa "${sources}" -C "${tmp}"
+    mkdir -p "${tmp}/sources"
+    tar xvfa "${sources}" -C "${tmp}/sources"
 
     # Copy the tarball under the correct Debian name
-    cp -vf "${sources}" "${tmp}/${package//-/_}.orig.tar.xz"
+    cp -vf "${sources}" "${tmp}/sources/${package//-/_}.orig.tar.xz"
 
-    # Change into source directory
-    pushd "${tmp}/${package}"
+    # Change into temporary directory
+    pushd "${tmp}"
 
     # Prepare the build environment
     #if ! debuild -us -uc; then
@@ -45,6 +46,9 @@ main() {
     local release
     for release in ${RELEASES[@]}; do
         local chroot="${release}-${host_arch}-sbuild"
+
+        mkdir -p "${release}"
+        pushd "${release}"
 
         # Create a chroot environment
         if [ ! -d "/etc/sbuild/chroot/${chroot}" ]; then
@@ -58,14 +62,27 @@ main() {
         # And for each architecture we want to support
         local arch
         for arch in ${ARCHITECTURES[@]}; do
+            mkdir -p "${arch}"
+            pushd "${arch}"
+
+            # Copy sources
+            cp -r "${tmp}/sources" .
+
             # Run the build process
-            if ! sbuild --dist="${release}" --host="${arch}"; then
+            if ! sbuild --dist="${release}" --host="${arch}" "sources/${package}"; then
                 echo "Could not build package for ${release} on ${arch}" >&2
                 return 1
             fi
+
+            # Remove the sources
+            rm -rf "sources/${package}"
+            popd
         done
+        popd
     done
 
+    # Remove sources
+    rm -rf "${tmp}/sources"
     popd
 
     # Cleanup
