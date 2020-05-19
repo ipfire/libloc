@@ -3,7 +3,7 @@
 set -x
 
 ARCHITECTURES=( amd64 arm64 i386 armhf )
-RELEASES=( buster )
+RELEASES=( buster unstable )
 
 CHROOT_PATH="/var/tmp"
 
