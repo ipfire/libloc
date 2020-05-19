@@ -38,8 +38,14 @@ int main(int argc, char** argv) {
 	}
 
 	// Open private key
-	FILE* private_key = fopen(ABS_SRCDIR "/examples/private-key.pem", "r");
-	if (!private_key) {
+	FILE* private_key1 = fopen(ABS_SRCDIR "/examples/private-key.pem", "r");
+	if (!private_key1) {
+		fprintf(stderr, "Could not open private key file: %s\n", strerror(errno));
+		exit(EXIT_FAILURE);
+	}
+
+	FILE* private_key2 = fopen(ABS_SRCDIR "/examples/private-key.pem", "r");
+	if (!private_key2) {
 		fprintf(stderr, "Could not open private key file: %s\n", strerror(errno));
 		exit(EXIT_FAILURE);
 	}
@@ -51,7 +57,7 @@ int main(int argc, char** argv) {
 
 	// Create an empty database
 	struct loc_writer* writer;
-	err = loc_writer_new(ctx, &writer, private_key, NULL);
+	err = loc_writer_new(ctx, &writer, private_key1, private_key2);
 	if (err < 0)
 		exit(EXIT_FAILURE);
 
@@ -111,7 +117,8 @@ int main(int argc, char** argv) {
 
 	loc_unref(ctx);
 
-	fclose(private_key);
+	fclose(private_key1);
+	fclose(private_key2);
 	fclose(public_key);
 
 	return EXIT_SUCCESS;
