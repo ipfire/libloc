@@ -36,12 +36,6 @@ main() {
     # Change into temporary directory
     pushd "${tmp}"
 
-    # Prepare the build environment
-    #if ! debuild -us -uc; then
-    #    echo "Could not prepare build environment" >&2
-    #    return 1
-    #fi
-
     # Build the package for each release
     local release
     for release in ${RELEASES[@]}; do
