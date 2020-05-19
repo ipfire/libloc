@@ -75,17 +75,14 @@ struct loc_database_header_v1 {
 	uint32_t pool_offset;
 	uint32_t pool_length;
 
-	// Some padding
-	char padding1[2];
-
 	// Signatures
-	uint32_t signature1_length;
-	uint32_t signature2_length;
+	uint16_t signature1_length;
+	uint16_t signature2_length;
 	char signature1[LOC_SIGNATURE_MAX_LENGTH];
 	char signature2[LOC_SIGNATURE_MAX_LENGTH];
 
 	// Add some padding for future extensions
-	char padding2[32];
+	char padding[32];
 };
 
 struct loc_database_network_node_v1 {

@@ -531,7 +531,7 @@ static int loc_database_write_countries(struct loc_writer* writer,
 static int loc_writer_create_signature(struct loc_writer* writer,
 		struct loc_database_header_v1* header, FILE* f, EVP_PKEY* private_key,
 		char* signature, size_t* length) {
-	DEBUG(writer->ctx, "Signing database...\n");
+	DEBUG(writer->ctx, "Creating signature...\n");
 
 	// Read file from the beginning
 	rewind(f);
@@ -649,8 +649,7 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f, enum loc_dat
 	header.signature2_length = 0;
 
 	// Clear the padding
-	memset(header.padding1, '\0', sizeof(header.padding1));
-	memset(header.padding2, '\0', sizeof(header.padding2));
+	memset(header.padding, '\0', sizeof(header.padding));
 
 	int r;
 	off_t offset = 0;
@@ -718,13 +717,19 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f, enum loc_dat
 
 	// Copy the signatures into the header
 	if (writer->signature1_length) {
+		DEBUG(writer->ctx, "Copying first signature of %zu byte(s)\n",
+			writer->signature1_length);
+
 		memcpy(header.signature1, writer->signature1, writer->signature1_length);
-		header.signature1_length = htobe32(writer->signature1_length);
+		header.signature1_length = htobe16(writer->signature1_length);
 	}
 
 	if (writer->signature2_length) {
+		DEBUG(writer->ctx, "Copying second signature of %zu byte(s)\n",
+			writer->signature1_length);
+
 		memcpy(header.signature2, writer->signature2, writer->signature2_length);
-		header.signature2_length = htobe32(writer->signature2_length);
+		header.signature2_length = htobe16(writer->signature2_length);
 	}
 
 	// Write the header

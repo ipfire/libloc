@@ -274,8 +274,8 @@ static int loc_database_read_header_v1(struct loc_database* db) {
 	db->description = be32toh(header.description);
 	db->license     = be32toh(header.license);
 
-	db->signature1_length = be32toh(header.signature1_length);
-	db->signature2_length = be32toh(header.signature2_length);
+	db->signature1_length = be16toh(header.signature1_length);
+	db->signature2_length = be16toh(header.signature2_length);
 
 	// Read signatures
 	if (db->signature1_length) {
