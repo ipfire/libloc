@@ -26,6 +26,9 @@ or countries.
 	+
 	If this option is omitted, the system's database will be opened.
 
+--quiet::
+	Enable quiet mode
+
 --debug::
 	Enable debugging mode
 
