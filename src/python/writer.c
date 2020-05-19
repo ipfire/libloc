@@ -39,31 +39,56 @@ static void Writer_dealloc(WriterObject* self) {
 }
 
 static int Writer_init(WriterObject* self, PyObject* args, PyObject* kwargs) {
-	PyObject* private_key = NULL;
-	FILE* f = NULL;
+	PyObject* private_key1 = NULL;
+	PyObject* private_key2 = NULL;
+	FILE* f1 = NULL;
+	FILE* f2 = NULL;
+	int fd;
 
 	// Parse arguments
-	if (!PyArg_ParseTuple(args, "|O", &private_key))
+	if (!PyArg_ParseTuple(args, "|OO", &private_key1, &private_key2))
 		return -1;
 
+	// Ignore None
+	if (private_key1 == Py_None) {
+		Py_DECREF(private_key1);
+		private_key1 = NULL;
+	}
+
+	if (private_key2 == Py_None) {
+		Py_DECREF(private_key2);
+		private_key2 = NULL;
+	}
+
 	// Convert into FILE*
-	if (private_key && private_key != Py_None) {
-		int fd = PyObject_AsFileDescriptor(private_key);
+	if (private_key1) {
+		fd = PyObject_AsFileDescriptor(private_key1);
 		if (fd < 0)
 			return -1;
 
 		// Re-open file descriptor
-		f = fdopen(fd, "r");
-		if (!f) {
+		f2 = fdopen(fd, "r");
+		if (!f2) {
+			PyErr_SetFromErrno(PyExc_IOError);
+			return -1;
+		}
+	}
+
+	if (private_key2) {
+		fd = PyObject_AsFileDescriptor(private_key2);
+		if (fd < 0)
+			return -1;
+
+		// Re-open file descriptor
+		f2 = fdopen(fd, "r");
+		if (!f2) {
 			PyErr_SetFromErrno(PyExc_IOError);
 			return -1;
 		}
 	}
 
 	// Create the writer object
-	int r = loc_writer_new(loc_ctx, &self->writer, f, NULL);
-
-	return r;
+	return loc_writer_new(loc_ctx, &self->writer, f1, f2);
 }
 
 static PyObject* Writer_get_vendor(WriterObject* self) {

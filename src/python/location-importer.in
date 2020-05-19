@@ -67,6 +67,7 @@ class CLI(object):
 		write.set_defaults(func=self.handle_write)
 		write.add_argument("file", nargs=1, help=_("Database File"))
 		write.add_argument("--signing-key", nargs="?", type=open, help=_("Signing Key"))
+		write.add_argument("--backup-signing-key", nargs="?", type=open, help=_("Backup Signing Key"))
 		write.add_argument("--vendor", nargs="?", help=_("Sets the vendor"))
 		write.add_argument("--description", nargs="?", help=_("Sets a description"))
 		write.add_argument("--license", nargs="?", help=_("Sets the license"))
@@ -182,7 +183,7 @@ class CLI(object):
 			Compiles a database in libloc format out of what is in the database
 		"""
 		# Allocate a writer
-		writer = location.Writer(ns.signing_key)
+		writer = location.Writer(ns.signing_key, ns.backup_signing_key)
 
 		# Set all metadata
 		if ns.vendor:
