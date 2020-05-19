@@ -50,8 +50,15 @@ struct loc_writer {
 	off_t description;
 	off_t license;
 
-	// Private key to sign any databases
-	EVP_PKEY* private_key;
+	// Private keys to sign any databases
+	EVP_PKEY* private_key1;
+	EVP_PKEY* private_key2;
+
+	// Signatures
+	char signature1[LOC_SIGNATURE_MAX_LENGTH];
+	size_t signature1_length;
+	char signature2[LOC_SIGNATURE_MAX_LENGTH];
+	size_t signature2_length;
 
 	struct loc_as** as;
 	size_t as_count;
@@ -62,16 +69,16 @@ struct loc_writer {
 	struct loc_network_tree* networks;
 };
 
-static int parse_private_key(struct loc_writer* writer, FILE* f) {
+static int parse_private_key(struct loc_writer* writer, EVP_PKEY** private_key, FILE* f) {
 	// Free any previously loaded keys
-	if (writer->private_key)
-		EVP_PKEY_free(writer->private_key);
+	if (*private_key)
+		EVP_PKEY_free(*private_key);
 
 	// Read the key
-	writer->private_key = PEM_read_PrivateKey(f, NULL, NULL, NULL);
+	*private_key = PEM_read_PrivateKey(f, NULL, NULL, NULL);
 
 	// Log any errors
-	if (!writer->private_key) {
+	if (!*private_key) {
 		char* error = ERR_error_string(ERR_get_error(), NULL);
 		ERROR(writer->ctx, "Could not parse private key: %s\n", error);
 
@@ -81,7 +88,8 @@ static int parse_private_key(struct loc_writer* writer, FILE* f) {
 	return 0;
 }
 
-LOC_EXPORT int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer, FILE* fkey) {
+LOC_EXPORT int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer,
+		FILE* fkey1, FILE* fkey2) {
 	struct loc_writer* w = calloc(1, sizeof(*w));
 	if (!w)
 		return -ENOMEM;
@@ -102,9 +110,17 @@ LOC_EXPORT int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer, F
 		return r;
 	}
 
-	// Load the private key to sign databases
-	if (fkey) {
-		r = parse_private_key(w, fkey);
+	// Load the private keys to sign databases
+	if (fkey1) {
+		r = parse_private_key(w, &w->private_key1, fkey1);
+		if (r) {
+			loc_writer_unref(w);
+			return r;
+		}
+	}
+
+	if (fkey2) {
+		r = parse_private_key(w, &w->private_key2, fkey2);
 		if (r) {
 			loc_writer_unref(w);
 			return r;
@@ -124,9 +140,11 @@ LOC_EXPORT struct loc_writer* loc_writer_ref(struct loc_writer* writer) {
 static void loc_writer_free(struct loc_writer* writer) {
 	DEBUG(writer->ctx, "Releasing writer at %p\n", writer);
 
-	// Free private key
-	if (writer->private_key)
-		EVP_PKEY_free(writer->private_key);
+	// Free private keys
+	if (writer->private_key1)
+		EVP_PKEY_free(writer->private_key1);
+	if (writer->private_key2)
+		EVP_PKEY_free(writer->private_key2);
 
 	// Unref all AS
 	for (unsigned int i = 0; i < writer->as_count; i++) {
@@ -511,7 +529,8 @@ static int loc_database_write_countries(struct loc_writer* writer,
 }
 
 static int loc_writer_create_signature(struct loc_writer* writer,
-		struct loc_database_header_v1* header, FILE* f) {
+		struct loc_database_header_v1* header, FILE* f, EVP_PKEY* private_key,
+		char* signature, size_t* length) {
 	DEBUG(writer->ctx, "Signing database...\n");
 
 	// Read file from the beginning
@@ -521,7 +540,7 @@ static int loc_writer_create_signature(struct loc_writer* writer,
 	EVP_MD_CTX* mdctx = EVP_MD_CTX_new();
 
 	// Initialise the context
-	int r = EVP_DigestSignInit(mdctx, NULL, NULL, NULL, writer->private_key);
+	int r = EVP_DigestSignInit(mdctx, NULL, NULL, NULL, private_key);
 	if (r != 1) {
 		ERROR(writer->ctx, "%s\n", ERR_error_string(ERR_get_error(), NULL));
 		goto END;
@@ -568,29 +587,25 @@ static int loc_writer_create_signature(struct loc_writer* writer,
 		r = EVP_DigestSignUpdate(mdctx, buffer, bytes_read);
 		if (r != 1) {
 			ERROR(writer->ctx, "%s\n", ERR_error_string(ERR_get_error(), NULL));
+			r = -1;
 			goto END;
 		}
 	}
 
 	// Compute the signature
-	size_t signature_length = sizeof(header->signature);
-
 	r = EVP_DigestSignFinal(mdctx,
-		(unsigned char*)header->signature, &signature_length);
+		(unsigned char*)signature, length);
 	if (r != 1) {
 		ERROR(writer->ctx, "%s\n", ERR_error_string(ERR_get_error(), NULL));
+		r = -1;
 		goto END;
 	}
 
-	// Save length of the signature
-	header->signature_length = htobe32(signature_length);
-
-	DEBUG(writer->ctx, "Successfully generated signature of %lu bytes\n",
-		signature_length);
+	DEBUG(writer->ctx, "Successfully generated signature of %lu bytes\n", *length);
 	r = 0;
 
 	// Dump signature
-	hexdump(writer->ctx, header->signature, signature_length);
+	hexdump(writer->ctx, signature, *length);
 
 END:
 	EVP_MD_CTX_free(mdctx);
@@ -627,14 +642,15 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f, enum loc_dat
 	time_t now = time(NULL);
 	header.created_at = htobe64(now);
 
-	// Clear the signature
-	header.signature_length = 0;
-	for (unsigned int i = 0; i < sizeof(header.signature); i++)
-		header.signature[i] = '\0';
+	// Clear the signatures
+	memset(header.signature1, '\0', sizeof(header.signature1));
+	header.signature1_length = 0;
+	memset(header.signature2, '\0', sizeof(header.signature2));
+	header.signature2_length = 0;
 
 	// Clear the padding
-	for (unsigned int i = 0; i < sizeof(header.padding); i++)
-		header.padding[i] = '\0';
+	memset(header.padding1, '\0', sizeof(header.padding1));
+	memset(header.padding2, '\0', sizeof(header.padding2));
 
 	int r;
 	off_t offset = 0;
@@ -677,11 +693,38 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f, enum loc_dat
 	if (r)
 		return r;
 
-	// Create the signature
-	if (writer->private_key) {
-		r = loc_writer_create_signature(writer, &header, f);
+	// Create the signatures
+	if (writer->private_key1) {
+		DEBUG(writer->ctx, "Creating signature with first private key\n");
+
+		writer->signature1_length = sizeof(writer->signature1);
+
+		r = loc_writer_create_signature(writer, &header, f,
+			writer->private_key1, writer->signature1, &writer->signature1_length);
 		if (r)
 			return r;
+	}
+
+	if (writer->private_key2) {
+		DEBUG(writer->ctx, "Creating signature with second private key\n");
+
+		writer->signature2_length = sizeof(writer->signature2);
+
+		r = loc_writer_create_signature(writer, &header, f,
+			writer->private_key2, writer->signature2, &writer->signature2_length);
+		if (r)
+			return r;
+	}
+
+	// Copy the signatures into the header
+	if (writer->signature1_length) {
+		memcpy(header.signature1, writer->signature1, writer->signature1_length);
+		header.signature1_length = htobe32(writer->signature1_length);
+	}
+
+	if (writer->signature2_length) {
+		memcpy(header.signature2, writer->signature2, writer->signature2_length);
+		header.signature2_length = htobe32(writer->signature2_length);
 	}
 
 	// Write the header

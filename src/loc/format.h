@@ -32,9 +32,8 @@ enum loc_database_version {
 
 #define LOC_DATABASE_DOMAIN "_v%u._db.location.ipfire.org"
 
-#define LOC_DATABASE_PAGE_SIZE  4096
-
-#define LOC_SIGNATURE_MAX_LENGTH	4096
+#define LOC_DATABASE_PAGE_SIZE		4096
+#define LOC_SIGNATURE_MAX_LENGTH	(LOC_DATABASE_PAGE_SIZE / 2)
 
 struct loc_database_magic {
 	char magic[7];
@@ -76,12 +75,17 @@ struct loc_database_header_v1 {
 	uint32_t pool_offset;
 	uint32_t pool_length;
 
-	// Signature
-	uint32_t signature_length;
-	char signature[LOC_SIGNATURE_MAX_LENGTH];
+	// Some padding
+	char padding1[2];
+
+	// Signatures
+	uint32_t signature1_length;
+	uint32_t signature2_length;
+	char signature1[LOC_SIGNATURE_MAX_LENGTH];
+	char signature2[LOC_SIGNATURE_MAX_LENGTH];
 
 	// Add some padding for future extensions
-	char padding[32];
+	char padding2[32];
 };
 
 struct loc_database_network_node_v1 {

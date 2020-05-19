@@ -61,7 +61,7 @@ static int Writer_init(WriterObject* self, PyObject* args, PyObject* kwargs) {
 	}
 
 	// Create the writer object
-	int r = loc_writer_new(loc_ctx, &self->writer, f);
+	int r = loc_writer_new(loc_ctx, &self->writer, f, NULL);
 
 	return r;
 }

@@ -58,8 +58,11 @@ struct loc_database {
 	off_t description;
 	off_t license;
 
-	char* signature;
-	size_t signature_length;
+	// Signatures
+	char* signature1;
+	size_t signature1_length;
+	char* signature2;
+	size_t signature2_length;
 
 	// ASes in the database
 	struct loc_database_as_v1* as_v1;
@@ -232,8 +235,30 @@ static int loc_database_read_countries_section_v1(struct loc_database* db,
 	return 0;
 }
 
+static int loc_database_read_signature(struct loc_database* db,
+		char** dst, char* src, size_t length) {
+	// Check for a plausible signature length
+	if (length > LOC_SIGNATURE_MAX_LENGTH) {
+		ERROR(db->ctx, "Signature too long: %ld\n", length);
+		return -EINVAL;
+	}
+
+	DEBUG(db->ctx, "Reading signature of %ld bytes\n", length);
+
+	// Allocate space
+	*dst = malloc(length);
+	if (!*dst)
+		return -ENOMEM;
+
+	// Copy payload
+	memcpy(*dst, src, length);
+
+	return 0;
+}
+
 static int loc_database_read_header_v1(struct loc_database* db) {
 	struct loc_database_header_v1 header;
+	int r;
 
 	// Read from file
 	size_t size = fread(&header, 1, sizeof(header), db->f);
@@ -249,28 +274,29 @@ static int loc_database_read_header_v1(struct loc_database* db) {
 	db->description = be32toh(header.description);
 	db->license     = be32toh(header.license);
 
-	// Read signature
-	db->signature_length = be32toh(header.signature_length);
-	if (db->signature_length) {
-		// Check for a plausible signature length
-		if (db->signature_length > LOC_SIGNATURE_MAX_LENGTH) {
-			ERROR(db->ctx, "Signature too long: %ld\n", db->signature_length);
-			return -EINVAL;
-		}
+	db->signature1_length = be32toh(header.signature1_length);
+	db->signature2_length = be32toh(header.signature2_length);
 
-		DEBUG(db->ctx, "Reading signature of %ld bytes\n",
-			db->signature_length);
+	// Read signatures
+	if (db->signature1_length) {
+		r = loc_database_read_signature(db, &db->signature1,
+			header.signature1, db->signature1_length);
+		if (r)
+			return r;
+	}
 
-		db->signature = malloc(db->signature_length);
-		for (unsigned int i = 0; i < db->signature_length; i++)
-			db->signature[i] = header.signature[i];
+	if (db->signature2_length) {
+		r = loc_database_read_signature(db, &db->signature2,
+			header.signature2, db->signature2_length);
+		if (r)
+			return r;
 	}
 
 	// Open pool
 	off_t pool_offset  = be32toh(header.pool_offset);
 	size_t pool_length = be32toh(header.pool_length);
 
-	int r = loc_stringpool_open(db->ctx, &db->pool,
+	r = loc_stringpool_open(db->ctx, &db->pool,
 		db->f, pool_length, pool_offset);
 	if (r)
 		return r;
@@ -413,8 +439,10 @@ static void loc_database_free(struct loc_database* db) {
 		loc_stringpool_unref(db->pool);
 
 	// Free signature
-	if (db->signature)
-		free(db->signature);
+	if (db->signature1)
+		free(db->signature1);
+	if (db->signature2)
+		free(db->signature2);
 
 	// Close database file
 	if (db->f)
@@ -434,7 +462,7 @@ LOC_EXPORT struct loc_database* loc_database_unref(struct loc_database* db) {
 
 LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 	// Cannot do this when no signature is available
-	if (!db->signature) {
+	if (!db->signature1 && !db->signature2) {
 		DEBUG(db->ctx, "No signature available to verify\n");
 		return 1;
 	}
@@ -497,11 +525,11 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 				goto CLEANUP;
 			}
 
-			// Clear signature
-			for (unsigned int i = 0; i < sizeof(header_v1.signature); i++) {
-				header_v1.signature[i] = '\0';
-			}
-			header_v1.signature_length = 0;
+			// Clear signatures
+			memset(header_v1.signature1, '\0', sizeof(header_v1.signature1));
+			header_v1.signature1_length = 0;
+			memset(header_v1.signature2, '\0', sizeof(header_v1.signature2));
+			header_v1.signature2_length = 0;
 
 			hexdump(db->ctx, &header_v1, sizeof(header_v1));
 
@@ -539,24 +567,45 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 		}
 	}
 
-	// Finish
-	r = EVP_DigestVerifyFinal(mdctx,
-		(unsigned char*)db->signature, db->signature_length);
+	// Check first signature
+	if (db->signature1) {
+		hexdump(db->ctx, db->signature1, db->signature1_length);
 
-	if (r == 0) {
-		DEBUG(db->ctx, "The signature is invalid\n");
-		r = 1;
-	} else if (r == 1) {
-		DEBUG(db->ctx, "The signature is valid\n");
-		r = 0;
-	} else {
-		ERROR(db->ctx, "Error verifying the signature: %s\n",
-			ERR_error_string(ERR_get_error(), NULL));
-		r = 1;
+		r = EVP_DigestVerifyFinal(mdctx,
+			(unsigned char*)db->signature1, db->signature1_length);
+
+		if (r == 0) {
+			DEBUG(db->ctx, "The first signature is invalid\n");
+			r = 1;
+		} else if (r == 1) {
+			DEBUG(db->ctx, "The first signature is valid\n");
+			r = 0;
+		} else {
+			ERROR(db->ctx, "Error verifying the first signature: %s\n",
+				ERR_error_string(ERR_get_error(), NULL));
+			r = -1;
+		}
 	}
 
-	// Dump signature
-	hexdump(db->ctx, db->signature, db->signature_length);
+	// Check second signature only when the first one was invalid
+	if (r && db->signature2) {
+		hexdump(db->ctx, db->signature2, db->signature2_length);
+
+		r = EVP_DigestVerifyFinal(mdctx,
+			(unsigned char*)db->signature2, db->signature2_length);
+
+		if (r == 0) {
+			DEBUG(db->ctx, "The second signature is invalid\n");
+			r = 1;
+		} else if (r == 1) {
+			DEBUG(db->ctx, "The second signature is valid\n");
+			r = 0;
+		} else {
+			ERROR(db->ctx, "Error verifying the second signature: %s\n",
+				ERR_error_string(ERR_get_error(), NULL));
+			r = -1;
+		}
+	}
 
 	clock_t end = clock();
 	DEBUG(db->ctx, "Signature checked in %.4fms\n",

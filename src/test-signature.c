@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
 
 	// Create an empty database
 	struct loc_writer* writer;
-	err = loc_writer_new(ctx, &writer, private_key);
+	err = loc_writer_new(ctx, &writer, private_key, NULL);
 	if (err < 0)
 		exit(EXIT_FAILURE);
 
