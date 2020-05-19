@@ -27,7 +27,6 @@ Architecture: any
 Pre-Depends:
  ${misc:Pre-Depends}
 Depends:
- perl,
  ${shlibs:Depends},
  ${misc:Depends},
  ${python3:Depends},
@@ -47,14 +46,3 @@ Multi-Arch: same
 Description: Development files for libloc.
  Install this package if you wish to develop your own programs using
  libloc.
-
-Package: libloc-perl
-Architecture: any
-Section: perl
-Depends:
- ${misc:Depends},
- ${perl:Depends},
- ${shlibs:Depends}
-Multi-Arch: same
-Description: Perl bindings for libloc
- This package contains simple perl bindings for libloc.
