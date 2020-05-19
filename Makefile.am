@@ -440,8 +440,6 @@ upload-man: $(MANPAGES_HTML)
 	rsync -avHz --delete --progress $(MANPAGES_HTML) ms@fs01.haj.ipfire.org:/pub/man-pages/$(PACKAGE_NAME)/
 
 EXTRA_DIST += \
-	debian/autoreconf.after \
-	debian/autoreconf.before \
 	debian/build.sh \
 	debian/changelog \
 	debian/compat \
