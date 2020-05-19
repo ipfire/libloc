@@ -372,7 +372,7 @@ class CLI(object):
 				f.write(format % ("country:", n.country_code))
 
 			if n.asn:
-				f.write(format % ("autnum:", n.asn))
+				f.write(format % ("aut-num:", n.asn))
 
 			# Print all flags
 			for flag in flags:
