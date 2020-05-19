@@ -63,7 +63,7 @@ main() {
             cp -r "${tmp}/sources" .
 
             # Run the build process
-            if ! sbuild --dist="${release}" --host="${arch}" "sources/${package}"; then
+            if ! sbuild --dist="${release}" --host="${arch}" --source "sources/${package}"; then
                 echo "Could not build package for ${release} on ${arch}" >&2
                 return 1
             fi
