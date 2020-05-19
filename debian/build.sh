@@ -13,6 +13,13 @@ main() {
         return 2
     fi
 
+    # Get host architecture
+    local host_arch="$(dpkg --print-architecture)"
+    if [ -z "${host_arch}" ]; then
+        echo "Could not discover host architecture" >&2
+        return 1
+    fi
+
     local package="${1}"
     local sources="${2}"
 
@@ -37,20 +44,20 @@ main() {
     # Build the package for each release
     local release
     for release in ${RELEASES[@]}; do
+        local chroot="${release}-${host_arch}-sbuild"
+
+        # Create a chroot environment
+        if [ ! -d "/etc/sbuild/chroot/${chroot}" ]; then
+            if ! sbuild-createchroot --arch="${host_arch}" "${release}" \
+                    "${CHROOT_PATH}/${chroot}"; then
+                echo "Could not create chroot for ${release} on ${host_arch}" >&2
+                return 1
+            fi
+        fi
+
         # And for each architecture we want to support
         local arch
         for arch in ${ARCHITECTURES[@]}; do
-            local chroot="${release}-${arch}-sbuild"
-
-            # Create a chroot environment
-            if [ ! -d "/etc/sbuild/chroot/${chroot}" ]; then
-                if ! sbuild-createchroot --arch="${arch}" "${release}" \
-                        "${CHROOT_PATH}/${chroot}"; then
-                    echo "Could not create chroot for ${release} on ${arch}" >&2
-                    return 1
-                fi
-            fi
-
             # Run the build process
             if ! sbuild --dist="${release}" --host="${arch}"; then
                 echo "Could not build package for ${release} on ${arch}" >&2
