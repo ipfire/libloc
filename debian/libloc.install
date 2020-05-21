@@ -6,3 +6,4 @@ usr/lib/python3*/dist-packages
 usr/lib/python3*/lib-dynload/*.so
 src/systemd/*.service		/lib/systemd/system/
 src/systemd/*.timer		/lib/systemd/system/
+var/lib/location/signing-key.pem
