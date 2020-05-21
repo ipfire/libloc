@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-import location
+import _location as location
 import os
 import sys
 
