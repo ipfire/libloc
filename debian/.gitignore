@@ -4,6 +4,7 @@
 /files
 /libloc/
 /libloc-dev/
+/libloc-perl/
 /tmp
 *.debhelper
 *.substvars

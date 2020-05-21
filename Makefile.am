@@ -449,6 +449,7 @@ EXTRA_DIST += \
 	debian/libloc.install \
 	debian/libloc.lintian-overrides \
 	debian/libloc.manpages \
+	debian/libloc-perl.install \
 	debian/rules \
 	debian/source/format
 
