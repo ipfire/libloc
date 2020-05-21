@@ -14,3 +14,6 @@ override_dh_auto_configure:
 
 override_dh_perl:
 	dh_perl -d
+
+override_dh_systemd_enable:
+	dh_systemd_enable location-downloader.timer
