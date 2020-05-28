@@ -295,7 +295,6 @@ TESTS = \
 	src/test-signature
 
 CLEANFILES += \
-	test.db \
 	testdata.db
 
 testdata.db: examples/python/create-database.py

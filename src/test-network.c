@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
 	// Set ASN
 	loc_network_set_asn(network4, 1024);
 
-	FILE* f = fopen("test.db", "w+");
+	FILE* f = tmpfile();
 	if (!f) {
 		fprintf(stderr, "Could not open file for writing: %s\n", strerror(errno));
 		exit(EXIT_FAILURE);
@@ -131,8 +131,6 @@ int main(int argc, char** argv) {
 		fprintf(stderr, "Could not write database: %s\n", strerror(-err));
 		exit(EXIT_FAILURE);
 	}
-	fclose(f);
-
 	loc_writer_unref(writer);
 
 	loc_network_unref(network1);
@@ -142,12 +140,6 @@ int main(int argc, char** argv) {
 	loc_network_tree_unref(tree);
 
 	// And open it again from disk
-	f = fopen("test.db", "r");
-	if (!f) {
-		fprintf(stderr, "Could not open file for reading: %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-
 	struct loc_database* db;
 	err = loc_database_new(ctx, &db, f);
 	if (err) {
@@ -172,6 +164,7 @@ int main(int argc, char** argv) {
 	loc_network_unref(network1);
 
 	loc_unref(ctx);
+	fclose(f);
 
 	return EXIT_SUCCESS;
 }

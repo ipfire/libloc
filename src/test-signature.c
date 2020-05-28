@@ -61,7 +61,7 @@ int main(int argc, char** argv) {
 	if (err < 0)
 		exit(EXIT_FAILURE);
 
-	FILE* f = fopen("test.db", "w+");
+	FILE* f = tmpfile();
 	if (!f) {
 		fprintf(stderr, "Could not open file for writing: %s\n", strerror(errno));
 		exit(EXIT_FAILURE);
@@ -74,16 +74,7 @@ int main(int argc, char** argv) {
 	}
 	loc_writer_unref(writer);
 
-	// Close the file
-	fclose(f);
-
 	// And open it again from disk
-	f = fopen("test.db", "r");
-	if (!f) {
-		fprintf(stderr, "Could not open file for reading: %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-
 	struct loc_database* db;
 	err = loc_database_new(ctx, &db, f);
 	if (err) {
@@ -114,8 +105,8 @@ int main(int argc, char** argv) {
 
 	// Close the database
 	loc_database_unref(db);
-
 	loc_unref(ctx);
+	fclose(f);
 
 	fclose(private_key1);
 	fclose(private_key2);

@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
 		loc_as_unref(as);
 	}
 
-	FILE* f = fopen("test.db", "w+");
+	FILE* f = tmpfile();
 	if (!f) {
 		fprintf(stderr, "Could not open file for writing: %s\n", strerror(errno));
 		exit(EXIT_FAILURE);
@@ -60,17 +60,10 @@ int main(int argc, char** argv) {
 		fprintf(stderr, "Could not write database: %s\n", strerror(-err));
 		exit(EXIT_FAILURE);
 	}
-	fclose(f);
 
 	loc_writer_unref(writer);
 
 	// And open it again from disk
-	f = fopen("test.db", "r");
-	if (!f) {
-		fprintf(stderr, "Could not open file for reading: %s\n", strerror(errno));
-		exit(EXIT_FAILURE);
-	}
-
 	struct loc_database* db;
 	err = loc_database_new(ctx, &db, f);
 	if (err) {
@@ -125,6 +118,7 @@ int main(int argc, char** argv) {
 	loc_database_enumerator_unref(enumerator);
 	loc_database_unref(db);
 	loc_unref(ctx);
+	fclose(f);
 
 	return EXIT_SUCCESS;
 }
