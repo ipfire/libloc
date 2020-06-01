@@ -24,6 +24,7 @@ import lzma
 import os
 import random
 import shutil
+import stat
 import sys
 import tempfile
 import time
@@ -116,7 +117,7 @@ class Downloader(object):
 
 		return res
 
-	def download(self, url, public_key, timestamp=None, **kwargs):
+	def download(self, url, public_key, timestamp=None, tmpdir=None, **kwargs):
 		headers = {}
 
 		if timestamp:
@@ -124,7 +125,7 @@ class Downloader(object):
 				"%a, %d %b %Y %H:%M:%S GMT",
 			)
 
-		t = tempfile.NamedTemporaryFile(delete=False)
+		t = tempfile.NamedTemporaryFile(dir=tmpdir, delete=False)
 		with t:
 			# Try all mirrors
 			for mirror in self.mirrors:
@@ -174,6 +175,9 @@ class Downloader(object):
 						# Throw away the data and try again
 						t.truncate()
 						continue
+
+					# Make the file readable for everyone
+					os.chmod(t.name, stat.S_IRUSR|stat.S_IRGRP|stat.S_IROTH)
 
 					# Return temporary file
 					return t
@@ -296,10 +300,13 @@ class CLI(object):
 		except FileNotFoundError as e:
 			db = None
 
+		# Download the database into the correct directory
+		tmpdir = os.path.dirname(ns.database)
+
 		# Try downloading a new database
 		try:
 			t = self.downloader.download("%s/%s" % (self.version, DATABASE_FILENAME),
-				public_key=ns.public_key, timestamp=timestamp)
+				public_key=ns.public_key, timestamp=timestamp, tmpdir=tmpdir)
 
 		# If no file could be downloaded, log a message
 		except FileNotFoundError as e:
@@ -310,11 +317,8 @@ class CLI(object):
 		if not t:
 			return 3
 
-		# Write temporary file to destination
-		shutil.copyfile(t.name, ns.database)
-
-		# Remove temporary file
-		os.unlink(t.name)
+		# Move temporary file to destination
+		shutil.move(t.name, ns.database)
 
 		return 0
 
