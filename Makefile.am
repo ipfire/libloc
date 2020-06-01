@@ -54,10 +54,6 @@ SED_PROCESS = \
 databasedir = $(localstatedir)/lib/location
 pkgconfigdir = $(libdir)/pkgconfig
 
-# XXX hardcode path for Debian
-pythondir = $(prefix)/lib/python3/dist-packages
-pyexecdir = $(prefix)/lib/python$(PYTHON_VERSION)/lib-dynload
-
 # Overwrite Python path
 pkgpythondir = $(pythondir)/location
 

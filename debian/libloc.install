@@ -2,8 +2,7 @@ usr/bin/location-downloader
 usr/bin/location-exporter
 usr/bin/location-query
 usr/lib/*/libloc.so.*
-usr/lib/python3*/dist-packages
-usr/lib/python3*/lib-dynload/*.so
+usr/lib/python3*/site-packages
 src/systemd/*.service		/lib/systemd/system/
 src/systemd/*.timer		/lib/systemd/system/
 var/lib/location/signing-key.pem
