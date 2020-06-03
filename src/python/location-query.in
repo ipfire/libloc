@@ -246,7 +246,13 @@ class CLI(object):
 				args.family = 0
 
 		# Call function
-		ret = args.func(db, args)
+		try:
+			ret = args.func(db, args)
+
+		# Catch invalid inputs
+		except ValueError as e:
+			sys.stderr.write("%s\n" % e)
+			ret = 2
 
 		# Return with exit code
 		if ret:
@@ -450,6 +456,9 @@ class CLI(object):
 
 		if ns.anycast:
 			flags |= location.NETWORK_FLAG_ANYCAST
+
+		if not flags:
+			raise ValueError(_("You must at least pass one flag"))
 
 		with self.__get_output_formatter(ns) as f:
 			for n in db.search_networks(flags=flags, family=ns.family):
