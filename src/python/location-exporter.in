@@ -22,6 +22,7 @@ import io
 import ipaddress
 import logging
 import os.path
+import re
 import socket
 import sys
 
@@ -258,12 +259,9 @@ class CLI(object):
 			families = [ socket.AF_INET6, socket.AF_INET ]
 
 		for object in ns.objects:
-			if object.startswith("AS"):
-				try:
-					object = int(object[2:])
-				except ValueError:
-					log.error("Invalid argument: %s" % object)
-					return 2
+			m = re.match("^AS(\d+)$", object)
+			if m:
+				object = int(m.group(1))
 
 				asns.append(object)
 
