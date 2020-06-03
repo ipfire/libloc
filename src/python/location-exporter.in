@@ -270,8 +270,12 @@ class CLI(object):
 				countries.append(object)
 
 			else:
-				log.error("Invalid argument: %s" % object)
-				return 2
+				log.warning("Invalid argument: %s" % object)
+				continue
+
+		if not countries and not asns:
+			log.error("Nothing to export")
+			return 2
 
 		# Open the database
 		try:
