@@ -1,6 +1,7 @@
 *.db
 *.db.xz
 *.log
+*.mo
 *.o
 *.tar.xz
 .deps/

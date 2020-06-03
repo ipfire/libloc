@@ -31,6 +31,10 @@ AC_PREFIX_DEFAULT([/usr])
 gl_LD_VERSION_SCRIPT
 
 IT_PROG_INTLTOOL([0.40.0])
+
+# Interpret embedded Python in HTML files
+XGETTEXT="${XGETTEXT} -L Python --keyword=_:1,2 --keyword=N_:1,2 --no-location"
+
 GETTEXT_PACKAGE=${PACKAGE_TARNAME}
 AC_SUBST(GETTEXT_PACKAGE)
 

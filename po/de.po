@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libloc 0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2019-11-17 14:56+0000\n"
+"POT-Creation-Date: 2020-06-03 19:00+0000\n"
 "PO-Revision-Date: 2018-02-01 14:05+0000\n"
 "Last-Translator: Michael Tremer <michael.tremer@ipfire.org>\n"
 "Language-Team: German\n"
@@ -17,81 +17,193 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "Plural-Forms: nplurals=2; plural=(n != 1);\n"
 
-#: ../src/python/location-query.in:124
-msgid "Location Database Command Line Interface"
+msgid "Location Importer Command Line Interface"
 msgstr ""
 
-#: ../src/python/location-query.in:130
 msgid "Enable debug output"
 msgstr ""
 
-#: ../src/python/location-query.in:138
+msgid "Enable quiet mode"
+msgstr ""
+
+msgid "Database Hostname"
+msgstr ""
+
+msgid "HOST"
+msgstr ""
+
+msgid "Database Name"
+msgstr ""
+
+msgid "NAME"
+msgstr ""
+
+msgid "Database Username"
+msgstr ""
+
+msgid "USERNAME"
+msgstr ""
+
+msgid "Database Password"
+msgstr ""
+
+msgid "PASSWORD"
+msgstr ""
+
+#. Write Database
+msgid "Write database to file"
+msgstr ""
+
+msgid "Database File"
+msgstr ""
+
+msgid "Signing Key"
+msgstr ""
+
+msgid "Backup Signing Key"
+msgstr ""
+
+msgid "Sets the vendor"
+msgstr ""
+
+msgid "Sets a description"
+msgstr ""
+
+msgid "Sets the license"
+msgstr ""
+
+msgid "Database Format Version"
+msgstr ""
+
+#. Update WHOIS
+msgid "Update WHOIS Information"
+msgstr ""
+
+msgid "Update BGP Annoucements"
+msgstr ""
+
+msgid "Route Server to connect to"
+msgstr ""
+
+msgid "SERVER"
+msgstr ""
+
+msgid "Update overrides"
+msgstr ""
+
+msgid "Files to import"
+msgstr ""
+
+msgid "Import countries"
+msgstr ""
+
+msgid "File to import"
+msgstr ""
+
+msgid "Location Database Command Line Interface"
+msgstr ""
+
 msgid "Path to database"
 msgstr ""
 
-#: ../src/python/location-query.in:143
+msgid "Public Signing Key"
+msgstr ""
+
+msgid "Show database version"
+msgstr ""
+
 msgid "Lookup one or multiple IP addresses"
 msgstr ""
 
-#: ../src/python/location-query.in:150
+msgid "Dump the entire database"
+msgstr ""
+
+#. Update
+msgid "Update database"
+msgstr ""
+
+msgid "Verify the downloaded database"
+msgstr ""
+
 msgid "Get information about one or multiple Autonomous Systems"
 msgstr ""
 
-#: ../src/python/location-query.in:157
 msgid "Search for Autonomous Systems that match the string"
 msgstr ""
 
-#: ../src/python/location-query.in:164
 msgid "Lists all networks in an AS"
 msgstr ""
 
-#: ../src/python/location-query.in:173
 msgid "Lists all networks in a country"
 msgstr ""
 
-#: ../src/python/location-query.in:182
 msgid "Lists all networks with flags"
 msgstr ""
 
-#: ../src/python/location-query.in:185
 msgid "Anonymous Proxies"
 msgstr ""
 
-#: ../src/python/location-query.in:188
 msgid "Satellite Providers"
 msgstr ""
 
-#: ../src/python/location-query.in:191
 msgid "Anycasts"
 msgstr ""
 
-#: ../src/python/location-query.in:235
-#, c-format
+msgid "Exports data in many formats to load it into packet filters"
+msgstr ""
+
+msgid "Output format"
+msgstr ""
+
+msgid "Output directory"
+msgstr ""
+
+msgid "Specify address family"
+msgstr ""
+
+msgid "List country codes or ASNs to export"
+msgstr ""
+
+#, python-format
 msgid "Invalid IP address: %s"
 msgstr ""
 
-#: ../src/python/location-query.in:244
+#, python-format
 msgid "Nothing found for %(address)s"
 msgstr ""
 
-#: ../src/python/location-query.in:258
-msgid "%(address)s belongs to %(network)s which is a part of %(as)s"
+msgid "Network"
 msgstr ""
 
-#: ../src/python/location-query.in:261
-msgid "%(address)s belongs to %(network)s"
+msgid "Country"
 msgstr ""
 
-#: ../src/python/location-query.in:275
-#, c-format
+msgid "Autonomous System"
+msgstr ""
+
+msgid "Anonymous Proxy"
+msgstr ""
+
+msgid "yes"
+msgstr ""
+
+msgid "Satellite Provider"
+msgstr ""
+
+msgid "Anycast"
+msgstr ""
+
+#, python-format
 msgid "Invalid ASN: %s"
 msgstr ""
 
-#: ../src/python/location-query.in:284
-#, c-format
+#, python-format
 msgid "Could not find AS%s"
 msgstr ""
 
-#: ../src/python/location-query.in:288
+#, python-format
 msgid "AS%(asn)s belongs to %(name)s"
+msgstr ""
+
+msgid "You must at least pass one flag"
 msgstr ""

@@ -78,8 +78,12 @@ AM_V_XSLT_0 = @echo "  XSLT    " $@;
 # ------------------------------------------------------------------------------
 
 .PHONY: update-po
-update-po:
+update-po: po/POTFILES.in
 	$(MAKE) -C po update-po
+
+po/POTFILES.in: Makefile
+	find $(abs_srcdir)/src | \
+		grep -E "\.(in|py)$$" | sed -e "s@$(abs_srcdir)/@@g" | sort > $@
 
 EXTRA_DIST += \
 	examples/private-key.pem \

@@ -1,1 +1,12 @@
-src/python/location-query.in
+src/libloc.pc.in
+src/python/database.py
+src/python/downloader.py
+src/python/export.py
+src/python/i18n.py
+src/python/importer.py
+src/python/__init__.py
+src/python/location-importer.in
+src/python/location.in
+src/python/logger.py
+src/systemd/location-update.service.in
+src/systemd/location-update.timer.in
