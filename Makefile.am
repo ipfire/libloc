@@ -150,6 +150,7 @@ dist_pkgpython_PYTHON = \
 	src/python/__init__.py \
 	src/python/database.py \
 	src/python/downloader.py \
+	src/python/export.py \
 	src/python/i18n.py \
 	src/python/importer.py \
 	src/python/logger.py
@@ -239,17 +240,14 @@ uninstall-perl:
 
 bin_SCRIPTS = \
 	src/python/location \
-	src/python/location-exporter \
 	src/python/location-importer
 
 EXTRA_DIST += \
 	src/python/location.in \
-	src/python/location-exporter.in \
 	src/python/location-importer.in
 
 CLEANFILES += \
 	src/python/location \
-	src/python/location-exporter \
 	src/python/location-importer
 
 # ------------------------------------------------------------------------------
