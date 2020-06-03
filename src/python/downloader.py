@@ -71,7 +71,7 @@ class Downloader(object):
 
 		# Update headers
 		headers.update({
-			"User-Agent" : "location-downloader/@VERSION@",
+			"User-Agent" : "location/@VERSION@",
 		})
 
 		# Set headers
