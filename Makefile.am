@@ -256,8 +256,8 @@ CLEANFILES += \
 
 if HAVE_SYSTEMD
 systemdsystemunit_DATA = \
-	src/systemd/location-downloader.service \
-	src/systemd/location-downloader.timer
+	src/systemd/location-update.service \
+	src/systemd/location-update.timer
 
 CLEANFILES += \
 	$(systemdsystemunit_DATA)
@@ -267,8 +267,8 @@ INSTALL_DIRS += \
 endif
 
 EXTRA_DIST += \
-	src/systemd/location-downloader.service.in \
-	src/systemd/location-downloader.timer.in
+	src/systemd/location-update.service.in \
+	src/systemd/location-update.timer.in
 
 # ------------------------------------------------------------------------------
 

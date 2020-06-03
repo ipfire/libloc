@@ -4,4 +4,4 @@ Requires=network.target
 
 [Service]
 Type=oneshot
-ExecStart=@bindir@/location-downloader update
+ExecStart=@bindir@/location-query update

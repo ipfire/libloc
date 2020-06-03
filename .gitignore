@@ -18,7 +18,7 @@ Makefile.in
 /src/python/location-exporter
 /src/python/location-importer
 /src/python/location-query
-/src/systemd/location-downloader.service
-/src/systemd/location-downloader.timer
+/src/systemd/location-update.service
+/src/systemd/location-update.timer
 /test.db
 /testdata.db

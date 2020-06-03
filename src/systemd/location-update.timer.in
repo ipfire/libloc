@@ -1,5 +1,5 @@
 [Unit]
-Description=Update location database once a day
+Description=Update the location database once a day
 
 [Timer]
 OnCalendar=daily
