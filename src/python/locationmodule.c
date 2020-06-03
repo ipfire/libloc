@@ -50,9 +50,9 @@ static PyObject* set_log_level(PyObject* m, PyObject* args) {
 }
 
 static PyObject* discover_latest_version(PyObject* m, PyObject* args) {
-	unsigned int version = 0;
+	unsigned int version = LOC_DATABASE_VERSION_LATEST;
 
-	if (!PyArg_ParseTuple(args, "i", &version))
+	if (!PyArg_ParseTuple(args, "|i", &version))
 		return NULL;
 
 	time_t t = 0;

@@ -18,15 +18,22 @@
 ###############################################################################
 
 import argparse
+import datetime
 import ipaddress
+import logging
 import os
+import shutil
 import socket
 import sys
 import time
 
 # Load our location module
 import location
+import location.downloader
 from location.i18n import _
+
+# Setup logging
+log = logging.getLogger("location")
 
 # Output formatters
 
@@ -156,6 +163,15 @@ class CLI(object):
 		)
 		dump.add_argument("output", nargs="?", type=argparse.FileType("w"))
 		dump.set_defaults(func=self.handle_dump)
+
+		# Update
+		update = subparsers.add_parser("update", help=_("Update database"))
+		update.set_defaults(func=self.handle_update)
+
+		# Verify
+		verify = subparsers.add_parser("verify",
+			help=_("Verify the downloaded database"))
+		verify.set_defaults(func=self.handle_verify)
 
 		# Get AS
 		get_as = subparsers.add_parser("get-as",
@@ -422,6 +438,59 @@ class CLI(object):
 			# Print all matches ASes
 			for a in db.search_as(query):
 				print(a)
+
+	def handle_update(self, db, ns):
+		# Fetch the timestamp we need from DNS
+		t = location.discover_latest_version()
+
+		# Parse timestamp into datetime format
+		timestamp = datetime.datetime.fromtimestamp(t) if t else None
+
+		# Check the version of the local database
+		if db and timestamp and db.created_at >= timestamp.timestamp():
+			log.info("Already on the latest version")
+			return
+
+		# Download the database into the correct directory
+		tmpdir = os.path.dirname(ns.database)
+
+		# Create a downloader
+		d = location.downloader.Downloader()
+
+		# Try downloading a new database
+		try:
+			t = d.download(public_key=ns.public_key, timestamp=timestamp, tmpdir=tmpdir)
+
+		# If no file could be downloaded, log a message
+		except FileNotFoundError as e:
+			log.error("Could not download a new database")
+			return 1
+
+		# If we have not received a new file, there is nothing to do
+		if not t:
+			return 3
+
+		# Move temporary file to destination
+		shutil.move(t.name, ns.database)
+
+		return 0
+
+	def handle_verify(self, ns):
+		try:
+			db = location.Database(ns.database)
+		except FileNotFoundError as e:
+			log.error("%s: %s" % (ns.database, e))
+			return 127
+
+		# Verify the database
+		with open(ns.public_key, "r") as f:
+			if not db.verify(f):
+				log.error("Could not verify database")
+				return 1
+
+		# Success
+		log.debug("Database successfully verified")
+		return 0
 
 	def __get_output_formatter(self, ns):
 		try:

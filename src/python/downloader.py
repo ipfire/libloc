@@ -3,7 +3,7 @@
 #                                                                             #
 # libloc - A library to determine the location of someone on the Internet     #
 #                                                                             #
-# Copyright (C) 2019 IPFire Development Team <info@ipfire.org>                #
+# Copyright (C) 2020 IPFire Development Team <info@ipfire.org>                #
 #                                                                             #
 # This library is free software; you can redistribute it and/or               #
 # modify it under the terms of the GNU Lesser General Public                  #
@@ -17,24 +17,18 @@
 #                                                                             #
 ###############################################################################
 
-import argparse
-import datetime
 import logging
 import lzma
 import os
 import random
-import shutil
 import stat
-import sys
 import tempfile
 import time
 import urllib.error
 import urllib.parse
 import urllib.request
 
-# Load our location module
-import location
-from location.i18n import _
+from _location import Database, DATABASE_VERSION_LATEST
 
 DATABASE_FILENAME = "location.db.xz"
 MIRRORS = (
@@ -46,9 +40,11 @@ log = logging.getLogger("location.downloader")
 log.propagate = 1
 
 class Downloader(object):
-	def __init__(self, version, mirrors):
+	def __init__(self, version=DATABASE_VERSION_LATEST, mirrors=None):
 		self.version = version
-		self.mirrors = list(mirrors)
+
+		# Set mirrors or use defaults
+		self.mirrors = list(mirrors or MIRRORS)
 
 		# Randomize mirrors
 		random.shuffle(self.mirrors)
@@ -117,9 +113,10 @@ class Downloader(object):
 
 		return res
 
-	def download(self, url, public_key, timestamp=None, tmpdir=None, **kwargs):
-		headers = {}
+	def download(self, public_key, timestamp=None, tmpdir=None, **kwargs):
+		url = "%s/%s" % (self.version, DATABASE_FILENAME)
 
+		headers = {}
 		if timestamp:
 			headers["If-Modified-Since"] = timestamp.strftime(
 				"%a, %d %b %Y %H:%M:%S GMT",
@@ -191,7 +188,7 @@ class Downloader(object):
 		"""
 		log.debug("Opening downloaded database at %s" % f.name)
 
-		db = location.Database(f.name)
+		db = Database(f.name)
 
 		# Database is not recent
 		if timestamp and db.created_at < timestamp.timestamp():
@@ -208,141 +205,3 @@ class Downloader(object):
 				return False
 
 		return True
-
-
-class CLI(object):
-	def __init__(self):
-		# Which version are we downloading?
-		self.version = location.DATABASE_VERSION_LATEST
-
-		self.downloader = Downloader(version=self.version, mirrors=MIRRORS)
-
-	def parse_cli(self):
-		parser = argparse.ArgumentParser(
-			description=_("Location Downloader Command Line Interface"),
-		)
-		subparsers = parser.add_subparsers()
-
-		# Global configuration flags
-		parser.add_argument("--debug", action="store_true",
-			help=_("Enable debug output"))
-		parser.add_argument("--quiet", action="store_true",
-			help=_("Enable quiet mode"))
-
-		# version
-		parser.add_argument("--version", action="version",
-			version="%(prog)s @VERSION@")
-
-		# database
-		parser.add_argument("--database", "-d",
-			default="@databasedir@/database.db", help=_("Path to database"),
-		)
-
-		# public key
-		parser.add_argument("--public-key", "-k",
-			default="@databasedir@/signing-key.pem", help=_("Public Signing Key"),
-		)
-
-		# Update
-		update = subparsers.add_parser("update", help=_("Update database"))
-		update.set_defaults(func=self.handle_update)
-
-		# Verify
-		verify = subparsers.add_parser("verify",
-			help=_("Verify the downloaded database"))
-		verify.set_defaults(func=self.handle_verify)
-
-		args = parser.parse_args()
-
-		# Configure logging
-		if args.debug:
-			location.logger.set_level(logging.DEBUG)
-		elif args.quiet:
-			location.logger.set_level(logging.WARNING)
-
-		# Print usage if no action was given
-		if not "func" in args:
-			parser.print_usage()
-			sys.exit(2)
-
-		return args
-
-	def run(self):
-		# Parse command line arguments
-		args = self.parse_cli()
-
-		# Call function
-		ret = args.func(args)
-
-		# Return with exit code
-		if ret:
-			sys.exit(ret)
-
-		# Otherwise just exit
-		sys.exit(0)
-
-	def handle_update(self, ns):
-		# Fetch the timestamp we need from DNS
-		t = location.discover_latest_version(self.version)
-
-		# Parse timestamp into datetime format
-		timestamp = datetime.datetime.fromtimestamp(t) if t else None
-
-		# Open database
-		try:
-			db = location.Database(ns.database)
-
-			# Check if we are already on the latest version
-			if timestamp and db.created_at >= timestamp.timestamp():
-				log.info("Already on the latest version")
-				return
-
-		except FileNotFoundError as e:
-			db = None
-
-		# Download the database into the correct directory
-		tmpdir = os.path.dirname(ns.database)
-
-		# Try downloading a new database
-		try:
-			t = self.downloader.download("%s/%s" % (self.version, DATABASE_FILENAME),
-				public_key=ns.public_key, timestamp=timestamp, tmpdir=tmpdir)
-
-		# If no file could be downloaded, log a message
-		except FileNotFoundError as e:
-			log.error("Could not download a new database")
-			return 1
-
-		# If we have not received a new file, there is nothing to do
-		if not t:
-			return 3
-
-		# Move temporary file to destination
-		shutil.move(t.name, ns.database)
-
-		return 0
-
-	def handle_verify(self, ns):
-		try:
-			db = location.Database(ns.database)
-		except FileNotFoundError as e:
-			log.error("%s: %s" % (ns.database, e))
-			return 127
-
-		# Verify the database
-		with open(ns.public_key, "r") as f:
-			if not db.verify(f):
-				log.error("Could not verify database")
-				return 1
-
-		# Success
-		log.debug("Database successfully verified")
-		return 0
-
-
-def main():
-	# Run the command line interface
-	c = CLI()
-	c.run()
-
-main()
