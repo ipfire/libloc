@@ -1,21 +1,21 @@
-= location-query(8)
+= location(8)
 
 == NAME
-location-query - Query the location database
+location - Query the location database
 
 == SYNOPSIS
 [verse]
-`location-query lookup ADDRESS [ADDRESS...]`
-`location-query get-as ASN [ASN...]`
-`location-query search-as STRING`
-`location-query update`
-`location-query verify`
-`location-query list-networks-by-as ASN`
-`location-query list-networks-by-cc COUNTRY_CODE`
-`location-query list-networks-by-flags [--anonymous-proxy|--satellite-provider|--anycast]`
+`location lookup ADDRESS [ADDRESS...]`
+`location get-as ASN [ASN...]`
+`location search-as STRING`
+`location update`
+`location verify`
+`location list-networks-by-as ASN`
+`location list-networks-by-cc COUNTRY_CODE`
+`location list-networks-by-flags [--anonymous-proxy|--satellite-provider|--anycast]`
 
 == DESCRIPTION
-The `location-query` retrieves information from the location database.
+`location` retrieves information from the location database.
 This data can be used to determine someone's location on the Internet
 and for building firewall rulesets to block access from certain ASes
 or countries.
@@ -93,7 +93,7 @@ or countries.
 	Shows the program's version and exists.
 
 == EXIT CODES
-The 'location-query' command will normally exit with code zero.
+The 'location' command will normally exit with code zero.
 If there has been a problem and the requested action could not be performed,
 the exit code is unequal to zero.
 

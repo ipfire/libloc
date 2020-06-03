@@ -14,10 +14,9 @@ Makefile.in
 /configure
 /libtool
 /stamp-h1
-/src/python/location-downloader
+/src/python/location
 /src/python/location-exporter
 /src/python/location-importer
-/src/python/location-query
 /src/systemd/location-update.service
 /src/systemd/location-update.timer
 /test.db

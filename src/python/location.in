@@ -248,7 +248,7 @@ class CLI(object):
 		try:
 			db = location.Database(args.database)
 		except FileNotFoundError as e:
-			sys.stderr.write("location-query: Could not open database %s: %s\n" \
+			sys.stderr.write("location: Could not open database %s: %s\n" \
 				% (args.database, e))
 			sys.exit(1)
 

@@ -238,19 +238,19 @@ uninstall-perl:
 		$(DESTDIR)/$(prefix)/man/man3/Location.3pm
 
 bin_SCRIPTS = \
+	src/python/location \
 	src/python/location-exporter \
-	src/python/location-importer \
-	src/python/location-query
+	src/python/location-importer
 
 EXTRA_DIST += \
+	src/python/location.in \
 	src/python/location-exporter.in \
-	src/python/location-importer.in \
-	src/python/location-query.in
+	src/python/location-importer.in
 
 CLEANFILES += \
+	src/python/location \
 	src/python/location-exporter \
-	src/python/location-importer \
-	src/python/location-query
+	src/python/location-importer
 
 # ------------------------------------------------------------------------------
 
@@ -374,7 +374,7 @@ src_test_signature_LDADD = \
 # ------------------------------------------------------------------------------
 
 MANPAGES = \
-	man/location-query.8
+	man/location.8
 
 MANPAGES_TXT  = $(patsubst %.8,%.txt,$(MANPAGES))
 MANPAGES_HTML = $(patsubst %.txt,%.html,$(MANPAGES_TXT))
