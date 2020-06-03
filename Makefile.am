@@ -37,6 +37,9 @@ LIBLOC_CURRENT=0
 LIBLOC_REVISION=0
 LIBLOC_AGE=0
 
+pythondir = $(prefix)/lib/python3/dist-packages
+pyexecdir = $(prefix)/lib/python$(PYTHON_VERSION)/lib-dynload
+
 DISTCHECK_CONFIGURE_FLAGS = \
 	--with-systemdsystemunitdir=$$dc_install_base/$(systemdsystemunitdir)
 
@@ -371,7 +374,6 @@ src_test_signature_LDADD = \
 # ------------------------------------------------------------------------------
 
 MANPAGES = \
-	man/location-downloader.8 \
 	man/location-query.8
 
 MANPAGES_TXT  = $(patsubst %.8,%.txt,$(MANPAGES))

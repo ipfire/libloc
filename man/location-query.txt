@@ -8,6 +8,8 @@ location-query - Query the location database
 `location-query lookup ADDRESS [ADDRESS...]`
 `location-query get-as ASN [ASN...]`
 `location-query search-as STRING`
+`location-query update`
+`location-query verify`
 `location-query list-networks-by-as ASN`
 `location-query list-networks-by-cc COUNTRY_CODE`
 `location-query list-networks-by-flags [--anonymous-proxy|--satellite-provider|--anycast]`
@@ -47,6 +49,16 @@ or countries.
 	+
 	The search will be performed case-insensitively.
 
+'update'::
+	This command will try to update the local database.
+	+
+	It will terminate with a return code of zero if the database has been
+	successfully updated. 1 on error, 2 on invalid call and 3 if the
+	database was already the latest version.
+
+'verify'::
+	Verifies the downloaded database.
+
 'list-networks-by-as [--family=[ipv6|ipv4]] [--output-format FORMAT] ASN'::
 	Lists all networks which belong to this Autonomous System.
 	+
@@ -84,6 +96,12 @@ or countries.
 The 'location-query' command will normally exit with code zero.
 If there has been a problem and the requested action could not be performed,
 the exit code is unequal to zero.
+
+== HOW IT WORKS
+The downloader checks a DNS record for the latest version of the database.
+It will then try to download a file with that version from a mirror server.
+If the downloaded file is outdated, the next mirror will be tried until we
+have found a file that is recent enough.
 
 == BUGS
 Please report all bugs to the bugtracker at https://bugzilla.ipfire.org/.
