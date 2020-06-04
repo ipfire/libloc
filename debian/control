@@ -26,10 +26,8 @@ Architecture: any
 Pre-Depends:
  ${misc:Pre-Depends}
 Depends:
- perl,
  ${shlibs:Depends},
- ${misc:Depends},
- ${python3:Depends},
+ ${misc:Depends}
 Recommends:
  location (= ${binary:Version})
 Description: Location library
@@ -54,7 +52,8 @@ Pre-Depends:
  ${misc:Pre-Depends}
 Depends:
  location-python (= ${binary:Version}),
- ${misc:Depends}
+ ${misc:Depends},
+ ${python3:Depends}
 Multi-Arch: same
 Description: CLI utilities for libloc
  Commands to determine someone's location on the Internet
@@ -65,8 +64,9 @@ Section: python
 Pre-Depends:
  ${misc:Pre-Depends}
 Depends:
+ ${misc:Depends},
+ ${python3:Depends},
  ${shlibs:Depends},
- ${misc:Depends}
 Description: Python modules for libloc
  This package contains Python bindings for libloc
 
