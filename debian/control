@@ -30,6 +30,7 @@ Depends:
  ${misc:Depends}
 Recommends:
  location (= ${binary:Version})
+Multi-Arch: same
 Description: Location library
  A library to determine the location of someone on the Internet
 
@@ -40,7 +41,7 @@ Depends:
  libloc0 (= ${binary:Version}),
  ${misc:Depends},
 Suggests:
- pkg-config,
+ pkg-config
 Multi-Arch: same
 Description: Development files for libloc
  Install this package if you wish to develop your own programs using
@@ -66,7 +67,8 @@ Pre-Depends:
 Depends:
  ${misc:Depends},
  ${python3:Depends},
- ${shlibs:Depends},
+ ${shlibs:Depends}
+Multi-Arch: same
 Description: Python modules for libloc
  This package contains Python bindings for libloc
 
