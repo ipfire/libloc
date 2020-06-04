@@ -37,9 +37,6 @@ LIBLOC_CURRENT=0
 LIBLOC_REVISION=0
 LIBLOC_AGE=0
 
-pythondir = $(prefix)/lib/python3/dist-packages
-pyexecdir = $(prefix)/lib/python$(PYTHON_VERSION)/lib-dynload
-
 DISTCHECK_CONFIGURE_FLAGS = \
 	--with-systemdsystemunitdir=$$dc_install_base/$(systemdsystemunitdir)
 
