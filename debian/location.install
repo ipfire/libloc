@@ -1,6 +1,4 @@
 usr/bin/location
-usr/lib/*/libloc.so.*
-usr/lib/python3*/site-packages
+var/lib/location/signing-key.pem
 src/systemd/*.service		/lib/systemd/system/
 src/systemd/*.timer		/lib/systemd/system/
-var/lib/location/signing-key.pem

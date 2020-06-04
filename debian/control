@@ -6,7 +6,6 @@ Standards-Version: 4.3.0
 Build-Depends:
  debhelper (>= 11),
  dh-python <!nopython>,
- dh-systemd,
  asciidoc <!nodoc>,
  intltool (>=0.40.0),
  libpython3-dev <!nopython>,
@@ -22,7 +21,7 @@ Homepage: https://location.ipfire.org/
 Vcs-Git: https://git.ipfire.org/pub/git/location/libloc.git
 Vcs-Browser: https://git.ipfire.org/pub/git/location/libloc.git
 
-Package: libloc
+Package: libloc0
 Architecture: any
 Pre-Depends:
  ${misc:Pre-Depends}
@@ -31,7 +30,8 @@ Depends:
  ${shlibs:Depends},
  ${misc:Depends},
  ${python3:Depends},
-Multi-Arch: same
+Recommends:
+ location (= ${binary:Version})
 Description: Location library
  A library to determine the location of someone on the Internet
 
@@ -39,16 +39,38 @@ Package: libloc-dev
 Architecture: any
 Section: libdevel
 Depends:
- libloc (= ${binary:Version}),
+ libloc0 (= ${binary:Version}),
  ${misc:Depends},
 Suggests:
  pkg-config,
 Multi-Arch: same
-Description: Development files for libloc.
+Description: Development files for libloc
  Install this package if you wish to develop your own programs using
  libloc.
 
-Package: libloc-perl
+Package: location
+Architecture: any
+Pre-Depends:
+ ${misc:Pre-Depends}
+Depends:
+ location-python (= ${binary:Version}),
+ ${misc:Depends}
+Multi-Arch: same
+Description: CLI utilities for libloc
+ Commands to determine someone's location on the Internet
+
+Package: location-python
+Architecture: any
+Section: python
+Pre-Depends:
+ ${misc:Pre-Depends}
+Depends:
+ ${shlibs:Depends},
+ ${misc:Depends}
+Description: Python modules for libloc
+ This package contains Python bindings for libloc
+
+Package: location-perl
 Architecture: any
 Section: perl
 Depends:
@@ -57,4 +79,4 @@ Depends:
  ${shlibs:Depends}
 Multi-Arch: same
 Description: Perl bindings for libloc
- This package contains simple perl bindings for libloc.
+ This package contains simple perl bindings for libloc

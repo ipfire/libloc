@@ -442,11 +442,12 @@ EXTRA_DIST += \
 	debian/compat \
 	debian/control \
 	debian/copyright \
+	debian/location.install \
+	debian/location.manpages \
+	debian/location-perl.install \
+	debian/location-python.install \
+	debian/libloc0.install \
 	debian/libloc-dev.install \
-	debian/libloc.install \
-	debian/libloc.lintian-overrides \
-	debian/libloc.manpages \
-	debian/libloc-perl.install \
 	debian/rules \
 	debian/source/format
 
