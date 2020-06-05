@@ -50,8 +50,9 @@ int loc_database_get_country(struct loc_database* db,
 		struct loc_country** country, const char* code);
 
 enum loc_database_enumerator_mode {
-	LOC_DB_ENUMERATE_NETWORKS = 1,
-	LOC_DB_ENUMERATE_ASES     = 2,
+	LOC_DB_ENUMERATE_NETWORKS  = 1,
+	LOC_DB_ENUMERATE_ASES      = 2,
+	LOC_DB_ENUMERATE_COUNTRIES = 3,
 };
 
 struct loc_database_enumerator;
@@ -69,5 +70,7 @@ int loc_database_enumerator_next_as(
 	struct loc_database_enumerator* enumerator, struct loc_as** as);
 int loc_database_enumerator_next_network(
 	struct loc_database_enumerator* enumerator, struct loc_network** network);
+int loc_database_enumerator_next_country(
+	struct loc_database_enumerator* enumerator, struct loc_country** country);
 
 #endif

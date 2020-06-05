@@ -107,6 +107,9 @@ struct loc_database_enumerator {
 	// Index of the AS we are looking at
 	unsigned int as_index;
 
+	// Index of the country we are looking at
+	unsigned int country_index;
+
 	// Network state
 	struct in6_addr network_address;
 	struct loc_node_stack network_stack[MAX_STACK_DEPTH];
@@ -1217,5 +1220,32 @@ LOC_EXPORT int loc_database_enumerator_next_network(
 	for (unsigned int i = 0; i < enumerator->db->network_nodes_count; i++)
 		enumerator->networks_visited[i] = 0;
 
+	return 0;
+}
+
+LOC_EXPORT int loc_database_enumerator_next_country(
+		struct loc_database_enumerator* enumerator, struct loc_country** country) {
+	*country = NULL;
+
+	// Do not do anything if not in country mode
+	if (enumerator->mode != LOC_DB_ENUMERATE_COUNTRIES)
+		return 0;
+
+	struct loc_database* db = enumerator->db;
+
+	while (enumerator->country_index < db->countries_count) {
+		// Fetch the next country
+		int r = loc_database_fetch_country(db, country, enumerator->country_index++);
+		if (r)
+			return r;
+
+		// We do not filter here, so it always is a match
+		return 0;
+	}
+
+	// Reset the index
+	enumerator->country_index = 0;
+
+	// We have searched through all of them
 	return 0;
 }

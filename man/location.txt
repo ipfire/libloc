@@ -13,6 +13,7 @@ location - Query the location database
 `location list-networks-by-as ASN`
 `location list-networks-by-cc COUNTRY_CODE`
 `location list-networks-by-flags [--anonymous-proxy|--satellite-provider|--anycast]`
+`location list-countries [--show-name] [--show-continent]`
 
 == DESCRIPTION
 `location` retrieves information from the location database.
@@ -85,6 +86,12 @@ or countries.
 	Lists all networks that have a certain flag.
 	+
 	See above for usage of the '--family' and '--output-format' parameters.
+
+'list-countries [--show-name] [--show-continent]'::
+	Lists all countries known to the database.
+	+
+	With the optional parameters '--show-name' and '--show-continent', the name and
+	continent code will be printed, too.
 
 '--help'::
 	Shows a short help text on using this program.

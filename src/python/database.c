@@ -316,6 +316,10 @@ static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, 
 	return obj;
 }
 
+static PyObject* Database_countries(DatabaseObject* self) {
+	return Database_iterate_all(self, LOC_DB_ENUMERATE_COUNTRIES);
+}
+
 static struct PyMethodDef Database_methods[] = {
 	{
 		"get_as",
@@ -360,6 +364,13 @@ static struct PyGetSetDef Database_getsetters[] = {
 	{
 		"ases",
 		(getter)Database_ases,
+		NULL,
+		NULL,
+		NULL,
+	},
+	{
+		"countries",
+		(getter)Database_countries,
 		NULL,
 		NULL,
 		NULL,
@@ -458,6 +469,22 @@ static PyObject* DatabaseEnumerator_next(DatabaseEnumeratorObject* self) {
 	if (as) {
 		PyObject* obj = new_as(&ASType, as);
 		loc_as_unref(as);
+
+		return obj;
+	}
+
+	// Enumerate all countries
+	struct loc_country* country = NULL;
+
+	r = loc_database_enumerator_next_country(self->enumerator, &country);
+	if (r) {
+		PyErr_SetFromErrno(PyExc_ValueError);
+		return NULL;
+	}
+
+	if (country) {
+		PyObject* obj = new_country(&CountryType, country);
+		loc_country_unref(country);
 
 		return obj;
 	}

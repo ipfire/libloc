@@ -147,6 +147,18 @@ class CLI(object):
 			choices=location.export.formats.keys(), default="list")
 		list_networks_by_flags.set_defaults(func=self.handle_list_networks_by_flags)
 
+		# List countries
+		list_countries = subparsers.add_parser("list-countries",
+			help=_("Lists all countries"),
+		)
+		list_countries.add_argument("--show-name",
+			action="store_true", help=_("Show the name of the country"),
+		)
+		list_countries.add_argument("--show-continent",
+			action="store_true", help=_("Show the continent"),
+		)
+		list_countries.set_defaults(func=self.handle_list_countries)
+
 		# Export
 		export = subparsers.add_parser("export",
 			help=_("Exports data in many formats to load it into packet filters"),
@@ -434,6 +446,24 @@ class CLI(object):
 			cls = location.export.OutputFormatter
 
 		return cls
+
+	def handle_list_countries(self, db, ns):
+		for country in db.countries:
+			line = [
+				country.code,
+			]
+
+			if ns.show_continent:
+				line.append(country.continent_code)
+
+			if ns.show_name:
+				line.append(country.name)
+
+			# Format the output
+			line = " ".join(line)
+
+			# Print the output
+			print(line)
 
 	def handle_list_networks_by_as(self, db, ns):
 		writer = self.__get_output_formatter(ns)
