@@ -49,6 +49,7 @@ main() {
             if ! sbuild-createchroot --arch="${host_arch}" "${release}" \
                     "${CHROOT_PATH}/${chroot}"; then
                 echo "Could not create chroot for ${release} on ${host_arch}" >&2
+                rm -rf "${tmp}"
                 return 1
             fi
         fi
@@ -65,6 +66,7 @@ main() {
             # Run the build process
             if ! sbuild --dist="${release}" --host="${arch}" --source "sources/${package}"; then
                 echo "Could not build package for ${release} on ${arch}" >&2
+                rm -rf "${tmp}"
                 return 1
             fi
 
@@ -79,8 +81,10 @@ main() {
     rm -rf "${tmp}/sources"
     popd
 
-    # Cleanup
-    rm -rf "${tmp}"
+    # Done!
+    echo "SUCCESS!"
+    echo "  You can find your Debian packages in ${tmp}"
+    return 0
 }
 
 main "$@" || exit $?
