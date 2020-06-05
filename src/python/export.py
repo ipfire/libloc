@@ -23,9 +23,17 @@ import logging
 import os
 import socket
 
+import _location
+
 # Initialise logging
 log = logging.getLogger("location.export")
 log.propagate = 1
+
+flags = {
+	_location.NETWORK_FLAG_ANONYMOUS_PROXY    : "A1",
+	_location.NETWORK_FLAG_SATELLITE_PROVIDER : "A2",
+	_location.NETWORK_FLAG_ANYCAST            : "A3",
+}
 
 class OutputWriter(object):
 	suffix = "networks"
@@ -172,6 +180,17 @@ class Exporter(object):
 					writers[network.asn].write(network)
 				except KeyError:
 					pass
+
+				# Handle flags
+				for flag in flags:
+					if network.has_flag(flag):
+						# Fetch the "fake" country code
+						country = flags[flag]
+
+						try:
+							writers[country].write(network)
+						except KeyError:
+							pass
 
 			# Write everything to the filesystem
 			for writer in writers.values():
