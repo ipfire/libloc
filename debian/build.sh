@@ -1,7 +1,5 @@
 #!/bin/bash
 
-set -x
-
 ARCHITECTURES=( amd64 arm64 i386 armhf )
 RELEASES=( buster bullseye )
 
