@@ -59,6 +59,18 @@ Multi-Arch: same
 Description: CLI utilities for libloc
  Commands to determine someone's location on the Internet
 
+Package: location-importer
+Architecture: any
+Pre-Depends:
+ ${misc:Pre-Depends}
+Depends:
+ location-python (= ${binary:Version}),
+ ${misc:Depends},
+ ${python3:Depends}
+Multi-Arch: same
+Description: Tools to author location databases
+ This package contains tools that are required to build location databases
+
 Package: location-python
 Architecture: any
 Section: python
