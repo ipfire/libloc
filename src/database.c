@@ -1208,6 +1208,8 @@ LOC_EXPORT int loc_database_enumerator_next_network(
 					!loc_network_match_flag(*network, enumerator->flags)) {
 				loc_network_unref(*network);
 				*network = NULL;
+
+				continue;
 			}
 
 			return 0;
