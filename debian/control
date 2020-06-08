@@ -83,14 +83,3 @@ Depends:
 Multi-Arch: same
 Description: Python modules for libloc
  This package contains Python bindings for libloc
-
-Package: location-perl
-Architecture: any
-Section: perl
-Depends:
- ${misc:Depends},
- ${perl:Depends},
- ${shlibs:Depends}
-Multi-Arch: same
-Description: Perl bindings for libloc
- This package contains simple perl bindings for libloc

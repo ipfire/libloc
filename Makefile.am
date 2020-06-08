@@ -441,7 +441,6 @@ EXTRA_DIST += \
 	debian/copyright \
 	debian/location.install \
 	debian/location.manpages \
-	debian/location-perl.install \
 	debian/location-python.install \
 	debian/libloc0.install \
 	debian/libloc-dev.install \
