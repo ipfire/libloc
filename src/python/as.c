@@ -73,7 +73,7 @@ static PyObject* AS_str(ASObject* self) {
 	const char* name = loc_as_get_name(self->as);
 
 	if (name)
-		return PyUnicode_FromFormat("AS%d (%s)", number, name);
+		return PyUnicode_FromFormat("AS%d - %s", number, name);
 
 	return PyUnicode_FromFormat("AS%d", number);
 }
