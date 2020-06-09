@@ -211,6 +211,10 @@ def iterate_over_blocks(f, charsets=("utf-8", "latin1")):
 		# Reset the block
 		block = []
 
+	# Return the last block
+	if block:
+		yield block
+
 
 def iterate_over_lines(f):
 	for line in f:
