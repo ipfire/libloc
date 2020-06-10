@@ -1,7 +1,7 @@
 #!/bin/bash
 
 ARCHITECTURES=( amd64 arm64 i386 armhf )
-RELEASES=( buster bullseye )
+RELEASES=( buster bullseye sid )
 
 CHROOT_PATH="/var/tmp"
 
