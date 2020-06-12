@@ -28,6 +28,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
+from . import __version__
 from _location import Database, DATABASE_VERSION_LATEST
 
 DATABASE_FILENAME = "location.db.xz"
@@ -71,7 +72,7 @@ class Downloader(object):
 
 		# Update headers
 		headers.update({
-			"User-Agent" : "location/@VERSION@",
+			"User-Agent" : "location/%s" % __version__,
 		})
 
 		# Set headers

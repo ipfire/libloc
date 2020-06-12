@@ -148,13 +148,21 @@ CLEANFILES += \
 	src/libloc.pc
 
 dist_pkgpython_PYTHON = \
-	src/python/__init__.py \
 	src/python/database.py \
 	src/python/downloader.py \
 	src/python/export.py \
 	src/python/i18n.py \
 	src/python/importer.py \
 	src/python/logger.py
+
+pkgpython_PYTHON = \
+	src/python/__init__.py
+
+EXTRA_DIST += \
+	src/python/__init__.py.in
+
+CLEANFILES += \
+	src/python/__init__.py
 
 pyexec_LTLIBRARIES = \
 	src/python/_location.la

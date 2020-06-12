@@ -17,6 +17,7 @@ Makefile.in
 /stamp-h1
 /src/python/location
 /src/python/location-importer
+/src/python/__init__.py
 /src/systemd/location-update.service
 /src/systemd/location-update.timer
 /test.db
