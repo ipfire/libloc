@@ -32,7 +32,7 @@ static int parse_timestamp(const unsigned char* txt, time_t* t) {
 
     // If the whole string has been parsed, we convert the parse value to time_t
     if (p && !*p) {
-        *t = mktime(&ts);
+        *t = timegm(&ts);
 
     // Otherwise we reset t
     } else {
