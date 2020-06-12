@@ -517,10 +517,8 @@ class CLI(object):
 		countries, asns = [], []
 
 		# Translate family
-		if ns.family == "ipv6":
-			families = [ socket.AF_INET6 ]
-		elif ns.family == "ipv4":
-			families = [ socket.AF_INET ]
+		if ns.family:
+			families = [ ns.family ]
 		else:
 			families = [ socket.AF_INET6, socket.AF_INET ]
 
