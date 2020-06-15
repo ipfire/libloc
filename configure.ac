@@ -1,9 +1,9 @@
 AC_PREREQ(2.60)
 AC_INIT([libloc],
         [0.9.1],
-        [michael.tremer@ipfire.org],
+        [location@lists.ipfire.org],
         [libloc],
-        [https://www.ipfire.org/])
+        [https://location.ipfire.org/])
 
 AC_CONFIG_SRCDIR([src/libloc.c])
 AC_CONFIG_AUX_DIR([build-aux])
