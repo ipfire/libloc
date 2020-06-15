@@ -19,6 +19,7 @@
 #include <stddef.h>
 #include <stdlib.h>
 #include <string.h>
+#include <syslog.h>
 
 #include <loc/libloc.h>
 #include <loc/country.h>
@@ -46,6 +47,9 @@ int main(int argc, char** argv) {
 	err = loc_new(&ctx);
 	if (err < 0)
 		exit(EXIT_FAILURE);
+
+	// Enable debug logging
+	loc_set_log_priority(ctx, LOG_DEBUG);
 
 	// Create a database
 	struct loc_writer* writer;

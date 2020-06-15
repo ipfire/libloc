@@ -22,6 +22,7 @@
 #include <ctype.h>
 #include <errno.h>
 #include <unistd.h>
+#include <syslog.h>
 
 #include <loc/libloc.h>
 #include <loc/database.h>
@@ -65,6 +66,9 @@ int main(int argc, char** argv) {
 	err = loc_new(&ctx);
 	if (err < 0)
 		exit(EXIT_FAILURE);
+
+	// Enable debug logging
+	loc_set_log_priority(ctx, LOG_DEBUG);
 
 	// Try opening an empty file
 	err = attempt_to_open(ctx, "/dev/null");
