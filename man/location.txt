@@ -5,6 +5,7 @@ location - Query the location database
 
 == SYNOPSIS
 [verse]
+`location export --directory=DIR [--format=FORMAT] [--family=ipv6|ipv4] [ASN|CC ...]`
 `location get-as ASN [ASN...]`
 `location list-countries [--show-name] [--show-continent]`
 `location list-networks-by-as ASN`
@@ -36,6 +37,15 @@ or countries.
 	Enable debugging mode
 
 == COMMANDS
+
+'export --directory=DIR [--format=FORMAT] [--family=ipv6|ipv4] [ASN|CC ...]'::
+	This command exports the whole database into the given directory.
+	+
+	The output can be filtered by only exporting a certain address family, or by passing
+	a list of country codes and/or ASNs. The default is to export all known countries.
+	+
+	The output format can be chosen with the '--format' parameter. For possible formats,
+	please see below.
 
 'get-as ASN [ASN...]'::
 	This command returns the name of the owning organisation of the Autonomous
@@ -103,6 +113,17 @@ or countries.
 The 'location' command will normally exit with code zero.
 If there has been a problem and the requested action could not be performed,
 the exit code is unequal to zero.
+
+== FORMATS
+Some commands allow specifying the output format. This is helpful if the exported
+data should be imported into a packet filter for example.
+The following formats are understood:
+
+	* 'list' (default): Just lists all networks, one per line
+	* 'ipset': For ipset
+	* 'nftables': For nftables
+	* 'xt_geoip': Returns a list of networks to be loaded into the
+	  xt_geoip kernel module
 
 == HOW IT WORKS
 The downloader checks a DNS record for the latest version of the database.
