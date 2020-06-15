@@ -5,15 +5,15 @@ location - Query the location database
 
 == SYNOPSIS
 [verse]
-`location lookup ADDRESS [ADDRESS...]`
 `location get-as ASN [ASN...]`
-`location search-as STRING`
-`location update`
-`location verify`
+`location list-countries [--show-name] [--show-continent]`
 `location list-networks-by-as ASN`
 `location list-networks-by-cc COUNTRY_CODE`
 `location list-networks-by-flags [--anonymous-proxy|--satellite-provider|--anycast]`
-`location list-countries [--show-name] [--show-continent]`
+`location lookup ADDRESS [ADDRESS...]`
+`location search-as STRING`
+`location update`
+`location verify`
 
 == DESCRIPTION
 `location` retrieves information from the location database.
@@ -37,28 +37,15 @@ or countries.
 
 == COMMANDS
 
-'lookup ADDRESS [ADDRESS...]'::
-		This command returns the network the given IP address has been found in
-		as well as its Autonomous System if that information is available.
-
 'get-as ASN [ASN...]'::
 	This command returns the name of the owning organisation of the Autonomous
 	System.
 
-'search-as STRING'::
-	Lists all Autonomous Systems which match the given string.
+'list-countries [--show-name] [--show-continent]'::
+	Lists all countries known to the database.
 	+
-	The search will be performed case-insensitively.
-
-'update'::
-	This command will try to update the local database.
-	+
-	It will terminate with a return code of zero if the database has been
-	successfully updated. 1 on error, 2 on invalid call and 3 if the
-	database was already the latest version.
-
-'verify'::
-	Verifies the downloaded database.
+	With the optional parameters '--show-name' and '--show-continent', the name and
+	continent code will be printed, too.
 
 'list-networks-by-as [--family=[ipv6|ipv4]] [--output-format FORMAT] ASN'::
 	Lists all networks which belong to this Autonomous System.
@@ -87,11 +74,24 @@ or countries.
 	+
 	See above for usage of the '--family' and '--output-format' parameters.
 
-'list-countries [--show-name] [--show-continent]'::
-	Lists all countries known to the database.
+'lookup ADDRESS [ADDRESS...]'::
+	This command returns the network the given IP address has been found in
+	as well as its Autonomous System if that information is available.
+
+'search-as STRING'::
+	Lists all Autonomous Systems which match the given string.
 	+
-	With the optional parameters '--show-name' and '--show-continent', the name and
-	continent code will be printed, too.
+	The search will be performed case-insensitively.
+
+'update'::
+	This command will try to update the local database.
+	+
+	It will terminate with a return code of zero if the database has been
+	successfully updated. 1 on error, 2 on invalid call and 3 if the
+	database was already the latest version.
+
+'verify'::
+	Verifies the downloaded database.
 
 '--help'::
 	Shows a short help text on using this program.
