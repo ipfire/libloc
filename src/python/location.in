@@ -321,7 +321,8 @@ class CLI(object):
 
 		if db.description:
 			for line in db.description.splitlines():
-				f.write("# %s\n" % line)
+				line = "# %s" % line
+				f.write("%s\n" % line.rstrip())
 
 			f.write("#\n")
 
