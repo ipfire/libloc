@@ -171,9 +171,9 @@ class CLI(object):
 					number bigint NOT NULL,
 					name text,
 					country text,
-					is_anonymous_proxy boolean DEFAULT FALSE,
-					is_satellite_provider boolean DEFAULT FALSE,
-					is_anycast boolean DEFAULT FALSE
+					is_anonymous_proxy boolean,
+					is_satellite_provider boolean,
+					is_anycast boolean
 				);
 				CREATE UNIQUE INDEX IF NOT EXISTS autnum_overrides_number
 					ON autnum_overrides(number);
@@ -181,9 +181,9 @@ class CLI(object):
 				CREATE TABLE IF NOT EXISTS network_overrides(
 					network inet NOT NULL,
 					country text,
-					is_anonymous_proxy boolean DEFAULT FALSE,
-					is_satellite_provider boolean DEFAULT FALSE,
-					is_anycast boolean DEFAULT FALSE
+					is_anonymous_proxy boolean,
+					is_satellite_provider boolean,
+					is_anycast boolean
 				);
 				CREATE UNIQUE INDEX IF NOT EXISTS network_overrides_network
 					ON network_overrides(network);
@@ -267,7 +267,8 @@ class CLI(object):
 					(
 						SELECT is_anonymous_proxy FROM autnum_overrides overrides
 							WHERE announcements.autnum = overrides.number
-					)
+					),
+					FALSE
 				) AS is_anonymous_proxy,
 				COALESCE(
 					(
@@ -279,7 +280,8 @@ class CLI(object):
 					(
 						SELECT is_satellite_provider FROM autnum_overrides overrides
 							WHERE announcements.autnum = overrides.number
-					)
+					),
+					FALSE
 				) AS is_satellite_provider,
 				COALESCE(
 					(
@@ -291,7 +293,8 @@ class CLI(object):
 					(
 						SELECT is_anycast FROM autnum_overrides overrides
 							WHERE announcements.autnum = overrides.number
-					)
+					),
+					FALSE
 				) AS is_anycast
 			FROM announcements
 				LEFT JOIN networks ON announcements.network <<= networks.network
