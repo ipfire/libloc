@@ -233,9 +233,19 @@ class CLI(object):
 
 		# Select all known networks
 		rows = self.db.query("""
+			-- Get a (sorted) list of all known networks
+			WITH known_networks AS (
+					SELECT network FROM announcements
+				UNION
+					SELECT network FROM networks
+				ORDER BY network
+			)
+
+			-- Return a list of those networks enriched with all
+			-- other information that we store in the database
 			SELECT
-				DISTINCT ON (announcements.network)
-				announcements.network AS network,
+				DISTINCT ON (known_networks.network)
+				known_networks.network AS network,
 				announcements.autnum AS autnum,
 
 				-- Country
@@ -252,9 +262,6 @@ class CLI(object):
 					),
 					networks.country
 				) AS country,
-
-				-- Must be part of returned values for ORDER BY clause
-				masklen(networks.network) AS sort,
 
 				-- Flags
 				COALESCE(
@@ -295,17 +302,26 @@ class CLI(object):
 							WHERE announcements.autnum = overrides.number
 					),
 					FALSE
-				) AS is_anycast
-			FROM announcements
-				LEFT JOIN networks ON announcements.network <<= networks.network
-			ORDER BY announcements.network, sort DESC
+				) AS is_anycast,
+
+				-- Must be part of returned values for ORDER BY clause
+				masklen(known_networks.network) AS sort
+			FROM known_networks
+				LEFT JOIN announcements ON known_networks.network <<= announcements.network
+				LEFT JOIN networks ON known_networks.network <<= networks.network
+			ORDER BY known_networks.network, sort DESC
 		""")
 
 		for row in rows:
 			network = writer.add_network(row.network)
 
-			# Save AS & country
-			network.asn, network.country_code = row.autnum, row.country
+			# Save country
+			if row.country:
+				network.country_code = row.country
+
+			# Save ASN
+			if row.autnum:
+				network.asn = row.autnum
 
 			# Set flags
 			if row.is_anonymous_proxy:
