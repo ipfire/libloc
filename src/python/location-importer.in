@@ -649,9 +649,9 @@ class CLI(object):
 								ON CONFLICT (network) DO NOTHING""",
 								"%s" % network,
 								block.get("country"),
-								block.get("is-anonymous-proxy") == "yes",
-								block.get("is-satellite-provider") == "yes",
-								block.get("is-anycast") == "yes",
+								self._parse_bool(block, "is-anonymous-proxy"),
+								self._parse_bool(block, "is-satellite-provider"),
+								self._parse_bool(block, "is-anycast"),
 							)
 
 						elif type == "aut-num":
@@ -678,13 +678,35 @@ class CLI(object):
 								autnum,
 								block.get("name"),
 								block.get("country"),
-								block.get("is-anonymous-proxy") == "yes",
-								block.get("is-satellite-provider") == "yes",
-								block.get("is-anycast") == "yes",
+								self._parse_bool(block, "is-anonymous-proxy"),
+								self._parse_bool(block, "is-satellite-provider"),
+								self._parse_bool(block, "is-anycast"),
 							)
 
 						else:
 							log.warning("Unsupport type: %s" % type)
+
+	@staticmethod
+	def _parse_bool(block, key):
+		val = block.get(key)
+
+		# There is no point to proceed when we got None
+		if val is None:
+			return
+
+		# Convert to lowercase
+		val = val.lower()
+
+		# True
+		if val in ("yes", "1"):
+			return True
+
+		# False
+		if val in ("no", "0"):
+			return False
+
+		# Default to None
+		return None
 
 	def handle_import_countries(self, ns):
 		with self.db.transaction():
