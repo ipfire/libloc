@@ -41,6 +41,7 @@ class Connection(object):
 			"database" : database,
 			"user"     : user,
 			"password" : password,
+			"sslmode"  : "require",
 		}
 
 		try:
