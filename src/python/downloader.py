@@ -180,6 +180,9 @@ class Downloader(object):
 					# Return temporary file
 					return t
 
+		# Delete the temporary file after unsuccessful downloads
+		os.unlink(t.name)
+
 		raise FileNotFoundError(url)
 
 	def _check_database(self, f, public_key, timestamp=None):
