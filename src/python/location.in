@@ -88,6 +88,10 @@ class CLI(object):
 
 		# Update
 		update = subparsers.add_parser("update", help=_("Update database"))
+		update.add_argument("--cron",
+			help=_("Update the library only once per interval"),
+			choices=("daily", "weekly", "monthly"),
+		)
 		update.set_defaults(func=self.handle_update)
 
 		# Verify
@@ -388,6 +392,27 @@ class CLI(object):
 				print(a)
 
 	def handle_update(self, db, ns):
+		if ns.cron and db:
+			now = datetime.datetime.utcnow()
+
+			# Parse the database timestamp
+			t = datetime.datetime.fromtimestamp(db.created_at)
+
+			if ns.cron == "daily":
+				delta = datetime.timedelta(days=1)
+			elif ns.cron == "weekly":
+				delta = datetime.timedelta(days=7)
+			elif ns.cron == "monthly":
+				delta = datetime.timedelta(days=30)
+
+			# Check if the database has recently been updated
+			if t >= (now - delta):
+				log.info(
+					_("The datase has recently be updated recently (%s)") % \
+						format_timedelta(now - t),
+				)
+				return
+
 		# Fetch the timestamp we need from DNS
 		t = location.discover_latest_version()
 
@@ -548,6 +573,37 @@ class CLI(object):
 		e = location.export.Exporter(db, writer)
 		e.export(ns.directory, countries=countries, asns=asns, families=families)
 
+
+def format_timedelta(t):
+	s = []
+
+	if t.days:
+		s.append(
+			_("One Day", "%(days)s Days", t.days) % { "days" : t.days, }
+		)
+
+	hours = t.seconds // 3600
+	if hours:
+		s.append(
+			_("One Hour", "%(hours)s Hours", hours) % { "hours" : hours, }
+		)
+
+	minutes = (t.seconds % 3600) // 60
+	if minutes:
+		s.append(
+			_("One Minute", "%(minutes)s Minutes", minutes) % { "minutes" : minutes, }
+		)
+
+	seconds = t.seconds % 60
+	if t.seconds:
+		s.append(
+			_("One Second", "%(seconds)s Seconds", seconds) % { "seconds" : seconds, }
+		)
+
+	if not s:
+		return _("Now")
+
+	return _("%s ago") % ", ".join(s)
 
 def main():
 	# Run the command line interface

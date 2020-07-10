@@ -13,7 +13,7 @@ location - Query the location database
 `location list-networks-by-flags [--anonymous-proxy|--satellite-provider|--anycast]`
 `location lookup ADDRESS [ADDRESS...]`
 `location search-as STRING`
-`location update`
+`location update [--cron=daily|weekly|monthly]`
 `location verify`
 
 == DESCRIPTION
@@ -93,6 +93,10 @@ or countries.
 	It will terminate with a return code of zero if the database has been
 	successfully updated. 1 on error, 2 on invalid call and 3 if the
 	database was already the latest version.
+	+
+	The '--cron' option allows limiting updates to once a day ('daily'), once a week
+	('weekly'), or once a month ('monthly'). If the task is being called, but the
+	database has been updated recently, an update will be skipped.
 
 'verify'::
 	Verifies the downloaded database.
