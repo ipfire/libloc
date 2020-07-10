@@ -401,7 +401,7 @@ class CLI(object):
 			now = datetime.datetime.utcnow()
 
 			# Parse the database timestamp
-			t = datetime.datetime.fromtimestamp(db.created_at)
+			t = datetime.datetime.utcfromtimestamp(db.created_at)
 
 			if ns.cron == "daily":
 				delta = datetime.timedelta(days=1)
@@ -422,7 +422,7 @@ class CLI(object):
 		t = location.discover_latest_version()
 
 		# Parse timestamp into datetime format
-		timestamp = datetime.datetime.fromtimestamp(t) if t else None
+		timestamp = datetime.datetime.utcfromtimestamp(t) if t else None
 
 		# Check the version of the local database
 		if db and timestamp and db.created_at >= timestamp.timestamp():
