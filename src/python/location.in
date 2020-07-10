@@ -199,9 +199,14 @@ class CLI(object):
 		try:
 			db = location.Database(args.database)
 		except FileNotFoundError as e:
-			sys.stderr.write("location: Could not open database %s: %s\n" \
-				% (args.database, e))
-			sys.exit(1)
+			# Allow continuing without a database
+			if args.func == self.handle_update:
+				db = None
+
+			else:
+				sys.stderr.write("location: Could not open database %s: %s\n" \
+					% (args.database, e))
+				sys.exit(1)
 
 		# Translate family (if present)
 		if "family" in args:
