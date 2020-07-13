@@ -125,6 +125,9 @@ int loc_country_new_from_database_v1(struct loc_ctx* ctx, struct loc_stringpool*
 	// Read country code
 	loc_country_code_copy(buffer, dbobj->code);
 
+	// Terminate buffer
+	buffer[2] = '\0';
+
 	// Create a new country object
 	int r = loc_country_new(ctx, country, buffer);
 	if (r)
