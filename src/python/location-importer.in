@@ -22,6 +22,7 @@ import ipaddress
 import logging
 import math
 import re
+import socket
 import sys
 import telnetlib
 
@@ -506,6 +507,92 @@ class CLI(object):
 	def handle_update_announcements(self, ns):
 		server = ns.server[0]
 
+		with self.db.transaction():
+			if server.startswith("/"):
+				self._handle_update_announcements_from_bird(server)
+			else:
+				self._handle_update_announcements_from_telnet(server)
+
+			# Purge anything we never want here
+			self.db.execute("""
+				-- Delete default routes
+				DELETE FROM announcements WHERE network = '::/0' OR network = '0.0.0.0/0';
+
+				-- Delete anything that is not global unicast address space
+				DELETE FROM announcements WHERE family(network) = 6 AND NOT network <<= '2000::/3';
+
+				-- DELETE "current network" address space
+				DELETE FROM announcements WHERE family(network) = 4 AND network <<= '0.0.0.0/8';
+
+				-- DELETE local loopback address space
+				DELETE FROM announcements WHERE family(network) = 4 AND network <<= '127.0.0.0/8';
+
+				-- DELETE RFC 1918 address space
+				DELETE FROM announcements WHERE family(network) = 4 AND network <<= '10.0.0.0/8';
+				DELETE FROM announcements WHERE family(network) = 4 AND network <<= '172.16.0.0/12';
+				DELETE FROM announcements WHERE family(network) = 4 AND network <<= '192.168.0.0/16';
+
+				-- DELETE test, benchmark and documentation address space
+				DELETE FROM announcements WHERE family(network) = 4 AND network <<= '192.0.0.0/24';
+				DELETE FROM announcements WHERE family(network) = 4 AND network <<= '192.0.2.0/24';
+				DELETE FROM announcements WHERE family(network) = 4 AND network <<= '198.18.0.0/15';
+				DELETE FROM announcements WHERE family(network) = 4 AND network <<= '198.51.100.0/24';
+				DELETE FROM announcements WHERE family(network) = 4 AND network <<= '203.0.113.0/24';
+
+				-- DELETE CGNAT address space (RFC 6598)
+				DELETE FROM announcements WHERE family(network) = 4 AND network <<= '100.64.0.0/10';
+
+				-- DELETE link local address space
+				DELETE FROM announcements WHERE family(network) = 4 AND network <<= '169.254.0.0/16';
+
+				-- DELETE IPv6 to IPv4 (6to4) address space
+				DELETE FROM announcements WHERE family(network) = 4 AND network <<= '192.88.99.0/24';
+
+				-- DELETE multicast and reserved address space
+				DELETE FROM announcements WHERE family(network) = 4 AND network <<= '224.0.0.0/4';
+				DELETE FROM announcements WHERE family(network) = 4 AND network <<= '240.0.0.0/4';
+
+				-- Delete networks that are too small to be in the global routing table
+				DELETE FROM announcements WHERE family(network) = 6 AND masklen(network) > 48;
+				DELETE FROM announcements WHERE family(network) = 4 AND masklen(network) > 24;
+
+				-- Delete any non-public or reserved ASNs
+				DELETE FROM announcements WHERE NOT (
+					(autnum >= 1 AND autnum <= 23455)
+					OR
+					(autnum >= 23457 AND autnum <= 64495)
+					OR
+					(autnum >= 131072 AND autnum <= 4199999999)
+				);
+
+				-- Delete everything that we have not seen for 14 days
+				DELETE FROM announcements WHERE last_seen_at <= CURRENT_TIMESTAMP - INTERVAL '14 days';
+			""")
+
+	def _handle_update_announcements_from_bird(self, server):
+		# Pre-compile the regular expression for faster searching
+		route = re.compile(b"^\s(.+?)\s+.+?\[AS(.*?)i\]$")
+
+		log.info("Requesting routing table from Bird (%s)" % server)
+
+		# Send command to list all routes
+		for line in self._bird_cmd(server, "show route"):
+			m = route.match(line)
+			if not m:
+				log.debug("Could not parse line: %s" % line.decode())
+				continue
+
+			# Fetch the extracted network and ASN
+			network, autnum = m.groups()
+
+			# Insert it into the database
+			self.db.execute("INSERT INTO announcements(network, autnum) \
+				VALUES(%s, %s) ON CONFLICT (network) DO \
+				UPDATE SET autnum = excluded.autnum, last_seen_at = CURRENT_TIMESTAMP",
+				network.decode(), autnum.decode(),
+			)
+
+	def _handle_update_announcements_from_telnet(self, server):
 		# Pre-compile regular expression for routes
 		route = re.compile(b"^\*[\s\>]i([^\s]+).+?(\d+)\si\r\n", re.MULTILINE|re.DOTALL)
 
@@ -527,106 +614,85 @@ class CLI(object):
 			t.read_until(b"> ")
 
 			# Fetch the routing tables
-			with self.db.transaction():
-				for protocol in ("ipv6", "ipv4"):
-					log.info("Requesting %s routing table" % protocol)
+			for protocol in ("ipv6", "ipv4"):
+				log.info("Requesting %s routing table" % protocol)
 
-					# Request the full unicast routing table
-					t.write(b"show bgp %s unicast\n" % protocol.encode())
+				# Request the full unicast routing table
+				t.write(b"show bgp %s unicast\n" % protocol.encode())
 
-					# Read entire header which ends with "Path"
-					t.read_until(b"Path\r\n")
+				# Read entire header which ends with "Path"
+				t.read_until(b"Path\r\n")
 
-					while True:
-						# Try reading a full entry
-						# Those might be broken across multiple lines but ends with i
-						line = t.read_until(b"i\r\n", timeout=5)
-						if not line:
-							break
+				while True:
+					# Try reading a full entry
+					# Those might be broken across multiple lines but ends with i
+					line = t.read_until(b"i\r\n", timeout=5)
+					if not line:
+						break
 
-						# Show line for debugging
-						#log.debug(repr(line))
+					# Show line for debugging
+					#log.debug(repr(line))
 
-						# Try finding a route in here
-						m = route.match(line)
-						if m:
-							network, autnum = m.groups()
+					# Try finding a route in here
+					m = route.match(line)
+					if m:
+						network, autnum = m.groups()
 
-							# Convert network to string
-							network = network.decode()
+						# Convert network to string
+						network = network.decode()
 
-							# Append /24 for IPv4 addresses
-							if not "/" in network and not ":" in network:
-								network = "%s/24" % network
+						# Append /24 for IPv4 addresses
+						if not "/" in network and not ":" in network:
+							network = "%s/24" % network
 
-							# Convert AS number to integer
-							autnum = int(autnum)
+						# Convert AS number to integer
+						autnum = int(autnum)
 
-							log.info("Found announcement for %s by %s" % (network, autnum))
+						log.info("Found announcement for %s by %s" % (network, autnum))
 
-							self.db.execute("INSERT INTO announcements(network, autnum) \
-								VALUES(%s, %s) ON CONFLICT (network) DO \
-								UPDATE SET autnum = excluded.autnum, last_seen_at = CURRENT_TIMESTAMP",
-								network, autnum,
-							)
+						self.db.execute("INSERT INTO announcements(network, autnum) \
+							VALUES(%s, %s) ON CONFLICT (network) DO \
+							UPDATE SET autnum = excluded.autnum, last_seen_at = CURRENT_TIMESTAMP",
+							network, autnum,
+						)
 
-					log.info("Finished reading the %s routing table" % protocol)
+				log.info("Finished reading the %s routing table" % protocol)
 
-				# Purge anything we never want here
-				self.db.execute("""
-					-- Delete default routes
-					DELETE FROM announcements WHERE network = '::/0' OR network = '0.0.0.0/0';
+	def _bird_cmd(self, socket_path, command):
+		# Connect to the socket
+		s = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+		s.connect(socket_path)
 
-					-- Delete anything that is not global unicast address space
-					DELETE FROM announcements WHERE family(network) = 6 AND NOT network <<= '2000::/3';
+		# Allocate some buffer
+		buffer = b""
 
-					-- DELETE "current network" address space
-					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '0.0.0.0/8';
+		# Send the command
+		s.send(b"%s\n" % command.encode())
 
-					-- DELETE local loopback address space
-					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '127.0.0.0/8';
+		while True:
+			# Fill up the buffer
+			buffer += s.recv(4096)
 
-					-- DELETE RFC 1918 address space
-					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '10.0.0.0/8';
-					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '172.16.0.0/12';
-					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '192.168.0.0/16';
+			while True:
+				# Search for the next newline
+				pos = buffer.find(b"\n")
 
-					-- DELETE test, benchmark and documentation address space
-					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '192.0.0.0/24';
-					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '192.0.2.0/24';
-					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '198.18.0.0/15';
-					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '198.51.100.0/24';
-					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '203.0.113.0/24';
+				# If we cannot find one, we go back and read more data
+				if pos <= 0:
+					break
 
-					-- DELETE CGNAT address space (RFC 6598)
-					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '100.64.0.0/10';
+				# Cut after the newline character
+				pos += 1
 
-					-- DELETE link local address space
-					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '169.254.0.0/16';
+				# Split the line we want and keep the rest in buffer
+				line, buffer = buffer[:pos], buffer[pos:]
 
-					-- DELETE IPv6 to IPv4 (6to4) address space
-					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '192.88.99.0/24';
+				# Look for the end-of-output indicator
+				if line == b"0000 \n":
+					return
 
-					-- DELETE multicast and reserved address space
-					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '224.0.0.0/4';
-					DELETE FROM announcements WHERE family(network) = 4 AND network <<= '240.0.0.0/4';
-
-					-- Delete networks that are too small to be in the global routing table
-					DELETE FROM announcements WHERE family(network) = 6 AND masklen(network) > 48;
-					DELETE FROM announcements WHERE family(network) = 4 AND masklen(network) > 24;
-
-					-- Delete any non-public or reserved ASNs
-					DELETE FROM announcements WHERE NOT (
-						(autnum >= 1 AND autnum <= 23455)
-						OR
-						(autnum >= 23457 AND autnum <= 64495)
-						OR
-						(autnum >= 131072 AND autnum <= 4199999999)
-					);
-
-					-- Delete everything that we have not seen for 14 days
-					DELETE FROM announcements WHERE last_seen_at <= CURRENT_TIMESTAMP - INTERVAL '14 days';
-				""")
+				# Otherwise return the line
+				yield line
 
 	def handle_update_overrides(self, ns):
 		with self.db.transaction():
