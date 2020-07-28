@@ -571,7 +571,7 @@ class CLI(object):
 
 	def _handle_update_announcements_from_bird(self, server):
 		# Pre-compile the regular expression for faster searching
-		route = re.compile(b"^\s(.+?)\s+.+?\[AS(.*?)i\]$")
+		route = re.compile(b"^\s(.+?)\s+.+?\[AS(.*?).\]$")
 
 		log.info("Requesting routing table from Bird (%s)" % server)
 
