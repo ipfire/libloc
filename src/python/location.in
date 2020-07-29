@@ -416,7 +416,7 @@ class CLI(object):
 					_("The datase has recently be updated recently (%s)") % \
 						format_timedelta(now - t),
 				)
-				return
+				return 3
 
 		# Fetch the timestamp we need from DNS
 		t = location.discover_latest_version()
