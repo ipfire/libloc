@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libloc 0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-06-03 19:00+0000\n"
+"POT-Creation-Date: 2020-08-04 15:44+0000\n"
 "PO-Revision-Date: 2018-02-01 14:05+0000\n"
 "Last-Translator: Michael Tremer <michael.tremer@ipfire.org>\n"
 "Language-Team: German\n"
@@ -122,6 +122,9 @@ msgstr ""
 msgid "Update database"
 msgstr ""
 
+msgid "Update the library only once per interval"
+msgstr ""
+
 msgid "Verify the downloaded database"
 msgstr ""
 
@@ -147,6 +150,15 @@ msgid "Satellite Providers"
 msgstr ""
 
 msgid "Anycasts"
+msgstr ""
+
+msgid "Lists all countries"
+msgstr ""
+
+msgid "Show the name of the country"
+msgstr ""
+
+msgid "Show the continent"
 msgstr ""
 
 msgid "Exports data in many formats to load it into packet filters"
@@ -205,5 +217,40 @@ msgstr ""
 msgid "AS%(asn)s belongs to %(name)s"
 msgstr ""
 
+#, python-format
+msgid "The datase has recently be updated recently (%s)"
+msgstr ""
+
 msgid "You must at least pass one flag"
+msgstr ""
+
+#, python-format
+msgid "One Day"
+msgid_plural "%(days)s Days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "One Hour"
+msgid_plural "%(hours)s Hours"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "One Minute"
+msgid_plural "%(minutes)s Minutes"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "One Second"
+msgid_plural "%(seconds)s Seconds"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Now"
+msgstr ""
+
+#, python-format
+msgid "%s ago"
 msgstr ""

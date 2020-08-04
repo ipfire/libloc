@@ -5,6 +5,7 @@ src/python/export.py
 src/python/i18n.py
 src/python/importer.py
 src/python/__init__.py
+src/python/__init__.py.in
 src/python/location-importer.in
 src/python/location.in
 src/python/logger.py
