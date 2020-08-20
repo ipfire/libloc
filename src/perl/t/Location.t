@@ -12,7 +12,7 @@ use warnings;
 my $testdb = $ENV{'database'};
 my $keyfile = $ENV{'keyfile'};
 
-use Test::More tests => 7;
+use Test::More tests => 8;
 BEGIN { use_ok('Location') };
 
 #########################
@@ -56,3 +56,6 @@ if(defined($as_number)) { fail("Test 8 - Lookup Autonomous System Number for add
 
 $as_number = &Location::lookup_asn($db, "a.b.c.d");
 if(defined($as_number)) { fail("Test 9 - Lookup Autonomous System Number for invalid address.") }
+
+my @locations = &Location::database_countries($db);
+ok(@locations != 0, "Test 10 - Get database countries.");
