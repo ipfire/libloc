@@ -20,6 +20,9 @@ with open(private_key_path, "r") as pkey:
     # Set a license
     w.license = "CC"
 
+    # Add a country
+    c = w.add_country("DE")
+
     # Add an AS
     a = w.add_as(204867)
     a.name = "Lightning Wire Labs GmbH"
