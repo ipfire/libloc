@@ -6,11 +6,10 @@
 #include <stdio.h>
 #include <string.h>
 
-
 #include <loc/libloc.h>
 #include <loc/database.h>
 #include <loc/network.h>
-
+#include <loc/country.h>
 
 MODULE = Location		PACKAGE = Location
 
@@ -118,6 +117,45 @@ get_license(db)
 		RETVAL = loc_database_get_license(db);
 	OUTPUT:
 		RETVAL
+
+void
+database_countries(db)
+	struct loc_database* db;
+
+	PPCODE:
+		// Create Database enumerator
+		struct loc_database_enumerator* enumerator;
+		int err = loc_database_enumerator_new(&enumerator, db, LOC_DB_ENUMERATE_COUNTRIES);
+
+		if (err) {
+			croak("Could not create a database enumerator\n");
+		}
+
+		// Init and enumerate first country.
+		struct loc_country* country;
+		err = loc_database_enumerator_next_country(enumerator, &country);
+		if (err) {
+			croak("Could not enumerate next country\n");
+		}
+
+		while (country) {
+			// Extract the country code.
+			const char* ccode = loc_country_get_code(country);
+
+			// Push country code.
+			XPUSHs(sv_2mortal(newSVpv(ccode, 2)));
+
+			// Unref country pointer.
+			loc_country_unref(country);
+
+			// Enumerate next item.
+			err = loc_database_enumerator_next_country(enumerator, &country);
+			if (err) {
+				croak("Could not enumerate next country\n");
+			}
+		}
+
+		loc_database_enumerator_unref(enumerator);
 
 #
 # Lookup functions
