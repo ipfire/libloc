@@ -229,6 +229,29 @@ get_continent_code(db, ccode)
 	OUTPUT:
 		RETVAL
 
+SV*
+get_as_name(db, as_number)
+	struct loc_database* db;
+	unsigned int as_number;
+
+	CODE:
+		RETVAL = &PL_sv_undef;
+
+		// Lookup AS.
+		struct loc_as *as;
+		int err = loc_database_get_as(db, &as, as_number);
+		if(!err) {
+			// Get the name of the given AS number.
+			const char* as_name = loc_as_get_name(as);
+
+			RETVAL = newSVpv(as_name, strlen(as_name));
+
+			loc_as_unref(as);
+		}
+
+	OUTPUT:
+		RETVAL
+
 void
 DESTROY(db)
 	struct loc_database* db;
