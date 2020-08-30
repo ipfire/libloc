@@ -33,6 +33,7 @@ with open(private_key_path, "r") as pkey:
     n = w.add_network("2a07:1c44:5800::/40")
     n.country_code = "DE"
     n.asn = a.number
+    n.set_flag(location.NETWORK_FLAG_ANYCAST)
 
     print(n)
 
