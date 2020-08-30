@@ -181,6 +181,42 @@ lookup_country_code(db, address)
 	OUTPUT:
 		RETVAL
 
+bool
+lookup_network_has_flag(db, address, flag)
+	struct loc_database* db;
+	char* address;
+	char* flag;
+
+	CODE:
+		RETVAL = false;
+
+		enum loc_network_flags iv = 0;
+
+		if (strcmp("LOC_NETWORK_FLAG_ANONYMOUS_PROXY", flag) == 0)
+			iv |= LOC_NETWORK_FLAG_ANONYMOUS_PROXY;
+		else if (strcmp("LOC_NETWORK_FLAG_SATELLITE_PROVIDER", flag) == 0)
+			iv |= LOC_NETWORK_FLAG_SATELLITE_PROVIDER;
+		else if (strcmp("LOC_NETWORK_FLAG_ANYCAST", flag) == 0)
+			iv |= LOC_NETWORK_FLAG_ANYCAST;
+		else
+			croak("Invalid flag");
+
+		// Lookup network
+		struct loc_network *network;
+		int err = loc_database_lookup_from_string(db, address, &network);
+
+		if (!err) {
+			// Check if the network has the given flag.
+			if (loc_network_has_flag(network, iv)) {
+				RETVAL = true;
+			}
+
+			loc_network_unref(network);
+		}
+
+	OUTPUT:
+		RETVAL
+
 SV*
 lookup_asn(db, address)
 	struct loc_database* db;
