@@ -12,7 +12,7 @@ use warnings;
 my $testdb = $ENV{'database'};
 my $keyfile = $ENV{'keyfile'};
 
-use Test::More tests => 10;
+use Test::More tests => 11;
 BEGIN { use_ok('Location') };
 
 #########################
@@ -65,3 +65,6 @@ ok(@locations != 0, "Test 11 - Get database countries.");
 
 my $network_flag_anycast = &Location::lookup_network_has_flag($db, $address, "LOC_NETWORK_FLAG_ANYCAST");
 ok($network_flag_anycast, "Network has Anycast flag.");
+
+my $country_name = &Location::get_country_name($db, "DE");
+ok($country_name eq "Germany", "Test 13 - Got country name: $country_name");
