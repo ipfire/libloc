@@ -22,6 +22,8 @@ with open(private_key_path, "r") as pkey:
 
     # Add a country
     c = w.add_country("DE")
+    c.continent_code = "EU"
+    c.name = "Germany"
 
     # Add an AS
     a = w.add_as(204867)
