@@ -12,7 +12,7 @@ use warnings;
 my $testdb = $ENV{'database'};
 my $keyfile = $ENV{'keyfile'};
 
-use Test::More tests => 11;
+use Test::More tests => 12;
 BEGIN { use_ok('Location') };
 
 #########################
@@ -68,3 +68,6 @@ ok($network_flag_anycast, "Network has Anycast flag.");
 
 my $country_name = &Location::get_country_name($db, "DE");
 ok($country_name eq "Germany", "Test 13 - Got country name: $country_name");
+
+my $continent_code = &Location::get_continent_code($db, "DE");
+ok($continent_code eq "EU", "Test 14 - Got continent code $continent_code for country code 'DE'");
