@@ -244,6 +244,28 @@ lookup_asn(db, address)
 # Get functions
 #
 SV*
+get_country_name(db, ccode)
+	struct loc_database* db;
+	char* ccode;
+
+	CODE:
+		RETVAL = &PL_sv_undef;
+
+		// Lookup country code
+		struct loc_country *country;
+		int err = loc_database_get_country(db, &country, ccode);
+		if(!err) {
+			// Extract the name for the given country code.
+			const char* country_name = loc_country_get_name(country);
+			RETVAL = newSVpv(country_name, strlen(country_name));
+
+			loc_country_unref(country);
+		}
+
+	OUTPUT:
+		RETVAL
+
+SV*
 get_continent_code(db, ccode)
 	struct loc_database* db;
 	char* ccode;
