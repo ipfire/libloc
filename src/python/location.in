@@ -413,7 +413,7 @@ class CLI(object):
 			# Check if the database has recently been updated
 			if t >= (now - delta):
 				log.info(
-					_("The datase has recently be updated recently (%s)") % \
+					_("The database has been updated recently (%s)") % \
 						format_timedelta(now - t),
 				)
 				return 3
