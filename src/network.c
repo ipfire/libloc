@@ -346,6 +346,24 @@ LOC_EXPORT int loc_network_match_flag(struct loc_network* network, uint32_t flag
 	return loc_network_has_flag(network, flag);
 }
 
+LOC_EXPORT int loc_network_is_subnet_of(struct loc_network* self, struct loc_network* other) {
+	// If the start address of the other network is smaller than this network,
+	// it cannot be a subnet.
+	if (in6_addr_cmp(&self->start_address, &other->start_address) < 0)
+		return 0;
+
+	// Get the end addresses
+	struct in6_addr last_address_self  = make_last_address(&self->start_address,  self->prefix);
+	struct in6_addr last_address_other = make_last_address(&other->start_address, other->prefix);
+
+	// If the end address of the other network is greater than this network,
+	// it cannot be a subnet.
+	if (in6_addr_cmp(&last_address_self, &last_address_other) > 0)
+		return 0;
+
+	return 1;
+}
+
 LOC_EXPORT int loc_network_to_database_v1(struct loc_network* network, struct loc_database_network_v1* dbobj) {
 	// Add country code
 	loc_country_code_copy(dbobj->country_code, network->country_code);

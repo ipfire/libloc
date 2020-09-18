@@ -39,8 +39,11 @@ class OutputWriter(object):
 	suffix = "networks"
 	mode = "w"
 
-	def __init__(self, f, prefix=None):
-		self.f, self.prefix = f, prefix
+	def __init__(self, f, prefix=None, flatten=True):
+		self.f, self.prefix, self.flatten = f, prefix, flatten
+
+		# The previously written network
+		self._last_network = None
 
 		# Immediately write the header
 		self._write_header()
@@ -57,6 +60,18 @@ class OutputWriter(object):
 	def __repr__(self):
 		return "<%s f=%s>" % (self.__class__.__name__, self.f)
 
+	def _flatten(self, network):
+		"""
+			Checks if the given network needs to be written to file,
+			or if it is a subnet of the previously written network.
+		"""
+		if self._last_network and network.is_subnet_of(self._last_network):
+			return True
+
+		# Remember this network for the next call
+		self._last_network = network
+		return False
+
 	def _write_header(self):
 		"""
 			The header of the file
@@ -69,8 +84,16 @@ class OutputWriter(object):
 		"""
 		pass
 
-	def write(self, network):
+	def _write_network(self, network):
 		self.f.write("%s\n" % network)
+
+	def write(self, network):
+		if self.flatten and self._flatten(network):
+			log.debug("Skipping writing network %s" % network)
+			return
+
+		# Write the network to file
+		self._write_network(network)
 
 	def finish(self):
 		"""
@@ -91,7 +114,7 @@ class IpsetOutputWriter(OutputWriter):
 	def _write_header(self):
 		self.f.write("create %s hash:net family inet hashsize 1024 maxelem 65536\n" % self.prefix)
 
-	def write(self, network):
+	def _write_network(self, network):
 		self.f.write("add %s %s\n" % (self.prefix, network))
 
 
@@ -107,7 +130,7 @@ class NftablesOutputWriter(OutputWriter):
 	def _write_footer(self):
 		self.f.write("}\n")
 
-	def write(self, network):
+	def _write_network(self, network):
 		self.f.write("	%s,\n" % network)
 
 
@@ -119,7 +142,7 @@ class XTGeoIPOutputWriter(OutputWriter):
 	suffix = "iv"
 	mode = "wb"
 
-	def write(self, network):
+	def _write_network(self, network):
 		n = ipaddress.ip_network("%s" % network)
 
 		for address in (n.network_address, n.broadcast_address):

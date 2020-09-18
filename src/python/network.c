@@ -154,10 +154,28 @@ static PyObject* Network_set_flag(NetworkObject* self, PyObject* args) {
 	Py_RETURN_NONE;
 }
 
+static PyObject* Network_is_subnet_of(NetworkObject* self, PyObject* args) {
+	NetworkObject* other = NULL;
+
+	if (!PyArg_ParseTuple(args, "O!", &NetworkType, &other))
+		return NULL;
+
+	if (loc_network_is_subnet_of(self->network, other->network))
+		Py_RETURN_TRUE;
+
+	Py_RETURN_FALSE;
+}
+
 static struct PyMethodDef Network_methods[] = {
 	{
 		"has_flag",
 		(PyCFunction)Network_has_flag,
+		METH_VARARGS,
+		NULL,
+	},
+	{
+		"is_subnet_of",
+		(PyCFunction)Network_is_subnet_of,
 		METH_VARARGS,
 		NULL,
 	},

@@ -51,6 +51,8 @@ int loc_network_has_flag(struct loc_network* network, uint32_t flag);
 int loc_network_set_flag(struct loc_network* network, uint32_t flag);
 int loc_network_match_flag(struct loc_network* network, uint32_t flag);
 
+int loc_network_is_subnet_of(struct loc_network* self, struct loc_network* other);
+
 #ifdef LIBLOC_PRIVATE
 
 int loc_network_to_database_v1(struct loc_network* network, struct loc_database_network_v1* dbobj);

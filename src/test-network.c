@@ -95,6 +95,19 @@ int main(int argc, char** argv) {
 	size_t nodes = loc_network_tree_count_nodes(tree);
 	printf("The tree has %zu nodes\n", nodes);
 
+	// Check subnet function
+	err = loc_network_is_subnet_of(network1, network2);
+	if (err != 0) {
+		fprintf(stderr, "Subnet check 1 failed: %d\n", err);
+		exit(EXIT_FAILURE);
+	}
+
+	err = loc_network_is_subnet_of(network2, network1);
+	if (err != 1) {
+		fprintf(stderr, "Subnet check 2 failed: %d\n", err);
+		exit(EXIT_FAILURE);
+	}
+
 	// Create a database
 	struct loc_writer* writer;
 	err = loc_writer_new(ctx, &writer, NULL, NULL);
