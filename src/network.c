@@ -36,6 +36,7 @@ struct loc_network {
 	int refcount;
 
 	struct in6_addr first_address;
+	struct in6_addr last_address;
 	unsigned int prefix;
 
 	char country_code[3];
@@ -75,24 +76,22 @@ static struct in6_addr prefix_to_bitmask(unsigned int prefix) {
 	return bitmask;
 }
 
-static struct in6_addr make_first_address(const struct in6_addr* address, unsigned int prefix) {
+static struct in6_addr make_first_address(const struct in6_addr* address, const struct in6_addr* bitmask) {
 	struct in6_addr a;
-	struct in6_addr bitmask = prefix_to_bitmask(prefix);
 
 	// Perform bitwise AND
 	for (unsigned int i = 0; i < 4; i++)
-		a.s6_addr32[i] = address->s6_addr32[i] & bitmask.s6_addr32[i];
+		a.s6_addr32[i] = address->s6_addr32[i] & bitmask->s6_addr32[i];
 
 	return a;
 }
 
-static struct in6_addr make_last_address(const struct in6_addr* address, unsigned int prefix) {
+static struct in6_addr make_last_address(const struct in6_addr* address, const struct in6_addr* bitmask) {
 	struct in6_addr a;
-	struct in6_addr bitmask = prefix_to_bitmask(prefix);
 
 	// Perform bitwise OR
 	for (unsigned int i = 0; i < 4; i++)
-		a.s6_addr32[i] = address->s6_addr32[i] | ~bitmask.s6_addr32[i];
+		a.s6_addr32[i] = address->s6_addr32[i] | ~bitmask->s6_addr32[i];
 
 	return a;
 }
@@ -136,9 +135,15 @@ LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network
 	n->ctx = loc_ref(ctx);
 	n->refcount = 1;
 
-	// Store the first address in the network
-	n->first_address = make_first_address(address, prefix);
+	// Store the prefix
 	n->prefix = prefix;
+
+	// Convert the prefix into a bitmask
+	struct in6_addr bitmask = prefix_to_bitmask(n->prefix);
+
+	// Store the first and last address in the network
+	n->first_address = make_first_address(address, &bitmask);
+	n->last_address = make_last_address(&n->first_address, &bitmask);
 
 	DEBUG(n->ctx, "Network allocated at %p\n", n);
 	*network = n;
@@ -278,11 +283,8 @@ LOC_EXPORT int loc_network_match_address(struct loc_network* network, const stru
 	if (in6_addr_cmp(&network->first_address, address) > 0)
 		return 1;
 
-	// Determine the last address in this network
-	struct in6_addr last_address = make_last_address(&network->first_address, network->prefix);
-
 	// Address must be smaller than the last address
-	if (in6_addr_cmp(address, &last_address) > 0)
+	if (in6_addr_cmp(&network->last_address, address) < 0)
 		return 1;
 
 	// The address is inside this network
@@ -352,13 +354,9 @@ LOC_EXPORT int loc_network_is_subnet_of(struct loc_network* self, struct loc_net
 	if (in6_addr_cmp(&self->first_address, &other->first_address) < 0)
 		return 0;
 
-	// Get the end addresses
-	struct in6_addr last_address_self  = make_last_address(&self->first_address,  self->prefix);
-	struct in6_addr last_address_other = make_last_address(&other->first_address, other->prefix);
-
 	// If the end address of the other network is greater than this network,
 	// it cannot be a subnet.
-	if (in6_addr_cmp(&last_address_self, &last_address_other) > 0)
+	if (in6_addr_cmp(&self->last_address, &other->last_address) > 0)
 		return 0;
 
 	return 1;
