@@ -80,6 +80,8 @@ global:
 
 	# Network
 	loc_network_address_family;
+	loc_network_format_first_address;
+	loc_network_format_last_address;
 	loc_network_get_asn;
 	loc_network_get_country_code;
 	loc_network_has_flag;

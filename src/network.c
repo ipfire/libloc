@@ -278,6 +278,47 @@ LOC_EXPORT int loc_network_address_family(struct loc_network* network) {
 	return AF_INET6;
 }
 
+static char* loc_network_format_address(struct loc_network* network, const struct in6_addr* address) {
+	const size_t length = INET6_ADDRSTRLEN;
+
+	char* string = malloc(length);
+	if (!string)
+		return NULL;
+
+	int r = 0;
+
+	switch (loc_network_address_family(network)) {
+		case AF_INET6:
+			r = format_ipv6_address(address, string, length);
+			break;
+
+		case AF_INET:
+			r = format_ipv4_address(address, string, length);
+			break;
+
+		default:
+			r = -1;
+			break;
+	}
+
+	if (r) {
+		ERROR(network->ctx, "Could not format IP address to string: %s\n", strerror(errno));
+		free(string);
+
+		return NULL;
+	}
+
+	return string;
+}
+
+LOC_EXPORT char* loc_network_format_first_address(struct loc_network* network) {
+	return loc_network_format_address(network, &network->first_address);
+}
+
+LOC_EXPORT char* loc_network_format_last_address(struct loc_network* network) {
+	return loc_network_format_address(network, &network->last_address);
+}
+
 LOC_EXPORT int loc_network_match_address(struct loc_network* network, const struct in6_addr* address) {
 	// Address must be larger than the start address
 	if (in6_addr_cmp(&network->first_address, address) > 0)

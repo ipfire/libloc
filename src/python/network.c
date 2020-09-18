@@ -166,6 +166,30 @@ static PyObject* Network_is_subnet_of(NetworkObject* self, PyObject* args) {
 	Py_RETURN_FALSE;
 }
 
+static PyObject* Network_get_family(NetworkObject* self) {
+	int family = loc_network_address_family(self->network);
+
+	return PyLong_FromLong(family);
+}
+
+static PyObject* Network_get_first_address(NetworkObject* self) {
+	char* address = loc_network_format_first_address(self->network);
+
+	PyObject* obj = PyUnicode_FromString(address);
+	free(address);
+
+	return obj;
+}
+
+static PyObject* Network_get_last_address(NetworkObject* self) {
+	char* address = loc_network_format_last_address(self->network);
+
+	PyObject* obj = PyUnicode_FromString(address);
+	free(address);
+
+	return obj;
+}
+
 static struct PyMethodDef Network_methods[] = {
 	{
 		"has_flag",
@@ -200,6 +224,27 @@ static struct PyGetSetDef Network_getsetters[] = {
 		"country_code",
 		(getter)Network_get_country_code,
 		(setter)Network_set_country_code,
+		NULL,
+		NULL,
+	},
+	{
+		"family",
+		(getter)Network_get_family,
+		NULL,
+		NULL,
+		NULL,
+	},
+	{
+		"first_address",
+		(getter)Network_get_first_address,
+		NULL,
+		NULL,
+		NULL,
+	},
+	{
+		"last_address",
+		(getter)Network_get_last_address,
+		NULL,
 		NULL,
 		NULL,
 	},

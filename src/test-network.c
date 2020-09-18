@@ -46,7 +46,7 @@ int main(int argc, char** argv) {
 
 	// Create a network
 	struct loc_network* network1;
-	err = loc_network_new_from_string(ctx, &network1, "2001:db8::/32");
+	err = loc_network_new_from_string(ctx, &network1, "2001:db8::1/32");
 	if (err) {
 		fprintf(stderr, "Could not create the network\n");
 		exit(EXIT_FAILURE);
@@ -62,6 +62,29 @@ int main(int argc, char** argv) {
 	err = loc_network_tree_add_network(tree, network1);
 	if (err) {
 		fprintf(stderr, "Could not add network to the tree\n");
+		exit(EXIT_FAILURE);
+	}
+
+	// Check if the first and last addresses are correct
+	char* string = loc_network_format_first_address(network1);
+	if (!string) {
+		fprintf(stderr, "Did get NULL instead of a string for the first address\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (strcmp(string, "2001:db8::") != 0) {
+		fprintf(stderr, "Got an incorrect first address: %s\n", string);
+		exit(EXIT_FAILURE);
+	}
+
+	string = loc_network_format_last_address(network1);
+	if (!string) {
+		fprintf(stderr, "Did get NULL instead of a string for the last address\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (strcmp(string, "2001:db8:ffff:ffff:ffff:ffff:ffff:ffff") != 0) {
+		fprintf(stderr, "Got an incorrect last address: %s\n", string);
 		exit(EXIT_FAILURE);
 	}
 
