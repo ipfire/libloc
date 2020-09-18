@@ -30,7 +30,7 @@ enum loc_network_flags {
 
 struct loc_network;
 int loc_network_new(struct loc_ctx* ctx, struct loc_network** network,
-		struct in6_addr* start_address, unsigned int prefix);
+		struct in6_addr* first_address, unsigned int prefix);
 int loc_network_new_from_string(struct loc_ctx* ctx, struct loc_network** network,
 		const char* address_string);
 struct loc_network* loc_network_ref(struct loc_network* network);
