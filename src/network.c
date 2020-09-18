@@ -35,6 +35,7 @@ struct loc_network {
 	struct loc_ctx* ctx;
 	int refcount;
 
+	int family;
 	struct in6_addr first_address;
 	struct in6_addr last_address;
 	unsigned int prefix;
@@ -145,6 +146,12 @@ LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network
 	n->first_address = make_first_address(address, &bitmask);
 	n->last_address = make_last_address(&n->first_address, &bitmask);
 
+	// Set family
+	if (IN6_IS_ADDR_V4MAPPED(&n->first_address))
+		n->family = AF_INET;
+	else
+		n->family = AF_INET6;
+
 	DEBUG(n->ctx, "Network allocated at %p\n", n);
 	*network = n;
 	return 0;
@@ -242,8 +249,7 @@ LOC_EXPORT char* loc_network_str(struct loc_network* network) {
 
 	unsigned int prefix = network->prefix;
 
-	int family = loc_network_address_family(network);
-	switch (family) {
+	switch (network->family) {
 		case AF_INET6:
 			r = format_ipv6_address(&network->first_address, string, length);
 			break;
@@ -272,10 +278,7 @@ LOC_EXPORT char* loc_network_str(struct loc_network* network) {
 }
 
 LOC_EXPORT int loc_network_address_family(struct loc_network* network) {
-	if (IN6_IS_ADDR_V4MAPPED(&network->first_address))
-		return AF_INET;
-
-	return AF_INET6;
+	return network->family;
 }
 
 static char* loc_network_format_address(struct loc_network* network, const struct in6_addr* address) {
@@ -287,7 +290,7 @@ static char* loc_network_format_address(struct loc_network* network, const struc
 
 	int r = 0;
 
-	switch (loc_network_address_family(network)) {
+	switch (network->family) {
 		case AF_INET6:
 			r = format_ipv6_address(address, string, length);
 			break;
