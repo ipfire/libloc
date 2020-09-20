@@ -374,7 +374,27 @@ class CLI(object):
 				INSERT INTO autnums(number, name)
 					SELECT _autnums.number, _organizations.name FROM _autnums
 						JOIN _organizations ON _autnums.organization = _organizations.handle
-				ON CONFLICT (number) DO UPDATE SET name = excluded.name;
+				ON CONFLICT (number) DO UPDATE SET name = excluded.name
+			""")
+
+			self.db.execute("""
+				--- Purge any redundant entries
+				CREATE TEMPORARY TABLE _garbage ON COMMIT DROP
+				AS
+				SELECT network FROM networks candidates
+				WHERE EXISTS (
+					SELECT FROM networks
+					WHERE
+						networks.network << candidates.network
+					AND
+						networks.country = candidates.country
+				);
+
+				CREATE UNIQUE INDEX _garbage_search ON _garbage USING BTREE(network);
+
+				DELETE FROM networks WHERE EXISTS (
+					SELECT FROM _garbage WHERE networks.network = _garbage.network
+				);
 			""")
 
 		# Download all extended sources
