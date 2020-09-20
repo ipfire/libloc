@@ -393,6 +393,10 @@ class CLI(object):
 		if line.startswith("aut-num:"):
 			return self._parse_autnum_block(block)
 
+		# inetnum
+		if line.startswith("inet6num:") or line.startswith("inetnum:"):
+			return self._parse_inetnum_block(block)
+
 		# organisation
 		elif line.startswith("organisation:"):
 			return self._parse_org_block(block)
@@ -420,6 +424,65 @@ class CLI(object):
 			VALUES(%s, %s) ON CONFLICT (number) DO UPDATE SET \
 				organization = excluded.organization",
 			autnum.get("asn"), autnum.get("org"),
+		)
+
+	def _parse_inetnum_block(self, block):
+		logging.debug("Parsing inetnum block:")
+
+		inetnum = {}
+		for line in block:
+			logging.debug(line)
+
+			# Split line
+			key, val = split_line(line)
+
+			if key == "inetnum":
+				start_address, delim, end_address = val.partition("-")
+
+				# Strip any excess space
+				start_address, end_address = start_address.rstrip(), end_address.strip()
+
+				# Convert to IP address
+				try:
+					start_address = ipaddress.ip_address(start_address)
+					end_address   = ipaddress.ip_address(end_address)
+				except ValueError:
+					logging.warning("Could not parse line: %s" % line)
+					return
+
+				# Set prefix to default
+				prefix = 32
+
+				# Count number of addresses in this subnet
+				num_addresses = int(end_address) - int(start_address)
+				if num_addresses:
+					prefix -= math.log(num_addresses, 2)
+
+				inetnum["inetnum"] = "%s/%.0f" % (start_address, prefix)
+
+			elif key == "inet6num":
+				inetnum[key] = val
+
+			elif key == "country":
+				if val == "UNITED STATES":
+					val = "US"
+
+				inetnum[key] = val.upper()
+
+		# Skip empty objects
+		if not inetnum:
+			return
+
+		network = ipaddress.ip_network(inetnum.get("inet6num") or inetnum.get("inetnum"), strict=False)
+
+		# Bail out in case we have processed a non-public IP network
+		if network.is_private:
+			logging.warning("Skipping non-globally routable network: %s" % network)
+			return
+
+		self.db.execute("INSERT INTO networks(network, country) \
+			VALUES(%s, %s) ON CONFLICT (network) DO UPDATE SET country = excluded.country",
+			"%s" % network, inetnum.get("country"),
 		)
 
 	def _parse_org_block(self, block):
