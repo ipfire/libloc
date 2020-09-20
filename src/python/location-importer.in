@@ -360,7 +360,7 @@ class CLI(object):
 					ON COMMIT DROP;
 				CREATE UNIQUE INDEX _autnums_number ON _autnums(number);
 
-				CREATE TEMPORARY TABLE _organizations(handle text, name text)
+				CREATE TEMPORARY TABLE _organizations(handle text, name text NOT NULL)
 					ON COMMIT DROP;
 				CREATE UNIQUE INDEX _organizations_handle ON _organizations(handle);
 			""")
@@ -373,7 +373,7 @@ class CLI(object):
 			self.db.execute("""
 				INSERT INTO autnums(number, name)
 					SELECT _autnums.number, _organizations.name FROM _autnums
-						LEFT JOIN _organizations ON _autnums.organization = _organizations.handle
+						JOIN _organizations ON _autnums.organization = _organizations.handle
 				ON CONFLICT (number) DO UPDATE SET name = excluded.name;
 			""")
 
