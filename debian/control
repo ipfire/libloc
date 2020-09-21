@@ -21,7 +21,7 @@ Homepage: https://location.ipfire.org/
 Vcs-Git: https://git.ipfire.org/pub/git/location/libloc.git
 Vcs-Browser: https://git.ipfire.org/pub/git/location/libloc.git
 
-Package: libloc0
+Package: libloc1
 Architecture: any
 Pre-Depends:
  ${misc:Pre-Depends}
@@ -38,7 +38,7 @@ Package: libloc-dev
 Architecture: any
 Section: libdevel
 Depends:
- libloc0 (= ${binary:Version}),
+ libloc1 (= ${binary:Version}),
  ${misc:Depends},
 Suggests:
  pkg-config

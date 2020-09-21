@@ -33,7 +33,7 @@ AM_LDFLAGS =
 		-Wl,--gc-sections
  endif
 
-LIBLOC_CURRENT=0
+LIBLOC_CURRENT=1
 LIBLOC_REVISION=0
 LIBLOC_AGE=0
 
@@ -450,7 +450,7 @@ EXTRA_DIST += \
 	debian/location.install \
 	debian/location.manpages \
 	debian/location-python.install \
-	debian/libloc0.install \
+	debian/libloc1.install \
 	debian/libloc-dev.install \
 	debian/rules \
 	debian/source/format
