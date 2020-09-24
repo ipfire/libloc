@@ -30,8 +30,8 @@ WHOIS_SOURCES = (
 	"https://ftp.afrinic.net/pub/pub/dbase/afrinic.db.gz",
 
 	# Asia Pacific Network Information Centre
-	"https://ftp.apnic.net/apnic/whois/apnic.db.inet6num.gz",
-	"https://ftp.apnic.net/apnic/whois/apnic.db.inetnum.gz",
+	#"https://ftp.apnic.net/apnic/whois/apnic.db.inet6num.gz",
+	#"https://ftp.apnic.net/apnic/whois/apnic.db.inetnum.gz",
 	#"https://ftp.apnic.net/apnic/whois/apnic.db.route6.gz",
 	#"https://ftp.apnic.net/apnic/whois/apnic.db.route.gz",
 	"https://ftp.apnic.net/apnic/whois/apnic.db.aut-num.gz",
@@ -45,8 +45,8 @@ WHOIS_SOURCES = (
 	# XXX ???
 
 	# Réseaux IP Européens
-	"https://ftp.ripe.net/ripe/dbase/split/ripe.db.inet6num.gz",
-	"https://ftp.ripe.net/ripe/dbase/split/ripe.db.inetnum.gz",
+	#"https://ftp.ripe.net/ripe/dbase/split/ripe.db.inet6num.gz",
+	#"https://ftp.ripe.net/ripe/dbase/split/ripe.db.inetnum.gz",
 	#"https://ftp.ripe.net/ripe/dbase/split/ripe.db.route6.gz",
 	#"https://ftp.ripe.net/ripe/dbase/split/ripe.db.route.gz",
 	"https://ftp.ripe.net/ripe/dbase/split/ripe.db.aut-num.gz",
@@ -55,10 +55,10 @@ WHOIS_SOURCES = (
 
 EXTENDED_SOURCES = (
 	# African Network Information Centre
-	#"https://ftp.afrinic.net/pub/stats/afrinic/delegated-afrinic-extended-latest",
+	"https://ftp.afrinic.net/pub/stats/afrinic/delegated-afrinic-extended-latest",
 
 	# Asia Pacific Network Information Centre
-	#"https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-extended-latest",
+	"https://ftp.apnic.net/apnic/stats/apnic/delegated-apnic-extended-latest",
 
 	# American Registry for Internet Numbers
 	"https://ftp.arin.net/pub/stats/arin/delegated-arin-extended-latest",
@@ -67,7 +67,7 @@ EXTENDED_SOURCES = (
 	"http://ftp.lacnic.net/pub/stats/lacnic/delegated-lacnic-extended-latest",
 
 	# Réseaux IP Européens
-	#"https://ftp.ripe.net/pub/stats/ripencc/delegated-ripencc-extended-latest",
+	"https://ftp.ripe.net/pub/stats/ripencc/delegated-ripencc-extended-latest",
 )
 
 class Downloader(object):
