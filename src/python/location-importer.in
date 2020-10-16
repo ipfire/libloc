@@ -240,6 +240,8 @@ class CLI(object):
 					SELECT network FROM announcements
 				UNION
 					SELECT network FROM networks
+				UNION
+					SELECT network FROM network_overrides
 				ORDER BY network
 			)
 
