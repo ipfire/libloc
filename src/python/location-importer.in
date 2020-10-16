@@ -165,7 +165,6 @@ class CLI(object):
 				-- networks
 				CREATE TABLE IF NOT EXISTS networks(network inet, country text);
 				CREATE UNIQUE INDEX IF NOT EXISTS networks_network ON networks(network);
-				CREATE INDEX IF NOT EXISTS networks_family ON networks USING BTREE(family(network));
 				CREATE INDEX IF NOT EXISTS networks_search ON networks USING GIST(network inet_ops);
 
 				-- overrides
@@ -366,83 +365,12 @@ class CLI(object):
 				CREATE TEMPORARY TABLE _organizations(handle text, name text NOT NULL)
 					ON COMMIT DROP;
 				CREATE UNIQUE INDEX _organizations_handle ON _organizations(handle);
-
-				CREATE TEMPORARY TABLE _rirdata(network inet NOT NULL, country text NOT NULL)
-					ON COMMIT DROP;
-				CREATE INDEX _rirdata_search ON _rirdata USING BTREE(family(network), masklen(network));
-				CREATE UNIQUE INDEX _rirdata_network ON _rirdata(network);
-			""")
-
-			# Remove all previously imported content
-			self.db.execute("""
-				TRUNCATE TABLE networks;
 			""")
 
 			for source in location.importer.WHOIS_SOURCES:
 				with downloader.request(source, return_blocks=True) as f:
 					for block in f:
 						self._parse_block(block)
-
-			# Process all parsed networks from every RIR we happen to have access to,
-			# insert the largest network chunks into the networks table immediately...
-			families = self.db.query("SELECT DISTINCT family(network) AS family FROM _rirdata ORDER BY family(network)")
-
-			for family in (row.family for row in families):
-				smallest = self.db.get("SELECT MIN(masklen(network)) AS prefix FROM _rirdata WHERE family(network) = %s", family)
-
-				self.db.execute("INSERT INTO networks(network, country) \
-					SELECT network, country FROM _rirdata WHERE masklen(network) = %s AND family(network) = %s", smallest.prefix, family)
-
-				# ... determine any other prefixes for this network family, ...
-				prefixes = self.db.query("SELECT DISTINCT masklen(network) AS prefix FROM _rirdata \
-					WHERE family(network) = %s ORDER BY masklen(network) ASC OFFSET 1", family)
-
-				# ... and insert networks with this prefix in case they provide additional
-				# information (i. e. subnet of a larger chunk with a different country)
-				for prefix in (row.prefix for row in prefixes):
-					self.db.execute("""
-						WITH candidates AS (
-							SELECT
-								_rirdata.network,
-								_rirdata.country
-							FROM
-								_rirdata
-							WHERE
-								family(_rirdata.network) = %s
-							AND
-								masklen(_rirdata.network) = %s
-						),
-						filtered AS (
-							SELECT
-								DISTINCT ON (c.network)
-								c.network,
-								c.country,
-								masklen(networks.network),
-								networks.country AS parent_country
-							FROM
-								candidates c
-							LEFT JOIN
-								networks
-							ON
-								c.network << networks.network
-							ORDER BY
-								c.network,
-								masklen(networks.network) DESC NULLS LAST
-						)
-						INSERT INTO
-							networks(network, country)
-						SELECT
-							network,
-							country
-						FROM
-							filtered
-						WHERE
-							parent_country IS NULL
-						OR
-							country <> parent_country
-						ON CONFLICT DO NOTHING""",
-						family, prefix,
-					)
 
 			self.db.execute("""
 				INSERT INTO autnums(number, name)
@@ -544,30 +472,17 @@ class CLI(object):
 				inetnum[key] = val.upper()
 
 		# Skip empty objects
-		if not inetnum or not "country" in inetnum:
+		if not inetnum:
 			return
 
 		network = ipaddress.ip_network(inetnum.get("inet6num") or inetnum.get("inetnum"), strict=False)
-
-		# Bail out in case we have processed a network covering the entire IP range, which
-		# is necessary to work around faulty (?) IPv6 network processing
-		if network.prefixlen == 0:
-			logging.warning("Skipping network covering the entire IP adress range: %s" % network)
-			return
-
-		# Bail out in case we have processed a network whose prefix length indicates it is
-		# not globally routable (we have decided not to process them at the moment, as they
-		# significantly enlarge our database without providing very helpful additional information)
-		if (network.prefixlen > 24 and network.version == 4) or (network.prefixlen > 48 and network.version == 6):
-			logging.info("Skipping network too small to be publicly announced: %s" % network)
-			return
 
 		# Bail out in case we have processed a non-public IP network
 		if network.is_private:
 			logging.warning("Skipping non-globally routable network: %s" % network)
 			return
 
-		self.db.execute("INSERT INTO _rirdata(network, country) \
+		self.db.execute("INSERT INTO networks(network, country) \
 			VALUES(%s, %s) ON CONFLICT (network) DO UPDATE SET country = excluded.country",
 			"%s" % network, inetnum.get("country"),
 		)
