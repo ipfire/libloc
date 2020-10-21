@@ -152,6 +152,7 @@ class CLI(object):
 					last_seen_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP);
 				CREATE UNIQUE INDEX IF NOT EXISTS announcements_networks ON announcements(network);
 				CREATE INDEX IF NOT EXISTS announcements_family ON announcements(family(network));
+				CREATE INDEX IF NOT EXISTS announcements_search ON announcements USING GIST(network inet_ops);
 
 				-- autnums
 				CREATE TABLE IF NOT EXISTS autnums(number bigint, name text NOT NULL);
