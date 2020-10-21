@@ -189,6 +189,8 @@ class CLI(object):
 				);
 				CREATE UNIQUE INDEX IF NOT EXISTS network_overrides_network
 					ON network_overrides(network);
+				CREATE INDEX IF NOT EXISTS network_overrides_search
+					ON network_overrides USING GIST(network inet_ops);
 			""")
 
 		return db
