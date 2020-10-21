@@ -160,6 +160,14 @@ int main(int argc, char** argv) {
 	// Set ASN
 	loc_network_set_asn(network4, 1024);
 
+	// Try adding an invalid network
+	struct loc_network* network;
+	err = loc_writer_add_network(writer, &network, "xxxx:xxxx::/32");
+	if (err != -EINVAL) {
+		fprintf(stderr, "It was possible to add an invalid network (err = %d)\n", err);
+		exit(EXIT_FAILURE);
+	}
+
 	FILE* f = tmpfile();
 	if (!f) {
 		fprintf(stderr, "Could not open file for writing: %s\n", strerror(errno));
