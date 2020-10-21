@@ -503,7 +503,7 @@ class CLI(object):
 				return False
 
 			if network.prefixlen > 24:
-				log.info("Skipping network too small to be publicly announced: %s" % network)
+				log.debug("Skipping network too small to be publicly announced: %s" % network)
 				return False
 
 			if str(network.network_address) == "0.0.0.0":
@@ -516,7 +516,7 @@ class CLI(object):
 				return False
 
 			if network.prefixlen > 48:
-				log.info("Skipping network too small to be publicly announced: %s" % network)
+				log.debug("Skipping network too small to be publicly announced: %s" % network)
 				return False
 
 			if str(network.network_address) == "::":
