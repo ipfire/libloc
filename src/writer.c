@@ -147,8 +147,11 @@ static void loc_writer_free(struct loc_writer* writer) {
 		EVP_PKEY_free(writer->private_key2);
 
 	// Unref all AS
-	for (unsigned int i = 0; i < writer->as_count; i++) {
-		loc_as_unref(writer->as[i]);
+	if (writer->as) {
+		for (unsigned int i = 0; i < writer->as_count; i++) {
+			loc_as_unref(writer->as[i]);
+		}
+		free(writer->as);
 	}
 
 	// Release network tree
