@@ -208,8 +208,6 @@ FAIL:
 	if (r)
 		return r;
 
-	DEBUG(ctx, "GOT HERE\n");
-
 	// Create a new network
 	return loc_network_new(ctx, network, &first_address, prefix);
 }
