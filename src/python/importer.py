@@ -64,7 +64,7 @@ EXTENDED_SOURCES = (
 	"https://ftp.arin.net/pub/stats/arin/delegated-arin-extended-latest",
 
 	# Latin America and Caribbean Network Information Centre
-	"http://ftp.lacnic.net/pub/stats/lacnic/delegated-lacnic-extended-latest",
+	"https://ftp.lacnic.net/pub/stats/lacnic/delegated-lacnic-extended-latest",
 
 	# Réseaux IP Européens
 	#"https://ftp.ripe.net/pub/stats/ripencc/delegated-ripencc-extended-latest",
