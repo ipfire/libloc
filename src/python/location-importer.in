@@ -469,6 +469,69 @@ class CLI(object):
 					for line in f:
 						self._parse_line(line)
 
+	def _check_parsed_network(self, network):
+		"""
+			Assistive function to detect and subsequently sort out parsed
+			networks from RIR data (both Whois and so-called "extended sources"),
+			which are or have...
+
+			(a) not globally routable (RFC 1918 space, et al.)
+			(b) covering a too large chunk of the IP address space (prefix length
+				is < 7 for IPv4 networks, and < 10 for IPv6)
+			(c) "0.0.0.0" or "::" as a network address
+			(d) are too small for being publicly announced (we have decided not to
+				process them at the moment, as they significantly enlarge our
+				database without providing very helpful additional information)
+
+			This unfortunately is necessary due to brain-dead clutter across
+			various RIR databases, causing mismatches and eventually disruptions.
+
+			We will return False in case a network is not suitable for adding
+			it to our database, and True otherwise.
+		"""
+
+		if not network or not (isinstance(network, ipaddress.IPv4Network) or isinstance(network, ipaddress.IPv6Network)):
+			return False
+
+		if not network.is_global:
+			logging.warning("Skipping non-globally routable network: %s" % network)
+			return False
+
+		if network.version == 4:
+			if network.prefixlen < 7:
+				logging.warning("Skipping too big IP chunk: %s" % network)
+				return False
+
+			if network.prefixlen > 24:
+				logging.info("Skipping network too small to be publicly announced: %s" % network)
+				return False
+
+			if str(network.network_address) == "0.0.0.0":
+				logging.warning("Skipping network based on 0.0.0.0: %s" % network)
+				return False
+
+		elif network.version == 6:
+			if network.prefixlen < 10:
+				logging.warning("Skipping too big IP chunk: %s" % network)
+				return False
+
+			if network.prefixlen > 48:
+				logging.info("Skipping network too small to be publicly announced: %s" % network)
+				return False
+
+			if str(network.network_address) == "::":
+				logging.warning("Skipping network based on '::': %s" % network)
+				return False
+
+		else:
+			# This should not happen...
+			logging.warning("Skipping network of unknown family, this should not happen: %s" % network)
+			return False
+
+		# In case we have made it here, the network is considered to
+		# be suitable for libloc consumption...
+		return True
+
 	def _parse_block(self, block):
 		# Get first line to find out what type of block this is
 		line = block[0]
@@ -559,22 +622,7 @@ class CLI(object):
 
 		network = ipaddress.ip_network(inetnum.get("inet6num") or inetnum.get("inetnum"), strict=False)
 
-		# Bail out in case we have processed a network covering the entire IP range, which
-		# is necessary to work around faulty (?) IPv6 network processing
-		if network.prefixlen == 0:
-			logging.warning("Skipping network covering the entire IP adress range: %s" % network)
-			return
-
-		# Bail out in case we have processed a network whose prefix length indicates it is
-		# not globally routable (we have decided not to process them at the moment, as they
-		# significantly enlarge our database without providing very helpful additional information)
-		if (network.prefixlen > 24 and network.version == 4) or (network.prefixlen > 48 and network.version == 6):
-			logging.info("Skipping network too small to be publicly announced: %s" % network)
-			return
-
-		# Bail out in case we have processed a non-public IP network
-		if network.is_private:
-			logging.warning("Skipping non-globally routable network: %s" % network)
+		if not self._check_parsed_network(network):
 			return
 
 		self.db.execute("INSERT INTO _rirdata(network, country) \
@@ -656,6 +704,9 @@ class CLI(object):
 			network = ipaddress.ip_network("%s/%s" % (address, prefix), strict=False)
 		except ValueError:
 			log.warning("Invalid IP address: %s" % address)
+			return
+
+		if not self._check_parsed_network(network):
 			return
 
 		self.db.execute("INSERT INTO networks(network, country) \
