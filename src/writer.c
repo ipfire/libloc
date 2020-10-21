@@ -154,6 +154,14 @@ static void loc_writer_free(struct loc_writer* writer) {
 		free(writer->as);
 	}
 
+	// Unref all countries
+	if (writer->countries) {
+		for (unsigned int i = 0; i < writer->countries_count; i++) {
+			loc_country_unref(writer->countries[i]);
+		}
+		free(writer->countries);
+	}
+
 	// Release network tree
 	if (writer->networks)
 		loc_network_tree_unref(writer->networks);
