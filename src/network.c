@@ -160,9 +160,10 @@ LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network
 LOC_EXPORT int loc_network_new_from_string(struct loc_ctx* ctx, struct loc_network** network,
 		const char* address_string) {
 	struct in6_addr first_address;
-	unsigned int prefix = 0;
 	char* prefix_string;
-	int r = 1;
+	int r = -EINVAL;
+
+	DEBUG(ctx, "Attempting to parse network %s\n", address_string);
 
 	// Make a copy of the string to work on it
 	char* buffer = strdup(address_string);
@@ -171,29 +172,46 @@ LOC_EXPORT int loc_network_new_from_string(struct loc_ctx* ctx, struct loc_netwo
 	// Split address and prefix
 	address_string = strsep(&prefix_string, "/");
 
-	// Did we find a prefix?
-	if (prefix_string) {
-		// Convert prefix to integer
-		prefix = strtol(prefix_string, NULL, 10);
+	DEBUG(ctx, "  Split into address = %s, prefix = %s\n", address_string, prefix_string);
 
-		if (prefix) {
-			// Parse the address
-			r = loc_parse_address(ctx, address_string, &first_address);
-
-			// Map the prefix to IPv6 if needed
-			if (IN6_IS_ADDR_V4MAPPED(&first_address))
-				prefix += 96;
-		}
+	// We need to have a prefix
+	if (!prefix_string) {
+		DEBUG(ctx, "No prefix set\n");
+		goto FAIL;
 	}
 
+	// Convert prefix to integer
+	unsigned int prefix = strtol(prefix_string, NULL, 10);
+
+	// End if the prefix was invalid
+	if (!prefix) {
+		DEBUG(ctx, "The prefix is zero or not a number\n");
+		goto FAIL;
+	}
+
+	// Parse the address
+	r = loc_parse_address(ctx, address_string, &first_address);
+	if (r) {
+		DEBUG(ctx, "The address could not be parsed\n");
+		goto FAIL;
+	}
+
+	// Map the prefix to IPv6 if needed
+	if (IN6_IS_ADDR_V4MAPPED(&first_address))
+		prefix += 96;
+
+FAIL:
 	// Free temporary buffer
 	free(buffer);
 
-	if (r == 0) {
-		r = loc_network_new(ctx, network, &first_address, prefix);
-	}
+	// Exit if the parsing was unsuccessful
+	if (r)
+		return r;
 
-	return r;
+	DEBUG(ctx, "GOT HERE\n");
+
+	// Create a new network
+	return loc_network_new(ctx, network, &first_address, prefix);
 }
 
 LOC_EXPORT struct loc_network* loc_network_ref(struct loc_network* network) {

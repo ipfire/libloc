@@ -168,6 +168,13 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
+	// Try adding a single address
+	err = loc_writer_add_network(writer, &network, "2001:db8::");
+	if (err != -EINVAL) {
+		fprintf(stderr, "It was possible to add an invalid network (err = %d)\n", err);
+		exit(EXIT_FAILURE);
+	}
+
 	FILE* f = tmpfile();
 	if (!f) {
 		fprintf(stderr, "Could not open file for writing: %s\n", strerror(errno));
