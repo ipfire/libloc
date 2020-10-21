@@ -175,6 +175,13 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
+	// Try adding localhost
+	err = loc_writer_add_network(writer, &network, "::1/128");
+	if (err != -EINVAL) {
+		fprintf(stderr, "It was possible to add localhost (::1/128): %d\n", err);
+		exit(EXIT_FAILURE);
+	}
+
 	FILE* f = tmpfile();
 	if (!f) {
 		fprintf(stderr, "Could not open file for writing: %s\n", strerror(errno));
