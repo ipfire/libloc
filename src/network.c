@@ -161,6 +161,7 @@ LOC_EXPORT int loc_network_new_from_string(struct loc_ctx* ctx, struct loc_netwo
 		const char* address_string) {
 	struct in6_addr first_address;
 	char* prefix_string;
+	unsigned int prefix = 128;
 	int r = -EINVAL;
 
 	DEBUG(ctx, "Attempting to parse network %s\n", address_string);
@@ -174,21 +175,6 @@ LOC_EXPORT int loc_network_new_from_string(struct loc_ctx* ctx, struct loc_netwo
 
 	DEBUG(ctx, "  Split into address = %s, prefix = %s\n", address_string, prefix_string);
 
-	// We need to have a prefix
-	if (!prefix_string) {
-		DEBUG(ctx, "No prefix set\n");
-		goto FAIL;
-	}
-
-	// Convert prefix to integer
-	unsigned int prefix = strtol(prefix_string, NULL, 10);
-
-	// End if the prefix was invalid
-	if (!prefix) {
-		DEBUG(ctx, "The prefix is zero or not a number\n");
-		goto FAIL;
-	}
-
 	// Parse the address
 	r = loc_parse_address(ctx, address_string, &first_address);
 	if (r) {
@@ -196,9 +182,20 @@ LOC_EXPORT int loc_network_new_from_string(struct loc_ctx* ctx, struct loc_netwo
 		goto FAIL;
 	}
 
-	// Map the prefix to IPv6 if needed
-	if (IN6_IS_ADDR_V4MAPPED(&first_address))
-		prefix += 96;
+	// If a prefix was given, we will try to parse it
+	if (prefix_string) {
+		// Convert prefix to integer
+		prefix = strtol(prefix_string, NULL, 10);
+
+		if (!prefix) {
+			DEBUG(ctx, "The prefix was not parsable: %s\n", prefix_string);
+			goto FAIL;
+		}
+
+		// Map the prefix to IPv6 if needed
+		if (IN6_IS_ADDR_V4MAPPED(&first_address))
+			prefix += 96;
+	}
 
 FAIL:
 	// Free temporary buffer

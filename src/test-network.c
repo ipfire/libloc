@@ -170,8 +170,8 @@ int main(int argc, char** argv) {
 
 	// Try adding a single address
 	err = loc_writer_add_network(writer, &network, "2001:db8::");
-	if (err != -EINVAL) {
-		fprintf(stderr, "It was possible to add an invalid network (err = %d)\n", err);
+	if (err) {
+		fprintf(stderr, "It was impossible to add an single IP address (err = %d)\n", err);
 		exit(EXIT_FAILURE);
 	}
 
