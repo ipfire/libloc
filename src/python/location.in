@@ -453,13 +453,7 @@ class CLI(object):
 
 		return 0
 
-	def handle_verify(self, ns):
-		try:
-			db = location.Database(ns.database)
-		except FileNotFoundError as e:
-			log.error("%s: %s" % (ns.database, e))
-			return 127
-
+	def handle_verify(self, db, ns):
 		# Verify the database
 		with open(ns.public_key, "r") as f:
 			if not db.verify(f):
