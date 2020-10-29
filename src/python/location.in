@@ -398,10 +398,7 @@ class CLI(object):
 
 	def handle_update(self, db, ns):
 		if ns.cron and db:
-			now = datetime.datetime.utcnow()
-
-			# Parse the database timestamp
-			t = datetime.datetime.utcfromtimestamp(db.created_at)
+			now = time.time()
 
 			if ns.cron == "daily":
 				delta = datetime.timedelta(days=1)
@@ -410,11 +407,12 @@ class CLI(object):
 			elif ns.cron == "monthly":
 				delta = datetime.timedelta(days=30)
 
+			delta = delta.total_seconds()
+
 			# Check if the database has recently been updated
-			if t >= (now - delta):
+			if db.created_at >= (now - delta):
 				log.info(
-					_("The database has been updated recently (%s)") % \
-						format_timedelta(now - t),
+					_("The database has been updated recently"),
 				)
 				return 3
 
