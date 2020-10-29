@@ -421,11 +421,8 @@ class CLI(object):
 		# Fetch the timestamp we need from DNS
 		t = location.discover_latest_version()
 
-		# Parse timestamp into datetime format
-		timestamp = datetime.datetime.utcfromtimestamp(t) if t else None
-
 		# Check the version of the local database
-		if db and timestamp and db.created_at >= timestamp.timestamp():
+		if db and t and db.created_at >= t:
 			log.info("Already on the latest version")
 			return
 
