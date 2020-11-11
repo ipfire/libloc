@@ -98,6 +98,17 @@ global:
 	loc_network_str;
 	loc_network_unref;
 
+	# Network List
+	loc_network_list_clear;
+	loc_network_list_empty;
+	loc_network_list_get;
+	loc_network_list_new;
+	loc_network_list_pop;
+	loc_network_list_push;
+	loc_network_list_ref;
+	loc_network_list_size;
+	loc_network_list_unref;
+
 	# Writer
 	loc_writer_add_as;
 	loc_writer_add_country;

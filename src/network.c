@@ -746,3 +746,99 @@ LOC_EXPORT int loc_network_tree_node_is_leaf(struct loc_network_tree_node* node)
 LOC_EXPORT struct loc_network* loc_network_tree_node_get_network(struct loc_network_tree_node* node) {
 	return loc_network_ref(node->network);
 }
+
+// List
+
+struct loc_network_list {
+	struct loc_ctx* ctx;
+	int refcount;
+
+	struct loc_network* list[1024];
+	size_t size;
+	size_t max_size;
+};
+
+LOC_EXPORT int loc_network_list_new(struct loc_ctx* ctx,
+		struct loc_network_list** list) {
+	struct loc_network_list* l = calloc(1, sizeof(*l));
+	if (!l)
+		return -ENOMEM;
+
+	l->ctx = loc_ref(ctx);
+	l->refcount = 1;
+
+	// Do not allow this list to grow larger than this
+	l->max_size = 1024;
+
+	DEBUG(l->ctx, "Network list allocated at %p\n", l);
+	*list = l;
+	return 0;
+}
+
+LOC_EXPORT struct loc_network_list* loc_network_list_ref(struct loc_network_list* list) {
+	list->refcount++;
+
+	return list;
+}
+
+static void loc_network_list_free(struct loc_network_list* list) {
+	DEBUG(list->ctx, "Releasing network list at %p\n", list);
+
+	for (unsigned int i = 0; i < list->size; i++)
+		loc_network_unref(list->list[i]);
+
+	loc_unref(list->ctx);
+	free(list);
+}
+
+LOC_EXPORT struct loc_network_list* loc_network_list_unref(struct loc_network_list* list) {
+	if (!list)
+		return NULL;
+
+	if (--list->refcount > 0)
+		return list;
+
+	loc_network_list_free(list);
+	return NULL;
+}
+
+LOC_EXPORT size_t loc_network_list_size(struct loc_network_list* list) {
+	return list->size;
+}
+
+LOC_EXPORT int loc_network_list_empty(struct loc_network_list* list) {
+	return list->size == 0;
+}
+
+LOC_EXPORT void loc_network_list_clear(struct loc_network_list* list) {
+	for (unsigned int i = 0; i < list->size; i++)
+		loc_network_unref(list->list[i]);
+
+	list->size = 0;
+}
+
+LOC_EXPORT struct loc_network* loc_network_list_get(struct loc_network_list* list, size_t index) {
+	// Check index
+	if (index >= list->size)
+		return NULL;
+
+	return loc_network_ref(list->list[index]);
+}
+
+LOC_EXPORT int loc_network_list_push(struct loc_network_list* list, struct loc_network* network) {
+	// Check if we have space left
+	if (list->size == list->max_size)
+		return -ENOMEM;
+
+	list->list[list->size++] = loc_network_ref(network);
+
+	return 0;
+}
+
+LOC_EXPORT struct loc_network* loc_network_list_pop(struct loc_network_list* list) {
+	// Return nothing when empty
+	if (loc_network_list_empty(list))
+		return NULL;
+
+	return list->list[list->size--];
+}
