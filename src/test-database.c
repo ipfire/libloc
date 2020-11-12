@@ -198,7 +198,7 @@ int main(int argc, char** argv) {
 
 	// Enumerator
 	struct loc_database_enumerator* enumerator;
-	err = loc_database_enumerator_new(&enumerator, db, LOC_DB_ENUMERATE_NETWORKS);
+	err = loc_database_enumerator_new(&enumerator, db, LOC_DB_ENUMERATE_NETWORKS, 0);
 	if (err) {
 		fprintf(stderr, "Could not initialise the enumerator: %d\n", err);
 		exit(EXIT_FAILURE);
