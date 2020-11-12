@@ -125,7 +125,7 @@ database_countries(db)
 	PPCODE:
 		// Create Database enumerator
 		struct loc_database_enumerator* enumerator;
-		int err = loc_database_enumerator_new(&enumerator, db, LOC_DB_ENUMERATE_COUNTRIES);
+		int err = loc_database_enumerator_new(&enumerator, db, LOC_DB_ENUMERATE_COUNTRIES, 0);
 
 		if (err) {
 			croak("Could not create a database enumerator\n");

@@ -104,6 +104,9 @@ struct loc_database_enumerator {
 	enum loc_network_flags flags;
 	int family;
 
+	// Flatten output?
+	int flatten;
+
 	// Index of the AS we are looking at
 	unsigned int as_index;
 
@@ -933,7 +936,7 @@ LOC_EXPORT int loc_database_get_country(struct loc_database* db,
 // Enumerator
 
 LOC_EXPORT int loc_database_enumerator_new(struct loc_database_enumerator** enumerator,
-		struct loc_database* db, enum loc_database_enumerator_mode mode) {
+		struct loc_database* db, enum loc_database_enumerator_mode mode, int flags) {
 	struct loc_database_enumerator* e = calloc(1, sizeof(*e));
 	if (!e)
 		return -ENOMEM;
@@ -943,6 +946,9 @@ LOC_EXPORT int loc_database_enumerator_new(struct loc_database_enumerator** enum
 	e->db = loc_database_ref(db);
 	e->mode = mode;
 	e->refcount = 1;
+
+	// Flatten output?
+	e->flatten = (flags & LOC_DB_ENUMERATOR_FLAGS_FLATTEN);
 
 	// Initialise graph search
 	//e->network_stack[++e->network_stack_depth] = 0;
