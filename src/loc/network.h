@@ -76,6 +76,7 @@ struct loc_network* loc_network_list_pop(struct loc_network_list* list);
 int loc_network_list_contains(struct loc_network_list* list, struct loc_network* network);
 void loc_network_list_sort(struct loc_network_list* list);
 void loc_network_list_reverse(struct loc_network_list* list);
+int loc_network_list_merge(struct loc_network_list* self, struct loc_network_list* other);
 
 #ifdef LIBLOC_PRIVATE
 

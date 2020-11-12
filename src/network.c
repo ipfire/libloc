@@ -1169,3 +1169,16 @@ LOC_EXPORT void loc_network_list_sort(struct loc_network_list* list) {
 		n--;
 	} while (swapped);
 }
+
+LOC_EXPORT int loc_network_list_merge(
+		struct loc_network_list* self, struct loc_network_list* other) {
+	int r;
+
+	for (unsigned int i = 0; i < other->size; i++) {
+		r = loc_network_list_push(self, other->list[i]);
+		if (r)
+			return r;
+	}
+
+	return 0;
+}
