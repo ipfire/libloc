@@ -1088,8 +1088,12 @@ LOC_EXPORT int loc_network_list_push(struct loc_network_list* list, struct loc_n
 		return 0;
 
 	// Check if we have space left
-	if (list->size == list->max_size)
+	if (list->size == list->max_size) {
+		ERROR(list->ctx, "%p: Could not push network onto the stack: Stack full\n", list);
 		return -ENOMEM;
+	}
+
+	DEBUG(list->ctx, "%p: Pushing network %p onto stack\n", list, network);
 
 	list->list[list->size++] = loc_network_ref(network);
 
@@ -1098,10 +1102,16 @@ LOC_EXPORT int loc_network_list_push(struct loc_network_list* list, struct loc_n
 
 LOC_EXPORT struct loc_network* loc_network_list_pop(struct loc_network_list* list) {
 	// Return nothing when empty
-	if (loc_network_list_empty(list))
+	if (loc_network_list_empty(list)) {
+		DEBUG(list->ctx, "%p: Popped empty stack\n", list);
 		return NULL;
+	}
 
-	return list->list[--list->size];
+	struct loc_network* network = list->list[--list->size];
+
+	DEBUG(list->ctx, "%p: Popping network %p from stack\n", list, network);
+
+	return network;
 }
 
 LOC_EXPORT int loc_network_list_contains(struct loc_network_list* list, struct loc_network* network) {
