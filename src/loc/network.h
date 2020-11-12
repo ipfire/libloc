@@ -54,7 +54,11 @@ int loc_network_has_flag(struct loc_network* network, uint32_t flag);
 int loc_network_set_flag(struct loc_network* network, uint32_t flag);
 int loc_network_match_flag(struct loc_network* network, uint32_t flag);
 
+int loc_network_eq(struct loc_network* self, struct loc_network* other);
 int loc_network_is_subnet_of(struct loc_network* self, struct loc_network* other);
+struct loc_network_list* loc_network_subnets(struct loc_network* network);
+struct loc_network_list* loc_network_exclude(
+		struct loc_network* self, struct loc_network* other);
 
 // List
 struct loc_network_list;
@@ -68,6 +72,8 @@ void loc_network_list_dump(struct loc_network_list* list);
 struct loc_network* loc_network_list_get(struct loc_network_list* list, size_t index);
 int loc_network_list_push(struct loc_network_list* list, struct loc_network* network);
 struct loc_network* loc_network_list_pop(struct loc_network_list* list);
+void loc_network_list_sort(struct loc_network_list* list);
+void loc_network_list_reverse(struct loc_network_list* list);
 
 #ifdef LIBLOC_PRIVATE
 

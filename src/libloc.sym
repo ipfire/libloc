@@ -80,6 +80,8 @@ global:
 
 	# Network
 	loc_network_address_family;
+	loc_network_eq;
+	loc_network_exclude;
 	loc_network_format_first_address;
 	loc_network_format_last_address;
 	loc_network_get_asn;
@@ -96,6 +98,7 @@ global:
 	loc_network_set_country_code;
 	loc_network_set_flag;
 	loc_network_str;
+	loc_network_subnets;
 	loc_network_unref;
 
 	# Network List
@@ -107,7 +110,9 @@ global:
 	loc_network_list_pop;
 	loc_network_list_push;
 	loc_network_list_ref;
+	loc_network_list_reverse;
 	loc_network_list_size;
+	loc_network_list_sort;
 	loc_network_list_unref;
 
 	# Writer

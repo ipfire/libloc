@@ -97,6 +97,21 @@ static struct in6_addr make_last_address(const struct in6_addr* address, const s
 	return a;
 }
 
+static struct in6_addr address_increment(const struct in6_addr* address) {
+	struct in6_addr a = *address;
+
+	for (int octet = 15; octet >= 0; octet--) {
+		if (a.s6_addr[octet] < 255) {
+			a.s6_addr[octet]++;
+			break;
+		} else {
+			a.s6_addr[octet] = 0;
+		}
+	}
+
+	return a;
+}
+
 LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network,
 		struct in6_addr* address, unsigned int prefix) {
 	// Address cannot be unspecified
@@ -405,6 +420,69 @@ LOC_EXPORT int loc_network_match_flag(struct loc_network* network, uint32_t flag
 	return loc_network_has_flag(network, flag);
 }
 
+LOC_EXPORT int loc_network_eq(struct loc_network* self, struct loc_network* other) {
+#ifdef ENABLE_DEBUG
+	char* n1 = loc_network_str(self);
+	char* n2 = loc_network_str(other);
+
+	DEBUG(self->ctx, "Is %s equal to %s?\n", n1, n2);
+
+	free(n1);
+	free(n2);
+#endif
+
+	// Family must be the same
+	if (self->family != other->family) {
+		DEBUG(self->ctx, "  Family mismatch\n");
+
+		return 0;
+	}
+
+	// The start address must be the same
+	if (in6_addr_cmp(&self->first_address, &other->first_address) != 0) {
+		DEBUG(self->ctx, "  Address mismatch\n");
+
+		return 0;
+	}
+
+	// The prefix length must be the same
+	if (self->prefix != other->prefix) {
+		DEBUG(self->ctx, "  Prefix mismatch\n");
+		return 0;
+	}
+
+	DEBUG(self->ctx, "  Yes!\n");
+
+	return 1;
+}
+
+static int loc_network_gt(struct loc_network* self, struct loc_network* other) {
+	// Families must match
+	if (self->family != other->family)
+		return -1;
+
+	int r = in6_addr_cmp(&self->first_address, &other->first_address);
+
+	switch (r) {
+		// Smaller
+		case -1:
+			return 0;
+
+		// Larger
+		case 1:
+			return 1;
+
+		default:
+			break;
+	}
+
+	if (self->prefix > other->prefix)
+		return 1;
+
+	// Dunno
+	return 0;
+}
+
 LOC_EXPORT int loc_network_is_subnet_of(struct loc_network* self, struct loc_network* other) {
 	// If the start address of the other network is smaller than this network,
 	// it cannot be a subnet.
@@ -417,6 +495,175 @@ LOC_EXPORT int loc_network_is_subnet_of(struct loc_network* self, struct loc_net
 		return 0;
 
 	return 1;
+}
+
+LOC_EXPORT struct loc_network_list* loc_network_subnets(struct loc_network* network) {
+	struct loc_network_list* list;
+
+	// New prefix length
+	unsigned int prefix = network->prefix + 1;
+
+	// Check if the new prefix is valid
+	if (valid_prefix(&network->first_address, prefix))
+		return NULL;
+
+	// Create a new list with the result
+	int r = loc_network_list_new(network->ctx, &list);
+	if (r) {
+		ERROR(network->ctx, "Could not create network list: %d\n", r);
+		return NULL;
+	}
+
+	struct loc_network* subnet1 = NULL;
+	struct loc_network* subnet2 = NULL;
+
+	// Create the first half of the network
+	r = loc_network_new(network->ctx, &subnet1, &network->first_address, prefix);
+	if (r)
+		goto ERROR;
+
+	// The next subnet starts after the first one
+	struct in6_addr first_address = address_increment(&subnet1->last_address);
+
+	// Create the second half of the network
+	r = loc_network_new(network->ctx, &subnet2, &first_address, prefix);
+	if (r)
+		goto ERROR;
+
+	// Push the both onto the stack (in reverse order)
+	r = loc_network_list_push(list, subnet2);
+	if (r)
+		goto ERROR;
+
+	r = loc_network_list_push(list, subnet1);
+	if (r)
+		goto ERROR;
+
+	loc_network_unref(subnet1);
+	loc_network_unref(subnet2);
+
+	return list;
+
+ERROR:
+	if (subnet1)
+		loc_network_unref(subnet1);
+
+	if (subnet2)
+		loc_network_unref(subnet2);
+
+	if (list)
+		loc_network_list_unref(list);
+
+	return NULL;
+}
+
+LOC_EXPORT struct loc_network_list* loc_network_exclude(
+		struct loc_network* self, struct loc_network* other) {
+	struct loc_network_list* list;
+
+#ifdef ENABLE_DEBUG
+	char* n1 = loc_network_str(self);
+	char* n2 = loc_network_str(other);
+
+	DEBUG(self->ctx, "Returning %s excluding %s...\n", n1, n2);
+
+	free(n1);
+	free(n2);
+#endif
+
+	// Family must match
+	if (self->family != other->family) {
+		DEBUG(self->ctx, "Family mismatch\n");
+
+		return NULL;
+	}
+
+	// Other must be a subnet of self
+	if (!loc_network_is_subnet_of(other, self)) {
+		DEBUG(self->ctx, "Network %p is not contained in network %p\n", other, self);
+
+		return NULL;
+	}
+
+	// We cannot perform this operation if both networks equal
+	if (loc_network_eq(self, other)) {
+		DEBUG(self->ctx, "Networks %p and %p are equal\n", self, other);
+
+		return NULL;
+	}
+
+	// Create a new list with the result
+	int r = loc_network_list_new(self->ctx, &list);
+	if (r) {
+		ERROR(self->ctx, "Could not create network list: %d\n", r);
+		return NULL;
+	}
+
+	struct loc_network_list* subnets = loc_network_subnets(self);
+
+	struct loc_network* subnet1 = NULL;
+	struct loc_network* subnet2 = NULL;
+
+	while (subnets) {
+		// Fetch both subnets
+		subnet1 = loc_network_list_get(subnets, 0);
+		subnet2 = loc_network_list_get(subnets, 1);
+
+		// Free list
+		loc_network_list_unref(subnets);
+		subnets = NULL;
+
+		if (loc_network_eq(other, subnet1)) {
+			r = loc_network_list_push(list, subnet2);
+			if (r)
+				goto ERROR;
+
+		} else if (loc_network_eq(other, subnet2)) {
+			r = loc_network_list_push(list, subnet1);
+			if (r)
+				goto ERROR;
+
+		} else  if (loc_network_is_subnet_of(other, subnet1)) {
+			r = loc_network_list_push(list, subnet2);
+			if (r)
+				goto ERROR;
+
+			subnets = loc_network_subnets(subnet1);
+
+		} else if (loc_network_is_subnet_of(other, subnet2)) {
+			r = loc_network_list_push(list, subnet1);
+			if (r)
+				goto ERROR;
+
+			subnets = loc_network_subnets(subnet2);
+
+		} else {
+			ERROR(self->ctx, "We should never get here\n");
+			goto ERROR;
+		}
+
+		loc_network_unref(subnet1);
+		loc_network_unref(subnet2);
+	}
+
+#ifdef ENABLE_DEBUG
+	loc_network_list_dump(list);
+#endif
+
+	// Return the result
+	return list;
+
+ERROR:
+	if (subnet1)
+		loc_network_unref(subnet1);
+
+	if (subnet2)
+		loc_network_unref(subnet2);
+
+	if (list)
+		loc_network_list_unref(list);
+
+	return NULL;
 }
 
 LOC_EXPORT int loc_network_to_database_v1(struct loc_network* network, struct loc_database_network_v1* dbobj) {
@@ -854,5 +1101,46 @@ LOC_EXPORT struct loc_network* loc_network_list_pop(struct loc_network_list* lis
 	if (loc_network_list_empty(list))
 		return NULL;
 
-	return list->list[list->size--];
+	return list->list[--list->size];
+}
+
+static void loc_network_list_swap(struct loc_network_list* list, unsigned int i1, unsigned int i2) {
+	// Do nothing for invalid indices
+	if (i1 >= list->size || i2 >= list->size)
+		return;
+
+	DEBUG(list->ctx, "Swapping %u with %u\n", i1, i2);
+
+	struct loc_network* network1 = list->list[i1];
+	struct loc_network* network2 = list->list[i2];
+
+	list->list[i1] = network2;
+	list->list[i2] = network1;
+}
+
+LOC_EXPORT void loc_network_list_reverse(struct loc_network_list* list) {
+	unsigned int i = 0;
+	unsigned int j = list->size - 1;
+
+	while (i < j) {
+		loc_network_list_swap(list, i++, j--);
+	}
+}
+
+LOC_EXPORT void loc_network_list_sort(struct loc_network_list* list) {
+	unsigned int n = list->size;
+	int swapped;
+
+	do {
+		swapped = 0;
+
+		for (unsigned int i = 1; i < n; i++) {
+			if (loc_network_gt(list->list[i-1], list->list[i]) > 0) {
+				loc_network_list_swap(list, i-1, i);
+				swapped = 1;
+			}
+		}
+
+		n--;
+	} while (swapped);
 }
