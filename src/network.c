@@ -479,6 +479,21 @@ LOC_EXPORT int loc_network_overlaps(struct loc_network* self, struct loc_network
 	return 0;
 }
 
+LOC_EXPORT int loc_network_is_subnet(struct loc_network* self, struct loc_network* other) {
+	// If the start address of the other network is smaller than this network,
+	// it cannot be a subnet.
+	if (in6_addr_cmp(&self->first_address, &other->first_address) < 0)
+		return 0;
+
+	// If the end address of the other network is greater than this network,
+	// it cannot be a subnet.
+	if (in6_addr_cmp(&self->last_address, &other->last_address) > 0)
+		return 0;
+
+	return 1;
+}
+
+// XXX DEPRECATED - I find this too difficult to use
 LOC_EXPORT int loc_network_is_subnet_of(struct loc_network* self, struct loc_network* other) {
 	// If the start address of the other network is smaller than this network,
 	// it cannot be a subnet.

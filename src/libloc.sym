@@ -87,6 +87,7 @@ global:
 	loc_network_get_asn;
 	loc_network_get_country_code;
 	loc_network_has_flag;
+	loc_network_is_subnet;
 	loc_network_is_subnet_of;
 	loc_network_match_asn;
 	loc_network_match_country_code;
