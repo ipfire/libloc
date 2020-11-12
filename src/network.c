@@ -817,6 +817,20 @@ LOC_EXPORT void loc_network_list_clear(struct loc_network_list* list) {
 	list->size = 0;
 }
 
+LOC_EXPORT void loc_network_list_dump(struct loc_network_list* list) {
+	struct loc_network* network;
+	char* s;
+
+	for (unsigned int i = 0; i < list->size; i++) {
+		network = list->list[i];
+
+		s = loc_network_str(network);
+
+		INFO(list->ctx, "%s\n", s);
+		free(s);
+	}
+}
+
 LOC_EXPORT struct loc_network* loc_network_list_get(struct loc_network_list* list, size_t index) {
 	// Check index
 	if (index >= list->size)
