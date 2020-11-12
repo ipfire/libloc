@@ -421,37 +421,17 @@ LOC_EXPORT int loc_network_match_flag(struct loc_network* network, uint32_t flag
 }
 
 LOC_EXPORT int loc_network_eq(struct loc_network* self, struct loc_network* other) {
-#ifdef ENABLE_DEBUG
-	char* n1 = loc_network_str(self);
-	char* n2 = loc_network_str(other);
-
-	DEBUG(self->ctx, "Is %s equal to %s?\n", n1, n2);
-
-	free(n1);
-	free(n2);
-#endif
-
 	// Family must be the same
-	if (self->family != other->family) {
-		DEBUG(self->ctx, "  Family mismatch\n");
-
+	if (self->family != other->family)
 		return 0;
-	}
 
 	// The start address must be the same
-	if (in6_addr_cmp(&self->first_address, &other->first_address) != 0) {
-		DEBUG(self->ctx, "  Address mismatch\n");
-
+	if (in6_addr_cmp(&self->first_address, &other->first_address) != 0)
 		return 0;
-	}
 
 	// The prefix length must be the same
-	if (self->prefix != other->prefix) {
-		DEBUG(self->ctx, "  Prefix mismatch\n");
+	if (self->prefix != other->prefix)
 		return 0;
-	}
-
-	DEBUG(self->ctx, "  Yes!\n");
 
 	return 1;
 }
@@ -1137,8 +1117,6 @@ static void loc_network_list_swap(struct loc_network_list* list, unsigned int i1
 	// Do nothing for invalid indices
 	if (i1 >= list->size || i2 >= list->size)
 		return;
-
-	DEBUG(list->ctx, "Swapping %u with %u\n", i1, i2);
 
 	struct loc_network* network1 = list->list[i1];
 	struct loc_network* network2 = list->list[i2];
