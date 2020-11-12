@@ -550,6 +550,20 @@ LOC_EXPORT struct loc_network_list* loc_network_subnets(struct loc_network* netw
 	if (r)
 		goto ERROR;
 
+	// Copy country code
+	const char* country_code = loc_network_get_country_code(network);
+	if (country_code) {
+		loc_network_set_country_code(subnet1, country_code);
+		loc_network_set_country_code(subnet2, country_code);
+	}
+
+	// Copy ASN
+	uint32_t asn = loc_network_get_asn(network);
+	if (asn) {
+		loc_network_set_asn(subnet1, asn);
+		loc_network_set_asn(subnet2, asn);
+	}
+
 	loc_network_unref(subnet1);
 	loc_network_unref(subnet2);
 
