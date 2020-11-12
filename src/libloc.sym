@@ -93,6 +93,7 @@ global:
 	loc_network_match_flag;
 	loc_network_new;
 	loc_network_new_from_string;
+	loc_network_overlaps;
 	loc_network_ref;
 	loc_network_set_asn;
 	loc_network_set_country_code;

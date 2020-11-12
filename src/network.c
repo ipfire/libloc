@@ -483,6 +483,22 @@ static int loc_network_gt(struct loc_network* self, struct loc_network* other) {
 	return 0;
 }
 
+LOC_EXPORT int loc_network_overlaps(struct loc_network* self, struct loc_network* other) {
+	if (loc_network_match_address(self, &other->first_address) == 0)
+		return 1;
+
+	if (loc_network_match_address(self, &other->last_address) == 0)
+		return 1;
+
+	if (loc_network_match_address(other, &self->first_address) == 0)
+		return 1;
+
+	if (loc_network_match_address(other, &self->last_address) == 0)
+		return 1;
+
+	return 0;
+}
+
 LOC_EXPORT int loc_network_is_subnet_of(struct loc_network* self, struct loc_network* other) {
 	// If the start address of the other network is smaller than this network,
 	// it cannot be a subnet.
