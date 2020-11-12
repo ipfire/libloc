@@ -104,6 +104,7 @@ global:
 
 	# Network List
 	loc_network_list_clear;
+	loc_network_list_contains;
 	loc_network_list_dump;
 	loc_network_list_empty;
 	loc_network_list_get;

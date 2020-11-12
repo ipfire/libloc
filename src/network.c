@@ -1120,6 +1120,15 @@ LOC_EXPORT struct loc_network* loc_network_list_pop(struct loc_network_list* lis
 	return list->list[--list->size];
 }
 
+LOC_EXPORT int loc_network_list_contains(struct loc_network_list* list, struct loc_network* network) {
+	for (unsigned int i = 0; i < list->size; i++) {
+		if (loc_network_eq(list->list[i], network))
+			return 1;
+	}
+
+	return 0;
+}
+
 static void loc_network_list_swap(struct loc_network_list* list, unsigned int i1, unsigned int i2) {
 	// Do nothing for invalid indices
 	if (i1 >= list->size || i2 >= list->size)

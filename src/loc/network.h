@@ -73,6 +73,7 @@ void loc_network_list_dump(struct loc_network_list* list);
 struct loc_network* loc_network_list_get(struct loc_network_list* list, size_t index);
 int loc_network_list_push(struct loc_network_list* list, struct loc_network* network);
 struct loc_network* loc_network_list_pop(struct loc_network_list* list);
+int loc_network_list_contains(struct loc_network_list* list, struct loc_network* network);
 void loc_network_list_sort(struct loc_network_list* list);
 void loc_network_list_reverse(struct loc_network_list* list);
 
