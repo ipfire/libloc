@@ -61,6 +61,8 @@ int loc_network_is_subnet_of(struct loc_network* self, struct loc_network* other
 struct loc_network_list* loc_network_subnets(struct loc_network* network);
 struct loc_network_list* loc_network_exclude(
 		struct loc_network* self, struct loc_network* other);
+struct loc_network_list* loc_network_exclude_list(
+		struct loc_network* network, struct loc_network_list* list);
 
 // List
 struct loc_network_list;

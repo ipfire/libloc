@@ -677,6 +677,91 @@ ERROR:
 	return NULL;
 }
 
+LOC_EXPORT struct loc_network_list* loc_network_exclude_list(
+		struct loc_network* network, struct loc_network_list* list) {
+	struct loc_network_list* to_check;
+
+	// Create a new list with all networks to look at
+	int r = loc_network_list_new(network->ctx, &to_check);
+	if (r)
+		return NULL;
+
+	struct loc_network* subnet = NULL;
+	struct loc_network_list* subnets = NULL;
+
+	for (unsigned int i = 0; i < loc_network_list_size(list); i++) {
+		subnet = loc_network_list_get(list, i);
+
+		// Find all excluded networks
+		struct loc_network_list* excluded = loc_network_exclude(network, subnet);
+		if (excluded) {
+			// Add them all to the "to check" list
+			loc_network_list_merge(to_check, excluded);
+			loc_network_list_unref(excluded);
+		}
+
+		// Cleanup
+		loc_network_unref(subnet);
+	}
+
+	r = loc_network_list_new(network->ctx, &subnets);
+	if (r) {
+		loc_network_list_unref(to_check);
+		return NULL;
+	}
+
+	while (!loc_network_list_empty(to_check)) {
+		struct loc_network* subnet_to_check = loc_network_list_pop(to_check);
+
+		// Marks whether this subnet passed all checks
+		int passed = 1;
+
+		for (unsigned int i = 0; i < loc_network_list_size(list); i++) {
+			subnet = loc_network_list_get(list, i);
+
+			// Drop this subnet if is is already in list
+			if (loc_network_eq(subnet_to_check, subnet)) {
+				passed = 0;
+				loc_network_unref(subnet);
+				break;
+			}
+
+			// Drop this subnet if is a subnet of another subnet
+			if (loc_network_is_subnet_of(subnet, subnet_to_check)) {
+				passed = 0;
+				loc_network_unref(subnet);
+				break;
+			}
+
+			// Break it down if it overlaps
+			if (loc_network_overlaps(subnet_to_check, subnet)) {
+				passed = 0;
+
+				struct loc_network_list* excluded = loc_network_exclude(subnet_to_check, subnet);
+				if (excluded) {
+					loc_network_list_merge(to_check, excluded);
+					loc_network_list_unref(excluded);
+				}
+
+				loc_network_unref(subnet);
+				break;
+			}
+
+			loc_network_unref(subnet);
+		}
+
+		if (passed) {
+			r = loc_network_list_push(subnets, subnet_to_check);
+		}
+
+		loc_network_unref(subnet_to_check);
+	}
+
+	loc_network_list_unref(to_check);
+
+	return subnets;
+}
+
 LOC_EXPORT int loc_network_to_database_v1(struct loc_network* network, struct loc_database_network_v1* dbobj) {
 	// Add country code
 	loc_country_code_copy(dbobj->country_code, network->country_code);
