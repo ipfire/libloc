@@ -1103,6 +1103,10 @@ LOC_EXPORT struct loc_network* loc_network_list_get(struct loc_network_list* lis
 }
 
 LOC_EXPORT int loc_network_list_push(struct loc_network_list* list, struct loc_network* network) {
+	// Do not add networks that are already on the list
+	if (loc_network_list_contains(list, network))
+		return 0;
+
 	// Check if we have space left
 	if (list->size == list->max_size)
 		return -ENOMEM;
