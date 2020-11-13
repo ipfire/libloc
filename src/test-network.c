@@ -37,12 +37,14 @@ int main(int argc, char** argv) {
 	// Enable debug logging
 	loc_set_log_priority(ctx, LOG_DEBUG);
 
+#if 0
 	struct loc_network_tree* tree;
 	err = loc_network_tree_new(ctx, &tree);
 	if (err) {
 		fprintf(stderr, "Could not create the network tree\n");
 		exit(EXIT_FAILURE);
 	}
+#endif
 
 	// Create a network
 	struct loc_network* network1;
@@ -58,12 +60,14 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
+#if 0
 	// Adding network to the tree
 	err = loc_network_tree_add_network(tree, network1);
 	if (err) {
 		fprintf(stderr, "Could not add network to the tree\n");
 		exit(EXIT_FAILURE);
 	}
+#endif
 
 	// Check if the first and last addresses are correct
 	char* string = loc_network_format_first_address(network1);
@@ -101,6 +105,7 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
+#if 0
 	// Adding network to the tree
 	err = loc_network_tree_add_network(tree, network2);
 	if (err) {
@@ -117,6 +122,7 @@ int main(int argc, char** argv) {
 
 	size_t nodes = loc_network_tree_count_nodes(tree);
 	printf("The tree has %zu nodes\n", nodes);
+#endif
 
 	// Check equals function
 	err = loc_network_eq(network1, network1);
@@ -260,7 +266,10 @@ int main(int argc, char** argv) {
 	loc_network_unref(network2);
 	loc_network_unref(network3);
 	loc_network_unref(network4);
+
+#if 0
 	loc_network_tree_unref(tree);
+#endif
 
 	// And open it again from disk
 	struct loc_database* db;

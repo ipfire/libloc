@@ -847,7 +847,7 @@ struct loc_network_tree_node {
 	struct loc_network* network;
 };
 
-LOC_EXPORT int loc_network_tree_new(struct loc_ctx* ctx, struct loc_network_tree** tree) {
+int loc_network_tree_new(struct loc_ctx* ctx, struct loc_network_tree** tree) {
 	struct loc_network_tree* t = calloc(1, sizeof(*t));
 	if (!t)
 		return -ENOMEM;
@@ -867,7 +867,7 @@ LOC_EXPORT int loc_network_tree_new(struct loc_ctx* ctx, struct loc_network_tree
 	return 0;
 }
 
-LOC_EXPORT struct loc_network_tree_node* loc_network_tree_get_root(struct loc_network_tree* tree) {
+struct loc_network_tree_node* loc_network_tree_get_root(struct loc_network_tree* tree) {
 	return loc_network_tree_node_ref(tree->root);
 }
 
@@ -939,7 +939,7 @@ static int __loc_network_tree_walk(struct loc_ctx* ctx, struct loc_network_tree_
 	return 0;
 }
 
-LOC_EXPORT int loc_network_tree_walk(struct loc_network_tree* tree,
+int loc_network_tree_walk(struct loc_network_tree* tree,
 		int(*filter_callback)(struct loc_network* network, void* data),
 		int(*callback)(struct loc_network* network, void* data), void* data) {
 	return __loc_network_tree_walk(tree->ctx, tree->root, filter_callback, callback, data);
@@ -954,7 +954,7 @@ static void loc_network_tree_free(struct loc_network_tree* tree) {
 	free(tree);
 }
 
-LOC_EXPORT struct loc_network_tree* loc_network_tree_unref(struct loc_network_tree* tree) {
+struct loc_network_tree* loc_network_tree_unref(struct loc_network_tree* tree) {
 	if (--tree->refcount > 0)
 		return tree;
 
@@ -975,13 +975,13 @@ static int __loc_network_tree_dump(struct loc_network* network, void* data) {
 	return 0;
 }
 
-LOC_EXPORT int loc_network_tree_dump(struct loc_network_tree* tree) {
+int loc_network_tree_dump(struct loc_network_tree* tree) {
 	DEBUG(tree->ctx, "Dumping network tree at %p\n", tree);
 
 	return loc_network_tree_walk(tree, NULL, __loc_network_tree_dump, NULL);
 }
 
-LOC_EXPORT int loc_network_tree_add_network(struct loc_network_tree* tree, struct loc_network* network) {
+int loc_network_tree_add_network(struct loc_network_tree* tree, struct loc_network* network) {
 	DEBUG(tree->ctx, "Adding network %p to tree %p\n", network, tree);
 
 	struct loc_network_tree_node* node = loc_network_tree_get_path(tree,
@@ -1012,7 +1012,7 @@ static int __loc_network_tree_count(struct loc_network* network, void* data) {
 	return 0;
 }
 
-LOC_EXPORT size_t loc_network_tree_count_networks(struct loc_network_tree* tree) {
+size_t loc_network_tree_count_networks(struct loc_network_tree* tree) {
 	size_t counter = 0;
 
 	int r = loc_network_tree_walk(tree, NULL, __loc_network_tree_count, &counter);
@@ -1034,11 +1034,11 @@ static size_t __loc_network_tree_count_nodes(struct loc_network_tree_node* node)
 	return counter;
 }
 
-LOC_EXPORT size_t loc_network_tree_count_nodes(struct loc_network_tree* tree) {
+size_t loc_network_tree_count_nodes(struct loc_network_tree* tree) {
 	return __loc_network_tree_count_nodes(tree->root);
 }
 
-LOC_EXPORT int loc_network_tree_node_new(struct loc_ctx* ctx, struct loc_network_tree_node** node) {
+int loc_network_tree_node_new(struct loc_ctx* ctx, struct loc_network_tree_node** node) {
 	struct loc_network_tree_node* n = calloc(1, sizeof(*n));
 	if (!n)
 		return -ENOMEM;
@@ -1053,7 +1053,7 @@ LOC_EXPORT int loc_network_tree_node_new(struct loc_ctx* ctx, struct loc_network
 	return 0;
 }
 
-LOC_EXPORT struct loc_network_tree_node* loc_network_tree_node_ref(struct loc_network_tree_node* node) {
+struct loc_network_tree_node* loc_network_tree_node_ref(struct loc_network_tree_node* node) {
 	if (node)
 		node->refcount++;
 
@@ -1076,7 +1076,7 @@ static void loc_network_tree_node_free(struct loc_network_tree_node* node) {
 	free(node);
 }
 
-LOC_EXPORT struct loc_network_tree_node* loc_network_tree_node_unref(struct loc_network_tree_node* node) {
+struct loc_network_tree_node* loc_network_tree_node_unref(struct loc_network_tree_node* node) {
 	if (!node)
 		return NULL;
 
@@ -1087,7 +1087,7 @@ LOC_EXPORT struct loc_network_tree_node* loc_network_tree_node_unref(struct loc_
 	return NULL;
 }
 
-LOC_EXPORT struct loc_network_tree_node* loc_network_tree_node_get(struct loc_network_tree_node* node, unsigned int index) {
+struct loc_network_tree_node* loc_network_tree_node_get(struct loc_network_tree_node* node, unsigned int index) {
 	if (index == 0)
 		node = node->zero;
 	else
@@ -1099,11 +1099,11 @@ LOC_EXPORT struct loc_network_tree_node* loc_network_tree_node_get(struct loc_ne
 	return loc_network_tree_node_ref(node);
 }
 
-LOC_EXPORT int loc_network_tree_node_is_leaf(struct loc_network_tree_node* node) {
+int loc_network_tree_node_is_leaf(struct loc_network_tree_node* node) {
 	return (!!node->network);
 }
 
-LOC_EXPORT struct loc_network* loc_network_tree_node_get_network(struct loc_network_tree_node* node) {
+struct loc_network* loc_network_tree_node_get_network(struct loc_network_tree_node* node) {
 	return loc_network_ref(node->network);
 }
 
