@@ -1157,9 +1157,23 @@ static int loc_database_enumerator_filter_network(
 static int __loc_database_enumerator_next_network(
 		struct loc_database_enumerator* enumerator, struct loc_network** network, int filter) {
 	// Return top element from the stack
-	*network = loc_network_list_pop(enumerator->stack);
-	if (*network)
+	while (1) {
+		*network = loc_network_list_pop(enumerator->stack);
+
+		// Stack is empty
+		if (!*network)
+			break;
+
+		// Throw away any networks by filter
+		if (filter && loc_database_enumerator_filter_network(enumerator, *network)) {
+			loc_network_unref(*network);
+			*network = NULL;
+			continue;
+		}
+
+		// Return result
 		return 0;
+	}
 
 	DEBUG(enumerator->ctx, "Called with a stack of %u nodes\n",
 		enumerator->network_stack_depth);
