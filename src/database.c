@@ -1129,6 +1129,31 @@ static int loc_database_enumerator_stack_push_node(
 	return 0;
 }
 
+static int loc_database_enumerator_filter_network(
+		struct loc_database_enumerator* enumerator, struct loc_network* network) {
+	// Skip if the family does not match
+	if (enumerator->family && loc_network_address_family(network) != enumerator->family)
+		return 1;
+
+	// Skip if the country code does not match
+	if (*enumerator->country_code &&
+			!loc_network_match_country_code(network, enumerator->country_code))
+		return 1;
+
+	// Skip if the ASN does not match
+	if (enumerator->asn &&
+			!loc_network_match_asn(network, enumerator->asn))
+		return 1;
+
+	// Skip if flags do not match
+	if (enumerator->flags &&
+			!loc_network_match_flag(network, enumerator->flags))
+		return 1;
+
+	// Do not filter
+	return 0;
+}
+
 static int __loc_database_enumerator_next_network(
 		struct loc_database_enumerator* enumerator, struct loc_network** network, int filter) {
 	// Return top element from the stack
@@ -1195,36 +1220,7 @@ static int __loc_database_enumerator_next_network(
 				return 0;
 
 			// Check if we are interested in this network
-
-			// Skip if the family does not match
-			if (enumerator->family && loc_network_address_family(*network) != enumerator->family) {
-				loc_network_unref(*network);
-				*network = NULL;
-
-				continue;
-			}
-
-			// Skip if the country code does not match
-			if (*enumerator->country_code &&
-					!loc_network_match_country_code(*network, enumerator->country_code)) {
-				loc_network_unref(*network);
-				*network = NULL;
-
-				continue;
-			}
-
-			// Skip if the ASN does not match
-			if (enumerator->asn &&
-					!loc_network_match_asn(*network, enumerator->asn)) {
-				loc_network_unref(*network);
-				*network = NULL;
-
-				continue;
-			}
-
-			// Skip if flags do not match
-			if (enumerator->flags &&
-					!loc_network_match_flag(*network, enumerator->flags)) {
+			if (loc_database_enumerator_filter_network(enumerator, *network)) {
 				loc_network_unref(*network);
 				*network = NULL;
 
