@@ -1231,6 +1231,25 @@ LOC_EXPORT struct loc_network* loc_network_list_pop(struct loc_network_list* lis
 	return network;
 }
 
+LOC_EXPORT struct loc_network* loc_network_list_pop_first(struct loc_network_list* list) {
+	// Return nothing when empty
+	if (loc_network_list_empty(list)) {
+		DEBUG(list->ctx, "%p: Popped empty stack\n", list);
+		return NULL;
+	}
+
+	struct loc_network* network = list->list[0];
+
+	// Move all elements to the top of the stack
+	for (unsigned int i = 0; i < --list->size; i++) {
+		list->list[i] = list->list[i+1];
+	}
+
+	DEBUG(list->ctx, "%p: Popping network %p from stack\n", list, network);
+
+	return network;
+}
+
 LOC_EXPORT int loc_network_list_contains(struct loc_network_list* list, struct loc_network* network) {
 	for (unsigned int i = 0; i < list->size; i++) {
 		if (loc_network_eq(list->list[i], network))

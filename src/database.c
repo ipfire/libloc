@@ -1315,15 +1315,13 @@ static int __loc_database_enumerator_next_network_flattened(
 		goto END;
 	}
 
-	// Reverse the list
-	loc_network_list_reverse(excluded);
-
 	// Replace network with the first one
 	loc_network_unref(*network);
 
-	*network = loc_network_list_pop(excluded);
+	*network = loc_network_list_pop_first(excluded);
 
 	// Push the rest onto the stack
+	loc_network_list_reverse(excluded);
 	loc_network_list_merge(enumerator->stack, excluded);
 
 	loc_network_list_unref(excluded);

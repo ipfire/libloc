@@ -113,6 +113,7 @@ global:
 	loc_network_list_merge;
 	loc_network_list_new;
 	loc_network_list_pop;
+	loc_network_list_pop_first;
 	loc_network_list_push;
 	loc_network_list_ref;
 	loc_network_list_reverse;
