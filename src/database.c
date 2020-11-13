@@ -1315,9 +1315,6 @@ static int __loc_database_enumerator_next_network_flattened(
 		goto END;
 	}
 
-	// Sort the result
-	loc_network_list_sort(excluded);
-
 	// Reverse the list
 	loc_network_list_reverse(excluded);
 
