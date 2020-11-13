@@ -258,17 +258,19 @@ static PyObject* Database_networks_flattened(DatabaseObject *self) {
 }
 
 static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, PyObject* kwargs) {
-	char* kwlist[] = { "country_code", "asn", "flags", "family", NULL };
+	char* kwlist[] = { "country_code", "asn", "flags", "family", "flatten", NULL };
 	const char* country_code = NULL;
 	unsigned int asn = 0;
 	int flags = 0;
 	int family = 0;
+	int flatten = 0;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|siii", kwlist, &country_code, &asn, &flags, &family))
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|siiip", kwlist, &country_code, &asn, &flags, &family, &flatten))
 		return NULL;
 
 	struct loc_database_enumerator* enumerator;
-	int r = loc_database_enumerator_new(&enumerator, self->db, LOC_DB_ENUMERATE_NETWORKS, 0);
+	int r = loc_database_enumerator_new(&enumerator, self->db, LOC_DB_ENUMERATE_NETWORKS,
+		(flatten) ? LOC_DB_ENUMERATOR_FLAGS_FLATTEN : 0);
 	if (r) {
 		PyErr_SetFromErrno(PyExc_SystemError);
 		return NULL;
