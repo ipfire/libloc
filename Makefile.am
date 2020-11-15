@@ -96,6 +96,7 @@ pkginclude_HEADERS = \
 	src/loc/database.h \
 	src/loc/format.h \
 	src/loc/network.h \
+	src/loc/network-list.h \
 	src/loc/private.h \
 	src/loc/stringpool.h \
 	src/loc/resolv.h \
@@ -110,6 +111,7 @@ src_libloc_la_SOURCES = \
 	src/country.c \
 	src/database.c \
 	src/network.c \
+	src/network-list.c \
 	src/resolv.c \
 	src/stringpool.c \
 	src/writer.c
