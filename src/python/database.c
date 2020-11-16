@@ -258,14 +258,15 @@ static PyObject* Database_networks_flattened(DatabaseObject *self) {
 }
 
 static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, PyObject* kwargs) {
-	char* kwlist[] = { "country_code", "asn", "flags", "family", "flatten", NULL };
-	const char* country_code = NULL;
+	char* kwlist[] = { "country_codes", "asn", "flags", "family", "flatten", NULL };
+	PyObject* country_codes = NULL;
 	unsigned int asn = 0;
 	int flags = 0;
 	int family = 0;
 	int flatten = 0;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|siiip", kwlist, &country_code, &asn, &flags, &family, &flatten))
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O!iiip", kwlist,
+			&PyList_Type, &country_codes, &asn, &flags, &family, &flatten))
 		return NULL;
 
 	struct loc_database_enumerator* enumerator;
@@ -277,13 +278,55 @@ static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, 
 	}
 
 	// Set country code we are searching for
-	if (country_code) {
-		r = loc_database_enumerator_set_country_code(enumerator, country_code);
-
+	if (country_codes) {
+		struct loc_country_list* countries;
+		r = loc_country_list_new(loc_ctx, &countries);
 		if (r) {
-			PyErr_SetFromErrno(PyExc_SystemError);
+			PyErr_SetString(PyExc_SystemError, "Could not create country list");
 			return NULL;
 		}
+
+		for (unsigned int i = 0; i < PyList_Size(country_codes); i++) {
+			PyObject* item = PyList_GetItem(country_codes, i);
+
+			if (!PyUnicode_Check(item)) {
+				PyErr_SetString(PyExc_TypeError, "Country codes must be strings");
+				loc_country_list_unref(countries);
+				return NULL;
+			}
+
+			const char* country_code = PyUnicode_AsUTF8(item);
+
+			struct loc_country* country;
+			r = loc_country_new(loc_ctx, &country, country_code);
+			if (r) {
+				if (r == -EINVAL) {
+					PyErr_Format(PyExc_ValueError, "Invalid country code: %s", country_code);
+				} else {
+					PyErr_SetString(PyExc_SystemError, "Could not create country");
+				}
+
+				loc_country_list_unref(countries);
+				return NULL;
+			}
+
+			// Append it to the list
+			r = loc_country_list_append(countries, country);
+			if (r) {
+				PyErr_SetString(PyExc_SystemError, "Could not append country to the list");
+
+				loc_country_list_unref(countries);
+				loc_country_unref(country);
+				return NULL;
+			}
+
+			loc_country_unref(country);
+		}
+
+		loc_database_enumerator_set_countries(enumerator, countries);
+
+		Py_DECREF(country_codes);
+		loc_country_list_unref(countries);
 	}
 
 	// Set the ASN we are searching for

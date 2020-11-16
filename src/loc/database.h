@@ -25,6 +25,7 @@
 #include <loc/network.h>
 #include <loc/as.h>
 #include <loc/country.h>
+#include <loc/country-list.h>
 
 struct loc_database;
 int loc_database_new(struct loc_ctx* ctx, struct loc_database** database, FILE* f);
@@ -66,7 +67,9 @@ struct loc_database_enumerator* loc_database_enumerator_ref(struct loc_database_
 struct loc_database_enumerator* loc_database_enumerator_unref(struct loc_database_enumerator* enumerator);
 
 int loc_database_enumerator_set_string(struct loc_database_enumerator* enumerator, const char* string);
-int loc_database_enumerator_set_country_code(struct loc_database_enumerator* enumerator, const char* country_code);
+struct loc_country_list* loc_database_enumerator_get_countries(struct loc_database_enumerator* enumerator);
+int loc_database_enumerator_set_countries(
+	struct loc_database_enumerator* enumerator, struct loc_country_list* countries);
 int loc_database_enumerator_set_asn(struct loc_database_enumerator* enumerator, unsigned int asn);
 int loc_database_enumerator_set_flag(struct loc_database_enumerator* enumerator, enum loc_network_flags flag);
 int loc_database_enumerator_set_family(struct loc_database_enumerator* enumerator, int family);

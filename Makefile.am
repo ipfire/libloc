@@ -93,6 +93,7 @@ pkginclude_HEADERS = \
 	src/loc/as.h \
 	src/loc/compat.h \
 	src/loc/country.h \
+	src/loc/country-list.h \
 	src/loc/database.h \
 	src/loc/format.h \
 	src/loc/network.h \
@@ -109,6 +110,7 @@ src_libloc_la_SOURCES = \
 	src/libloc.c \
 	src/as.c \
 	src/country.c \
+	src/country-list.c \
 	src/database.c \
 	src/network.c \
 	src/network-list.c \
