@@ -184,8 +184,14 @@ class Exporter(object):
 
 				writers[asn] = self.writer.open(self.db, filename, prefix="AS%s" % asn)
 
+			# Filter countries from special country codes
+			country_codes = [
+				country_code for country_code in countries if not country_code in flags.values()
+			]
+
 			# Get all networks that match the family
-			networks = self.db.search_networks(family=family, flatten=True)
+			networks = self.db.search_networks(family=family,
+				country_codes=country_codes, flatten=True)
 
 			# Walk through all networks
 			for network in networks:
