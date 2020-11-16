@@ -29,7 +29,7 @@ import _location
 log = logging.getLogger("location.export")
 log.propagate = 1
 
-flags = {
+FLAGS = {
 	_location.NETWORK_FLAG_ANONYMOUS_PROXY    : "A1",
 	_location.NETWORK_FLAG_SATELLITE_PROVIDER : "A2",
 	_location.NETWORK_FLAG_ANYCAST            : "A3",
@@ -186,12 +186,18 @@ class Exporter(object):
 
 			# Filter countries from special country codes
 			country_codes = [
-				country_code for country_code in countries if not country_code in flags.values()
+				country_code for country_code in countries if not country_code in FLAGS.values()
 			]
+
+			# Collect flags
+			flags = 0
+			for flag in FLAGS:
+				if FLAGS[flag] in countries:
+					flags |= flag
 
 			# Get all networks that match the family
 			networks = self.db.search_networks(family=family,
-				country_codes=country_codes, flatten=True)
+				country_codes=country_codes, flags=flags, flatten=True)
 
 			# Walk through all networks
 			for network in networks:
@@ -208,10 +214,10 @@ class Exporter(object):
 					pass
 
 				# Handle flags
-				for flag in flags:
+				for flag in FLAGS:
 					if network.has_flag(flag):
 						# Fetch the "fake" country code
-						country = flags[flag]
+						country = FLAGS[flag]
 
 						try:
 							writers[country].write(network)
