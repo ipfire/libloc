@@ -25,10 +25,26 @@ struct loc_country_list {
 	struct loc_ctx* ctx;
 	int refcount;
 
-	struct loc_country* list[1024];
+	struct loc_country** elements;
+	size_t elements_size;
+
 	size_t size;
-	size_t max_size;
 };
+
+static int loc_country_list_grow(struct loc_country_list* list, size_t size) {
+	DEBUG(list->ctx, "Growing country list %p by %zu to %zu\n",
+		list, size, list->elements_size + size);
+
+	struct loc_country** elements = reallocarray(list->elements,
+			list->elements_size + size, sizeof(*list->elements));
+	if (!elements)
+		return -errno;
+
+	list->elements = elements;
+	list->elements_size += size;
+
+	return 0;
+}
 
 LOC_EXPORT int loc_country_list_new(struct loc_ctx* ctx,
 		struct loc_country_list** list) {
@@ -38,9 +54,6 @@ LOC_EXPORT int loc_country_list_new(struct loc_ctx* ctx,
 
 	l->ctx = loc_ref(ctx);
 	l->refcount = 1;
-
-	// Do not allow this list to grow larger than this
-	l->max_size = 1024;
 
 	DEBUG(l->ctx, "Country list allocated at %p\n", l);
 	*list = l;
@@ -84,7 +97,7 @@ LOC_EXPORT int loc_country_list_empty(struct loc_country_list* list) {
 
 LOC_EXPORT void loc_country_list_clear(struct loc_country_list* list) {
 	for (unsigned int i = 0; i < list->size; i++)
-		loc_country_unref(list->list[i]);
+		loc_country_unref(list->elements[i]);
 }
 
 LOC_EXPORT struct loc_country* loc_country_list_get(struct loc_country_list* list, size_t index) {
@@ -92,7 +105,7 @@ LOC_EXPORT struct loc_country* loc_country_list_get(struct loc_country_list* lis
 	if (index >= list->size)
 		return NULL;
 
-	return loc_country_ref(list->list[index]);
+	return loc_country_ref(list->elements[index]);
 }
 
 LOC_EXPORT int loc_country_list_append(
@@ -101,14 +114,15 @@ LOC_EXPORT int loc_country_list_append(
 		return 0;
 
 	// Check if we have space left
-	if (list->size == list->max_size) {
-		ERROR(list->ctx, "%p: Could not append country to the list. List full\n", list);
-		return -ENOMEM;
+	if (list->size >= list->elements_size) {
+		int r = loc_country_list_grow(list, 64);
+		if (r)
+			return r;
 	}
 
 	DEBUG(list->ctx, "%p: Appending country %p to list\n", list, country);
 
-	list->list[list->size++] = loc_country_ref(country);
+	list->elements[list->size++] = loc_country_ref(country);
 
 	return 0;
 }
@@ -116,7 +130,7 @@ LOC_EXPORT int loc_country_list_append(
 LOC_EXPORT int loc_country_list_contains(
 		struct loc_country_list* list, struct loc_country* country) {
 	for (unsigned int i = 0; i < list->size; i++) {
-		if (loc_country_cmp(country, list->list[i]) == 0)
+		if (loc_country_cmp(country, list->elements[i]) == 0)
 			return 1;
 	}
 
