@@ -1129,12 +1129,6 @@ static int loc_database_enumerator_stack_push_node(
 	return 0;
 }
 
-static int loc_network_match_countries(struct loc_network* network, struct loc_country_list* countries) {
-	const char* country_code = loc_network_get_country_code(network);
-
-	return loc_country_list_contains_code(countries, country_code);
-}
-
 static int loc_network_match_asns(struct loc_network* network, struct loc_as_list* asns) {
 	uint32_t asn = loc_network_get_asn(network);
 
@@ -1148,8 +1142,14 @@ static int loc_database_enumerator_filter_network(
 		return 1;
 
 	// Skip if the country code does not match
-	if (enumerator->countries && !loc_network_match_countries(network, enumerator->countries))
-		return 1;
+	if (enumerator->countries) {
+		if (!loc_country_list_empty(enumerator->countries)) {
+			const char* country_code = loc_network_get_country_code(network);
+
+			if (!loc_country_list_contains_code(enumerator->countries, country_code))
+				return 1;
+		}
+	}
 
 	// Skip if the ASN does not match
 	if (enumerator->asns && !loc_network_match_asns(network, enumerator->asns))
