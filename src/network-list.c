@@ -25,10 +25,26 @@ struct loc_network_list {
 	struct loc_ctx* ctx;
 	int refcount;
 
-	struct loc_network* list[1024];
+	struct loc_network** elements;
+	size_t elements_size;
+
 	size_t size;
-	size_t max_size;
 };
+
+static int loc_network_list_grow(struct loc_network_list* list, size_t size) {
+	DEBUG(list->ctx, "Growing network list %p by %zu to %zu\n",
+		list, size, list->elements_size + size);
+
+	struct loc_network** elements = reallocarray(list->elements,
+			list->elements_size + size, sizeof(*list->elements));
+	if (!elements)
+		return -errno;
+
+	list->elements = elements;
+	list->elements_size += size;
+
+	return 0;
+}
 
 LOC_EXPORT int loc_network_list_new(struct loc_ctx* ctx,
 		struct loc_network_list** list) {
@@ -38,9 +54,6 @@ LOC_EXPORT int loc_network_list_new(struct loc_ctx* ctx,
 
 	l->ctx = loc_ref(ctx);
 	l->refcount = 1;
-
-	// Do not allow this list to grow larger than this
-	l->max_size = 1024;
 
 	DEBUG(l->ctx, "Network list allocated at %p\n", l);
 	*list = l;
@@ -57,7 +70,7 @@ static void loc_network_list_free(struct loc_network_list* list) {
 	DEBUG(list->ctx, "Releasing network list at %p\n", list);
 
 	for (unsigned int i = 0; i < list->size; i++)
-		loc_network_unref(list->list[i]);
+		loc_network_unref(list->elements[i]);
 
 	loc_unref(list->ctx);
 	free(list);
@@ -84,7 +97,7 @@ LOC_EXPORT int loc_network_list_empty(struct loc_network_list* list) {
 
 LOC_EXPORT void loc_network_list_clear(struct loc_network_list* list) {
 	for (unsigned int i = 0; i < list->size; i++)
-		loc_network_unref(list->list[i]);
+		loc_network_unref(list->elements[i]);
 
 	list->size = 0;
 }
@@ -94,7 +107,7 @@ LOC_EXPORT void loc_network_list_dump(struct loc_network_list* list) {
 	char* s;
 
 	for (unsigned int i = 0; i < list->size; i++) {
-		network = list->list[i];
+		network = list->elements[i];
 
 		s = loc_network_str(network);
 
@@ -108,7 +121,7 @@ LOC_EXPORT struct loc_network* loc_network_list_get(struct loc_network_list* lis
 	if (index >= list->size)
 		return NULL;
 
-	return loc_network_ref(list->list[index]);
+	return loc_network_ref(list->elements[index]);
 }
 
 LOC_EXPORT int loc_network_list_push(struct loc_network_list* list, struct loc_network* network) {
@@ -117,14 +130,15 @@ LOC_EXPORT int loc_network_list_push(struct loc_network_list* list, struct loc_n
 		return 0;
 
 	// Check if we have space left
-	if (list->size == list->max_size) {
-		ERROR(list->ctx, "%p: Could not push network onto the stack: Stack full\n", list);
-		return -ENOMEM;
+	if (list->size >= list->elements_size) {
+		int r = loc_network_list_grow(list, 64);
+		if (r)
+			return r;
 	}
 
 	DEBUG(list->ctx, "%p: Pushing network %p onto stack\n", list, network);
 
-	list->list[list->size++] = loc_network_ref(network);
+	list->elements[list->size++] = loc_network_ref(network);
 
 	return 0;
 }
@@ -136,7 +150,7 @@ LOC_EXPORT struct loc_network* loc_network_list_pop(struct loc_network_list* lis
 		return NULL;
 	}
 
-	struct loc_network* network = list->list[--list->size];
+	struct loc_network* network = list->elements[--list->size];
 
 	DEBUG(list->ctx, "%p: Popping network %p from stack\n", list, network);
 
@@ -150,11 +164,11 @@ LOC_EXPORT struct loc_network* loc_network_list_pop_first(struct loc_network_lis
 		return NULL;
 	}
 
-	struct loc_network* network = list->list[0];
+	struct loc_network* network = list->elements[0];
 
 	// Move all elements to the top of the stack
 	for (unsigned int i = 0; i < --list->size; i++) {
-		list->list[i] = list->list[i+1];
+		list->elements[i] = list->elements[i+1];
 	}
 
 	DEBUG(list->ctx, "%p: Popping network %p from stack\n", list, network);
@@ -164,7 +178,7 @@ LOC_EXPORT struct loc_network* loc_network_list_pop_first(struct loc_network_lis
 
 LOC_EXPORT int loc_network_list_contains(struct loc_network_list* list, struct loc_network* network) {
 	for (unsigned int i = 0; i < list->size; i++) {
-		if (loc_network_eq(list->list[i], network))
+		if (loc_network_eq(list->elements[i], network))
 			return 1;
 	}
 
@@ -176,11 +190,11 @@ static void loc_network_list_swap(struct loc_network_list* list, unsigned int i1
 	if (i1 >= list->size || i2 >= list->size)
 		return;
 
-	struct loc_network* network1 = list->list[i1];
-	struct loc_network* network2 = list->list[i2];
+	struct loc_network* network1 = list->elements[i1];
+	struct loc_network* network2 = list->elements[i2];
 
-	list->list[i1] = network2;
-	list->list[i2] = network1;
+	list->elements[i1] = network2;
+	list->elements[i2] = network1;
 }
 
 LOC_EXPORT void loc_network_list_reverse(struct loc_network_list* list) {
@@ -200,7 +214,7 @@ LOC_EXPORT void loc_network_list_sort(struct loc_network_list* list) {
 		swapped = 0;
 
 		for (unsigned int i = 1; i < n; i++) {
-			if (loc_network_gt(list->list[i-1], list->list[i]) > 0) {
+			if (loc_network_gt(list->elements[i-1], list->elements[i]) > 0) {
 				loc_network_list_swap(list, i-1, i);
 				swapped = 1;
 			}
@@ -215,7 +229,7 @@ LOC_EXPORT int loc_network_list_merge(
 	int r;
 
 	for (unsigned int i = 0; i < other->size; i++) {
-		r = loc_network_list_push(self, other->list[i]);
+		r = loc_network_list_push(self, other->elements[i]);
 		if (r)
 			return r;
 	}
