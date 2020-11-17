@@ -1129,12 +1129,6 @@ static int loc_database_enumerator_stack_push_node(
 	return 0;
 }
 
-static int loc_network_match_asns(struct loc_network* network, struct loc_as_list* asns) {
-	uint32_t asn = loc_network_get_asn(network);
-
-	return loc_as_list_contains_number(asns, asn);
-}
-
 static int loc_database_enumerator_filter_network(
 		struct loc_database_enumerator* enumerator, struct loc_network* network) {
 	// Skip if the family does not match
@@ -1152,8 +1146,14 @@ static int loc_database_enumerator_filter_network(
 	}
 
 	// Skip if the ASN does not match
-	if (enumerator->asns && !loc_network_match_asns(network, enumerator->asns))
-		return 1;
+	if (enumerator->asns) {
+		if (!loc_as_list_empty(enumerator->asns)) {
+			uint32_t asn = loc_network_get_asn(network);
+
+			if (!loc_as_list_contains_number(enumerator->asns, asn))
+				return 1;
+		}
+	}
 
 	// Skip if flags do not match
 	if (enumerator->flags &&
