@@ -144,9 +144,7 @@ class XTGeoIPOutputWriter(OutputWriter):
 	def _write_network(self, network):
 		for address in (network.first_address, network.last_address):
 			# Convert this into a string of bits
-			bytes = socket.inet_pton(
-				socket.AF_INET6 if network.version == 6 else socket.AF_INET, "%s" % address,
-			)
+			bytes = socket.inet_pton(network.family, address)
 
 			self.f.write(bytes)
 
