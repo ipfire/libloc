@@ -38,6 +38,7 @@
 
 #include <loc/libloc.h>
 #include <loc/as.h>
+#include <loc/as-list.h>
 #include <loc/compat.h>
 #include <loc/country.h>
 #include <loc/country-list.h>
@@ -101,7 +102,7 @@ struct loc_database_enumerator {
 	// Search string
 	char* string;
 	struct loc_country_list* countries;
-	uint32_t asn;
+	struct loc_as_list* asns;
 	enum loc_network_flags flags;
 	int family;
 
@@ -1036,9 +1037,20 @@ LOC_EXPORT int loc_database_enumerator_set_countries(
 	return 0;
 }
 
-LOC_EXPORT int loc_database_enumerator_set_asn(
-		struct loc_database_enumerator* enumerator, unsigned int asn) {
-	enumerator->asn = asn;
+LOC_EXPORT struct loc_as_list* loc_database_enumerator_get_asns(
+		struct loc_database_enumerator* enumerator) {
+	if (!enumerator->asns)
+		return NULL;
+
+	return loc_as_list_ref(enumerator->asns);
+}
+
+LOC_EXPORT int loc_database_enumerator_set_asns(
+		struct loc_database_enumerator* enumerator, struct loc_as_list* asns) {
+	if (enumerator->asns)
+		loc_as_list_unref(enumerator->asns);
+
+	enumerator->asns = loc_as_list_ref(asns);
 
 	return 0;
 }
@@ -1123,6 +1135,12 @@ static int loc_network_match_countries(struct loc_network* network, struct loc_c
 	return loc_country_list_contains_code(countries, country_code);
 }
 
+static int loc_network_match_asns(struct loc_network* network, struct loc_as_list* asns) {
+	uint32_t asn = loc_network_get_asn(network);
+
+	return loc_as_list_contains_number(asns, asn);
+}
+
 static int loc_database_enumerator_filter_network(
 		struct loc_database_enumerator* enumerator, struct loc_network* network) {
 	// Skip if the family does not match
@@ -1134,8 +1152,7 @@ static int loc_database_enumerator_filter_network(
 		return 1;
 
 	// Skip if the ASN does not match
-	if (enumerator->asn &&
-			!loc_network_match_asn(network, enumerator->asn))
+	if (enumerator->asns && !loc_network_match_asns(network, enumerator->asns))
 		return 1;
 
 	// Skip if flags do not match

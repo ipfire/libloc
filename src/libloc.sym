@@ -37,6 +37,18 @@ global:
 	loc_as_set_name;
 	loc_as_unref;
 
+	# AS List
+	loc_as_list_append;
+	loc_as_list_clear;
+	loc_as_list_contains;
+	loc_as_list_contains_number;
+	loc_as_list_empty;
+	loc_as_list_get;
+	loc_as_list_new;
+	loc_as_list_ref;
+	loc_as_list_size;
+	loc_as_list_unref;
+
 	# Country
 	loc_country_cmp;
 	loc_country_code_is_valid;
@@ -78,13 +90,14 @@ global:
 	loc_database_verify;
 
 	# Database Enumerator
+	loc_database_enumerator_get_asns;
 	loc_database_enumerator_get_countries;
 	loc_database_enumerator_new;
 	loc_database_enumerator_next_as;
 	loc_database_enumerator_next_country;
 	loc_database_enumerator_next_network;
 	loc_database_enumerator_ref;
-	loc_database_enumerator_set_asn;
+	loc_database_enumerator_set_asns;
 	loc_database_enumerator_set_countries;
 	loc_database_enumerator_set_family;
 	loc_database_enumerator_set_flag;

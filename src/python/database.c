@@ -17,6 +17,8 @@
 #include <Python.h>
 
 #include <loc/libloc.h>
+#include <loc/as.h>
+#include <loc/as-list.h>
 #include <loc/database.h>
 
 #include "locationmodule.h"
@@ -258,15 +260,15 @@ static PyObject* Database_networks_flattened(DatabaseObject *self) {
 }
 
 static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, PyObject* kwargs) {
-	char* kwlist[] = { "country_codes", "asn", "flags", "family", "flatten", NULL };
+	char* kwlist[] = { "country_codes", "asns", "flags", "family", "flatten", NULL };
 	PyObject* country_codes = NULL;
-	unsigned int asn = 0;
+	PyObject* asn_list = NULL;
 	int flags = 0;
 	int family = 0;
 	int flatten = 0;
 
-	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O!iiip", kwlist,
-			&PyList_Type, &country_codes, &asn, &flags, &family, &flatten))
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|O!O!iip", kwlist,
+			&PyList_Type, &country_codes, &PyList_Type, &asn_list, &flags, &family, &flatten))
 		return NULL;
 
 	struct loc_database_enumerator* enumerator;
@@ -330,13 +332,57 @@ static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, 
 	}
 
 	// Set the ASN we are searching for
-	if (asn) {
-		r = loc_database_enumerator_set_asn(enumerator, asn);
-
+	if (asn_list) {
+		struct loc_as_list* asns;
+		r = loc_as_list_new(loc_ctx, &asns);
 		if (r) {
-			PyErr_SetFromErrno(PyExc_SystemError);
+			PyErr_SetString(PyExc_SystemError, "Could not create AS list");
 			return NULL;
 		}
+
+		for (unsigned int i = 0; i < PyList_Size(asn_list); i++) {
+			PyObject* item = PyList_GetItem(asn_list, i);
+
+			if (!PyLong_Check(item)) {
+				PyErr_SetString(PyExc_TypeError, "ASNs must be numbers");
+
+				loc_as_list_unref(asns);
+				return NULL;
+			}
+
+			unsigned long number = PyLong_AsLong(item);
+
+			struct loc_as* as;
+			r = loc_as_new(loc_ctx, &as, number);
+			if (r) {
+				PyErr_SetString(PyExc_SystemError, "Could not create AS");
+
+				loc_as_list_unref(asns);
+				loc_as_unref(as);
+				return NULL;
+			}
+
+			r = loc_as_list_append(asns, as);
+			if (r) {
+				PyErr_SetString(PyExc_SystemError, "Could not append AS to the list");
+
+				loc_as_list_unref(asns);
+				loc_as_unref(as);
+				return NULL;
+			}
+
+			loc_as_unref(as);
+		}
+
+		r = loc_database_enumerator_set_asns(enumerator, asns);
+		if (r) {
+			PyErr_SetFromErrno(PyExc_SystemError);
+
+			loc_as_list_unref(asns);
+			return NULL;
+		}
+
+		loc_as_list_unref(asns);
 	}
 
 	// Set the flags we are searching for

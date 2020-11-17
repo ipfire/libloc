@@ -91,6 +91,7 @@ EXTRA_DIST += \
 pkginclude_HEADERS = \
 	src/loc/libloc.h \
 	src/loc/as.h \
+	src/loc/as-list.h \
 	src/loc/compat.h \
 	src/loc/country.h \
 	src/loc/country-list.h \
@@ -109,6 +110,7 @@ lib_LTLIBRARIES = \
 src_libloc_la_SOURCES = \
 	src/libloc.c \
 	src/as.c \
+	src/as-list.c \
 	src/country.c \
 	src/country-list.c \
 	src/database.c \

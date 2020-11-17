@@ -70,7 +70,10 @@ int loc_database_enumerator_set_string(struct loc_database_enumerator* enumerato
 struct loc_country_list* loc_database_enumerator_get_countries(struct loc_database_enumerator* enumerator);
 int loc_database_enumerator_set_countries(
 	struct loc_database_enumerator* enumerator, struct loc_country_list* countries);
-int loc_database_enumerator_set_asn(struct loc_database_enumerator* enumerator, unsigned int asn);
+struct loc_as_list* loc_database_enumerator_get_asns(
+	struct loc_database_enumerator* enumerator);
+int loc_database_enumerator_set_asns(
+	struct loc_database_enumerator* enumerator, struct loc_as_list* asns);
 int loc_database_enumerator_set_flag(struct loc_database_enumerator* enumerator, enum loc_network_flags flag);
 int loc_database_enumerator_set_family(struct loc_database_enumerator* enumerator, int family);
 int loc_database_enumerator_next_as(
