@@ -325,9 +325,14 @@ static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, 
 			loc_country_unref(country);
 		}
 
-		loc_database_enumerator_set_countries(enumerator, countries);
+		r = loc_database_enumerator_set_countries(enumerator, countries);
+		if (r) {
+			PyErr_SetFromErrno(PyExc_SystemError);
 
-		Py_DECREF(country_codes);
+			loc_as_list_unref(countries);
+			return NULL;
+		}
+
 		loc_country_list_unref(countries);
 	}
 
