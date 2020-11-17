@@ -96,8 +96,16 @@ LOC_EXPORT int loc_as_list_empty(struct loc_as_list* list) {
 }
 
 LOC_EXPORT void loc_as_list_clear(struct loc_as_list* list) {
+	if (!list->elements)
+		return;
+
 	for (unsigned int i = 0; i < list->size; i++)
 		loc_as_unref(list->elements[i]);
+
+	free(list->elements);
+	list->elements_size = 0;
+
+	list->size = 0;
 }
 
 LOC_EXPORT struct loc_as* loc_as_list_get(struct loc_as_list* list, size_t index) {

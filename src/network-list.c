@@ -96,8 +96,14 @@ LOC_EXPORT int loc_network_list_empty(struct loc_network_list* list) {
 }
 
 LOC_EXPORT void loc_network_list_clear(struct loc_network_list* list) {
+	if (!list->elements)
+		return;
+
 	for (unsigned int i = 0; i < list->size; i++)
 		loc_network_unref(list->elements[i]);
+
+	free(list->elements);
+	list->elements_size = 0;
 
 	list->size = 0;
 }
