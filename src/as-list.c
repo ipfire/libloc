@@ -25,10 +25,26 @@ struct loc_as_list {
 	struct loc_ctx* ctx;
 	int refcount;
 
-	struct loc_as* list[1024];
+	struct loc_as** elements;
+	size_t elements_size;
+
 	size_t size;
-	size_t max_size;
 };
+
+static int loc_as_list_grow(struct loc_as_list* list, size_t size) {
+	DEBUG(list->ctx, "Growing AS list %p by %zu to %zu\n",
+		list, size, list->elements_size + size);
+
+	struct loc_as** elements = reallocarray(list->elements,
+			list->elements_size + size, sizeof(*list->elements));
+	if (!elements)
+		return -errno;
+
+	list->elements = elements;
+	list->elements_size += size;
+
+	return 0;
+}
 
 LOC_EXPORT int loc_as_list_new(struct loc_ctx* ctx,
 		struct loc_as_list** list) {
@@ -38,9 +54,6 @@ LOC_EXPORT int loc_as_list_new(struct loc_ctx* ctx,
 
 	l->ctx = loc_ref(ctx);
 	l->refcount = 1;
-
-	// Do not allow this list to grow larger than this
-	l->max_size = 1024;
 
 	DEBUG(l->ctx, "AS list allocated at %p\n", l);
 	*list = l;
@@ -84,7 +97,7 @@ LOC_EXPORT int loc_as_list_empty(struct loc_as_list* list) {
 
 LOC_EXPORT void loc_as_list_clear(struct loc_as_list* list) {
 	for (unsigned int i = 0; i < list->size; i++)
-		loc_as_unref(list->list[i]);
+		loc_as_unref(list->elements[i]);
 }
 
 LOC_EXPORT struct loc_as* loc_as_list_get(struct loc_as_list* list, size_t index) {
@@ -92,7 +105,7 @@ LOC_EXPORT struct loc_as* loc_as_list_get(struct loc_as_list* list, size_t index
 	if (index >= list->size)
 		return NULL;
 
-	return loc_as_ref(list->list[index]);
+	return loc_as_ref(list->elements[index]);
 }
 
 LOC_EXPORT int loc_as_list_append(
@@ -101,14 +114,15 @@ LOC_EXPORT int loc_as_list_append(
 		return 0;
 
 	// Check if we have space left
-	if (list->size == list->max_size) {
-		ERROR(list->ctx, "%p: Could not append AS to the list. List full\n", list);
-		return -ENOMEM;
+	if (list->size >= list->elements_size) {
+		int r = loc_as_list_grow(list, 64);
+		if (r)
+			return r;
 	}
 
 	DEBUG(list->ctx, "%p: Appending AS %p to list\n", list, as);
 
-	list->list[list->size++] = loc_as_ref(as);
+	list->elements[list->size++] = loc_as_ref(as);
 
 	return 0;
 }
@@ -116,7 +130,7 @@ LOC_EXPORT int loc_as_list_append(
 LOC_EXPORT int loc_as_list_contains(
 		struct loc_as_list* list, struct loc_as* as) {
 	for (unsigned int i = 0; i < list->size; i++) {
-		if (loc_as_cmp(as, list->list[i]) == 0)
+		if (loc_as_cmp(as, list->elements[i]) == 0)
 			return 1;
 	}
 
