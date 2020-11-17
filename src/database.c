@@ -950,6 +950,12 @@ static void loc_database_enumerator_free(struct loc_database_enumerator* enumera
 	if (enumerator->string)
 		free(enumerator->string);
 
+	if (enumerator->countries)
+		loc_country_list_unref(enumerator->countries);
+
+	if (enumerator->asns)
+		loc_as_list_unref(enumerator->asns);
+
 	// Free network search
 	free(enumerator->networks_visited);
 
