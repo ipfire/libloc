@@ -39,8 +39,8 @@ class OutputWriter(object):
 	suffix = "networks"
 	mode = "w"
 
-	def __init__(self, db, f, prefix=None, flatten=True):
-		self.db, self.f, self.prefix, self.flatten = db, f, prefix, flatten
+	def __init__(self, f, prefix=None, flatten=True):
+		self.f, self.prefix, self.flatten = f, prefix, flatten
 
 		# The previously written network
 		self._last_network = None
@@ -49,13 +49,13 @@ class OutputWriter(object):
 		self._write_header()
 
 	@classmethod
-	def open(cls, db, filename, **kwargs):
+	def open(cls, filename, **kwargs):
 		"""
 			Convenience function to open a file
 		"""
 		f = open(filename, cls.mode)
 
-		return cls(db, f, **kwargs)
+		return cls(f, **kwargs)
 
 	def __repr__(self):
 		return "<%s f=%s>" % (self.__class__.__name__, self.f)
@@ -172,7 +172,7 @@ class Exporter(object):
 					directory, prefix=country_code, suffix=self.writer.suffix, family=family,
 				)
 
-				writers[country_code] = self.writer.open(self.db, filename, prefix="CC_%s" % country_code)
+				writers[country_code] = self.writer.open(filename, prefix="CC_%s" % country_code)
 
 			# Create writers for ASNs
 			for asn in asns:
@@ -180,7 +180,7 @@ class Exporter(object):
 					directory, "AS%s" % asn, suffix=self.writer.suffix, family=family,
 				)
 
-				writers[asn] = self.writer.open(self.db, filename, prefix="AS%s" % asn)
+				writers[asn] = self.writer.open(filename, prefix="AS%s" % asn)
 
 			# Filter countries from special country codes
 			country_codes = [
