@@ -1138,33 +1138,36 @@ static int loc_database_enumerator_stack_push_node(
 static int loc_database_enumerator_filter_network(
 		struct loc_database_enumerator* enumerator, struct loc_network* network) {
 	// Skip if the family does not match
-	if (enumerator->family && loc_network_address_family(network) != enumerator->family)
+	if (enumerator->family && loc_network_address_family(network) != enumerator->family) {
+		DEBUG(enumerator->ctx, "Filtered network %p because of family not matching\n", network);
 		return 1;
+	}
 
 	// Skip if the country code does not match
-	if (enumerator->countries) {
-		if (!loc_country_list_empty(enumerator->countries)) {
-			const char* country_code = loc_network_get_country_code(network);
+	if (enumerator->countries && !loc_country_list_empty(enumerator->countries)) {
+		const char* country_code = loc_network_get_country_code(network);
 
-			if (!loc_country_list_contains_code(enumerator->countries, country_code))
-				return 1;
+		if (!loc_country_list_contains_code(enumerator->countries, country_code)) {
+			DEBUG(enumerator->ctx, "Filtered network %p because of country code not matching\n", network);
+			return 1;
 		}
 	}
 
 	// Skip if the ASN does not match
-	if (enumerator->asns) {
-		if (!loc_as_list_empty(enumerator->asns)) {
-			uint32_t asn = loc_network_get_asn(network);
+	if (enumerator->asns && !loc_as_list_empty(enumerator->asns)) {
+		uint32_t asn = loc_network_get_asn(network);
 
-			if (!loc_as_list_contains_number(enumerator->asns, asn))
-				return 1;
+		if (!loc_as_list_contains_number(enumerator->asns, asn)) {
+			DEBUG(enumerator->ctx, "Filtered network %p because of ASN not matching\n", network);
+			return 1;
 		}
 	}
 
 	// Skip if flags do not match
-	if (enumerator->flags &&
-			!loc_network_match_flag(network, enumerator->flags))
+	if (enumerator->flags && !loc_network_match_flag(network, enumerator->flags)) {
+		DEBUG(enumerator->ctx, "Filtered network %p because of flags not matching\n", network);
 		return 1;
+	}
 
 	// Do not filter
 	return 0;
