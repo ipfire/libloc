@@ -187,15 +187,9 @@ class Exporter(object):
 				country_code for country_code in countries if not country_code in FLAGS.values()
 			]
 
-			# Collect flags
-			flags = 0
-			for flag in FLAGS:
-				if FLAGS[flag] in countries:
-					flags |= flag
-
 			# Get all networks that match the family
 			networks = self.db.search_networks(family=family,
-				country_codes=country_codes, asns=asns, flags=flags, flatten=True)
+				country_codes=country_codes, asns=asns, flatten=True)
 
 			# Walk through all networks
 			for network in networks:
