@@ -142,11 +142,8 @@ class XTGeoIPOutputWriter(OutputWriter):
 	mode = "wb"
 
 	def _write_network(self, network):
-		for address in (network.first_address, network.last_address):
-			# Convert this into a string of bits
-			bytes = socket.inet_pton(network.family, address)
-
-			self.f.write(bytes)
+		for address in (network._first_address, network._last_address):
+			self.f.write(address)
 
 
 formats = {
