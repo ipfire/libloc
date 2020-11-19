@@ -120,8 +120,8 @@ class XTGeoIPOutputWriter(OutputWriter):
 	mode = "wb"
 
 	def write(self, network):
-		for address in (network._first_address, network._last_address):
-			self.f.write(address)
+		self.f.write(network._first_address)
+		self.f.write(network._last_address)
 
 
 formats = {
