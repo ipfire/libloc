@@ -501,6 +501,14 @@ LOC_EXPORT int loc_network_overlaps(struct loc_network* self, struct loc_network
 }
 
 LOC_EXPORT int loc_network_is_subnet(struct loc_network* self, struct loc_network* other) {
+	// Check family
+	if (self->family != other->family)
+		return 0;
+
+	// The prefix must be smaller (this avoids the more complex comparisons later)
+	if (self->prefix > other->prefix)
+		return 0;
+
 	// If the start address of the other network is smaller than this network,
 	// it cannot be a subnet.
 	if (in6_addr_cmp(&self->first_address, &other->first_address) > 0)
