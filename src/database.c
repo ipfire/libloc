@@ -1381,8 +1381,7 @@ static int __loc_database_enumerator_next_network_flattened(
 	*network = loc_network_list_pop_first(subnets);
 
 	// Push the rest onto the stack
-	loc_network_list_reverse(subnets);
-	loc_network_list_merge(enumerator->stack, subnets);
+	loc_network_list_merge_reverse(enumerator->stack, subnets);
 
 	loc_network_list_unref(subnets);
 

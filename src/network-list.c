@@ -242,3 +242,16 @@ LOC_EXPORT int loc_network_list_merge(
 
 	return 0;
 }
+
+LOC_EXPORT int loc_network_list_merge_reverse(
+		struct loc_network_list* self, struct loc_network_list* other) {
+	int r;
+
+	for (int i = other->size - 1; i >= 0; i--) {
+		r = loc_network_list_push(self, other->elements[i]);
+		if (r)
+			return r;
+	}
+
+	return 0;
+}
