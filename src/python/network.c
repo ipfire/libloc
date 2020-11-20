@@ -194,7 +194,7 @@ static PyObject* Network_is_subnet_of(NetworkObject* self, PyObject* args) {
 	if (!PyArg_ParseTuple(args, "O!", &NetworkType, &other))
 		return NULL;
 
-	if (loc_network_is_subnet_of(self->network, other->network))
+	if (loc_network_is_subnet(other->network, self->network))
 		Py_RETURN_TRUE;
 
 	Py_RETURN_FALSE;

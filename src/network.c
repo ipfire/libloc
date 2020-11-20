@@ -522,11 +522,6 @@ LOC_EXPORT int loc_network_is_subnet(struct loc_network* self, struct loc_networ
 	return 1;
 }
 
-// XXX DEPRECATED - I find this too difficult to use
-LOC_EXPORT int loc_network_is_subnet_of(struct loc_network* self, struct loc_network* other) {
-	return loc_network_is_subnet(other, self);
-}
-
 LOC_EXPORT int loc_network_subnets(struct loc_network* network,
 		struct loc_network** subnet1, struct loc_network** subnet2) {
 	int r;
@@ -589,7 +584,7 @@ static int __loc_network_exclude(struct loc_network* network,
 		if (r)
 			goto ERROR;
 
-	} else  if (loc_network_is_subnet_of(other, subnet1)) {
+	} else  if (loc_network_is_subnet(subnet1, other)) {
 		r = loc_network_list_push(list, subnet2);
 		if (r)
 			goto ERROR;
@@ -598,7 +593,7 @@ static int __loc_network_exclude(struct loc_network* network,
 		if (r)
 			goto ERROR;
 
-	} else if (loc_network_is_subnet_of(other, subnet2)) {
+	} else if (loc_network_is_subnet(subnet2, other)) {
 		r = loc_network_list_push(list, subnet1);
 		if (r)
 			goto ERROR;
@@ -645,7 +640,7 @@ LOC_EXPORT struct loc_network_list* loc_network_exclude(
 	}
 
 	// Other must be a subnet of self
-	if (!loc_network_is_subnet_of(other, self)) {
+	if (!loc_network_is_subnet(self, other)) {
 		DEBUG(self->ctx, "Network %p is not contained in network %p\n", other, self);
 
 		return NULL;
@@ -726,7 +721,7 @@ LOC_EXPORT struct loc_network_list* loc_network_exclude_list(
 			}
 
 			// Drop this subnet if is a subnet of another subnet
-			if (loc_network_is_subnet_of(subnet, subnet_to_check)) {
+			if (loc_network_is_subnet(subnet_to_check, subnet)) {
 				passed = 0;
 				loc_network_unref(subnet);
 				break;
