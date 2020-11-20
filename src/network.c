@@ -670,10 +670,6 @@ LOC_EXPORT struct loc_network_list* loc_network_exclude(
 		loc_network_unref(subnet2);
 	}
 
-#ifdef ENABLE_DEBUG
-	loc_network_list_dump(list);
-#endif
-
 	// Return the result
 	return list;
 
