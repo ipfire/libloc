@@ -310,6 +310,18 @@ LOC_EXPORT int loc_network_address_family(struct loc_network* network) {
 	return network->family;
 }
 
+LOC_EXPORT unsigned int loc_network_prefix(struct loc_network* network) {
+	switch (network->family) {
+		case AF_INET6:
+			return network->prefix;
+
+		case AF_INET:
+			return network->prefix - 96;
+	}
+
+	return 0;
+}
+
 static char* loc_network_format_address(struct loc_network* network, const struct in6_addr* address) {
 	const size_t length = INET6_ADDRSTRLEN;
 
