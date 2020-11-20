@@ -138,47 +138,48 @@ int main(int argc, char** argv) {
 	}
 
 	// Check subnet function
-	err = loc_network_is_subnet_of(network1, network2);
-	if (err != 0) {
+	err = loc_network_is_subnet(network1, network2);
+	if (!err) {
 		fprintf(stderr, "Subnet check 1 failed: %d\n", err);
 		exit(EXIT_FAILURE);
 	}
 
-	err = loc_network_is_subnet_of(network2, network1);
-	if (err != 1) {
+	err = loc_network_is_subnet(network2, network1);
+	if (err) {
 		fprintf(stderr, "Subnet check 2 failed: %d\n", err);
 		exit(EXIT_FAILURE);
 	}
 
-	// Make list of subnets
-	struct loc_network_list* subnets = loc_network_subnets(network1);
-	if (!subnets) {
-		fprintf(stderr, "Could not find subnets of network\n");
+	// Make subnets
+	struct loc_network* subnet1 = NULL;
+	struct loc_network* subnet2 = NULL;
+
+	err  = loc_network_subnets(network1, &subnet1, &subnet2);
+	if (err || !subnet1 || !subnet2) {
+		fprintf(stderr, "Could not find subnets of network: %d\n", err);
 		exit(EXIT_FAILURE);
 	}
 
-	loc_network_list_dump(subnets);
+	char* s = loc_network_str(subnet1);
+	printf("Received subnet1 = %s\n", s);
+	free(s);
 
-	while (!loc_network_list_empty(subnets)) {
-		struct loc_network* subnet = loc_network_list_pop(subnets);
-		if (!subnet) {
-			fprintf(stderr, "Received an empty subnet\n");
-			exit(EXIT_FAILURE);
-		}
+	s = loc_network_str(subnet2);
+	printf("Received subnet2 = %s\n", s);
+	free(s);
 
-		char* s = loc_network_str(subnet);
-		printf("Received subnet %s\n", s);
-		free(s);
-
-		if (!loc_network_is_subnet_of(subnet, network1)) {
-			fprintf(stderr, "Not a subnet\n");
-			exit(EXIT_FAILURE);
-		}
-
-		loc_network_unref(subnet);
+	if (!loc_network_is_subnet(network1, subnet1)) {
+		fprintf(stderr, "Subnet1 is not a subnet\n");
+		exit(EXIT_FAILURE);
 	}
 
-	loc_network_list_unref(subnets);
+	if (!loc_network_is_subnet(network1, subnet2)) {
+		fprintf(stderr, "Subnet2 is not a subnet\n");
+		exit(EXIT_FAILURE);
+	}
+
+	loc_network_unref(subnet1);
+	loc_network_unref(subnet2);
 
 	struct loc_network_list* excluded = loc_network_exclude(network1, network2);
 	if (!excluded) {

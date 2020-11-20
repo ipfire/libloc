@@ -507,66 +507,91 @@ LOC_EXPORT int loc_network_is_subnet_of(struct loc_network* self, struct loc_net
 	return loc_network_is_subnet(other, self);
 }
 
-LOC_EXPORT struct loc_network_list* loc_network_subnets(struct loc_network* network) {
-	struct loc_network_list* list;
+LOC_EXPORT int loc_network_subnets(struct loc_network* network,
+		struct loc_network** subnet1, struct loc_network** subnet2) {
+	int r;
+	*subnet1 = NULL;
+	*subnet2 = NULL;
 
 	// New prefix length
 	unsigned int prefix = network->prefix + 1;
 
 	// Check if the new prefix is valid
 	if (valid_prefix(&network->first_address, prefix))
-		return NULL;
-
-	// Create a new list with the result
-	int r = loc_network_list_new(network->ctx, &list);
-	if (r) {
-		ERROR(network->ctx, "Could not create network list: %d\n", r);
-		return NULL;
-	}
-
-	struct loc_network* subnet1 = NULL;
-	struct loc_network* subnet2 = NULL;
+		return -1;
 
 	// Create the first half of the network
-	r = loc_network_new(network->ctx, &subnet1, &network->first_address, prefix);
+	r = loc_network_new(network->ctx, subnet1, &network->first_address, prefix);
 	if (r)
-		goto ERROR;
+		return r;
 
 	// The next subnet starts after the first one
-	struct in6_addr first_address = address_increment(&subnet1->last_address);
+	struct in6_addr first_address = address_increment(&(*subnet1)->last_address);
 
 	// Create the second half of the network
-	r = loc_network_new(network->ctx, &subnet2, &first_address, prefix);
+	r = loc_network_new(network->ctx, subnet2, &first_address, prefix);
 	if (r)
-		goto ERROR;
-
-	// Push the both onto the stack (in reverse order)
-	r = loc_network_list_push(list, subnet2);
-	if (r)
-		goto ERROR;
-
-	r = loc_network_list_push(list, subnet1);
-	if (r)
-		goto ERROR;
+		return r;
 
 	// Copy country code
 	const char* country_code = loc_network_get_country_code(network);
 	if (country_code) {
-		loc_network_set_country_code(subnet1, country_code);
-		loc_network_set_country_code(subnet2, country_code);
+		loc_network_set_country_code(*subnet1, country_code);
+		loc_network_set_country_code(*subnet2, country_code);
 	}
 
 	// Copy ASN
 	uint32_t asn = loc_network_get_asn(network);
 	if (asn) {
-		loc_network_set_asn(subnet1, asn);
-		loc_network_set_asn(subnet2, asn);
+		loc_network_set_asn(*subnet1, asn);
+		loc_network_set_asn(*subnet2, asn);
 	}
 
-	loc_network_unref(subnet1);
-	loc_network_unref(subnet2);
+	return 0;
+}
 
-	return list;
+static int __loc_network_exclude(struct loc_network* network,
+		struct loc_network* other, struct loc_network_list* list) {
+	struct loc_network* subnet1 = NULL;
+	struct loc_network* subnet2 = NULL;
+
+	int r = loc_network_subnets(network, &subnet1, &subnet2);
+	if (r)
+		goto ERROR;
+
+	if (loc_network_eq(other, subnet1)) {
+		r = loc_network_list_push(list, subnet2);
+		if (r)
+			goto ERROR;
+
+	} else if (loc_network_eq(other, subnet2)) {
+		r = loc_network_list_push(list, subnet1);
+		if (r)
+			goto ERROR;
+
+	} else  if (loc_network_is_subnet_of(other, subnet1)) {
+		r = loc_network_list_push(list, subnet2);
+		if (r)
+			goto ERROR;
+
+		r = __loc_network_exclude(subnet1, other, list);
+		if (r)
+			goto ERROR;
+
+	} else if (loc_network_is_subnet_of(other, subnet2)) {
+		r = loc_network_list_push(list, subnet1);
+		if (r)
+			goto ERROR;
+
+		r = __loc_network_exclude(subnet2, other, list);
+		if (r)
+			goto ERROR;
+
+	} else {
+		ERROR(network->ctx, "We should never get here\n");
+		r = 1;
+		goto ERROR;
+	}
 
 ERROR:
 	if (subnet1)
@@ -575,10 +600,7 @@ ERROR:
 	if (subnet2)
 		loc_network_unref(subnet2);
 
-	if (list)
-		loc_network_list_unref(list);
-
-	return NULL;
+	return r;
 }
 
 LOC_EXPORT struct loc_network_list* loc_network_exclude(
@@ -623,67 +645,15 @@ LOC_EXPORT struct loc_network_list* loc_network_exclude(
 		return NULL;
 	}
 
-	struct loc_network_list* subnets = loc_network_subnets(self);
+	r = __loc_network_exclude(self, other, list);
+	if (r) {
+		loc_network_list_unref(list);
 
-	struct loc_network* subnet1 = NULL;
-	struct loc_network* subnet2 = NULL;
-
-	while (subnets) {
-		// Fetch both subnets
-		subnet1 = loc_network_list_get(subnets, 0);
-		subnet2 = loc_network_list_get(subnets, 1);
-
-		// Free list
-		loc_network_list_unref(subnets);
-		subnets = NULL;
-
-		if (loc_network_eq(other, subnet1)) {
-			r = loc_network_list_push(list, subnet2);
-			if (r)
-				goto ERROR;
-
-		} else if (loc_network_eq(other, subnet2)) {
-			r = loc_network_list_push(list, subnet1);
-			if (r)
-				goto ERROR;
-
-		} else  if (loc_network_is_subnet_of(other, subnet1)) {
-			r = loc_network_list_push(list, subnet2);
-			if (r)
-				goto ERROR;
-
-			subnets = loc_network_subnets(subnet1);
-
-		} else if (loc_network_is_subnet_of(other, subnet2)) {
-			r = loc_network_list_push(list, subnet1);
-			if (r)
-				goto ERROR;
-
-			subnets = loc_network_subnets(subnet2);
-
-		} else {
-			ERROR(self->ctx, "We should never get here\n");
-			goto ERROR;
-		}
-
-		loc_network_unref(subnet1);
-		loc_network_unref(subnet2);
+		return NULL;
 	}
 
 	// Return the result
 	return list;
-
-ERROR:
-	if (subnet1)
-		loc_network_unref(subnet1);
-
-	if (subnet2)
-		loc_network_unref(subnet2);
-
-	if (list)
-		loc_network_list_unref(list);
-
-	return NULL;
 }
 
 LOC_EXPORT struct loc_network_list* loc_network_exclude_list(
