@@ -318,6 +318,7 @@ check_PROGRAMS = \
 	src/test-database \
 	src/test-as \
 	src/test-network \
+	src/test-network-list \
 	src/test-country \
 	src/test-signature
 
@@ -355,6 +356,15 @@ src_test_network_CFLAGS = \
 	$(TESTS_CFLAGS)
 
 src_test_network_LDADD = \
+	src/libloc.la
+
+src_test_network_list_SOURCES = \
+	src/test-network-list.c
+
+src_test_network_list_CFLAGS = \
+	$(TESTS_CFLAGS)
+
+src_test_network_list_LDADD = \
 	src/libloc.la
 
 src_test_stringpool_SOURCES = \

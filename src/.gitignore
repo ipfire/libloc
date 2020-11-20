@@ -10,5 +10,6 @@ test-libloc
 test-database
 test-country
 test-network
+test-network-list
 test-signature
 test-stringpool
