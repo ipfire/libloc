@@ -640,6 +640,32 @@ ERROR:
 	return r;
 }
 
+static int __loc_network_exclude_to_list(struct loc_network* self,
+		struct loc_network* other, struct loc_network_list* list) {
+	// Family must match
+	if (self->family != other->family) {
+		DEBUG(self->ctx, "Family mismatch\n");
+
+		return 1;
+	}
+
+	// Other must be a subnet of self
+	if (!loc_network_is_subnet(self, other)) {
+		DEBUG(self->ctx, "Network %p is not contained in network %p\n", other, self);
+
+		return 1;
+	}
+
+	// We cannot perform this operation if both networks equal
+	if (loc_network_eq(self, other)) {
+		DEBUG(self->ctx, "Networks %p and %p are equal\n", self, other);
+
+		return 1;
+	}
+
+	return __loc_network_exclude(self, other, list);
+}
+
 LOC_EXPORT struct loc_network_list* loc_network_exclude(
 		struct loc_network* self, struct loc_network* other) {
 	struct loc_network_list* list;
@@ -654,35 +680,15 @@ LOC_EXPORT struct loc_network_list* loc_network_exclude(
 	free(n2);
 #endif
 
-	// Family must match
-	if (self->family != other->family) {
-		DEBUG(self->ctx, "Family mismatch\n");
-
-		return NULL;
-	}
-
-	// Other must be a subnet of self
-	if (!loc_network_is_subnet(self, other)) {
-		DEBUG(self->ctx, "Network %p is not contained in network %p\n", other, self);
-
-		return NULL;
-	}
-
-	// We cannot perform this operation if both networks equal
-	if (loc_network_eq(self, other)) {
-		DEBUG(self->ctx, "Networks %p and %p are equal\n", self, other);
-
-		return NULL;
-	}
-
 	// Create a new list with the result
 	int r = loc_network_list_new(self->ctx, &list);
 	if (r) {
 		ERROR(self->ctx, "Could not create network list: %d\n", r);
+
 		return NULL;
 	}
 
-	r = __loc_network_exclude(self, other, list);
+	r = __loc_network_exclude_to_list(self, other, list);
 	if (r) {
 		loc_network_list_unref(list);
 
@@ -709,11 +715,14 @@ LOC_EXPORT struct loc_network_list* loc_network_exclude_list(
 		subnet = loc_network_list_get(list, i);
 
 		// Find all excluded networks
-		struct loc_network_list* excluded = loc_network_exclude(network, subnet);
-		if (excluded) {
-			// Add them all to the "to check" list
-			loc_network_list_merge(to_check, excluded);
-			loc_network_list_unref(excluded);
+		if (!loc_network_list_contains(to_check, subnet)) {
+			r = __loc_network_exclude_to_list(network, subnet, to_check);
+			if (r) {
+				loc_network_list_unref(to_check);
+				loc_network_unref(subnet);
+
+				return NULL;
+			}
 		}
 
 		// Cleanup
