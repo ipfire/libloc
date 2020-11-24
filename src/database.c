@@ -1372,17 +1372,13 @@ static int __loc_database_enumerator_next_network_flattened(
 	// We no longer need the excluded list
 	loc_network_list_unref(excluded);
 
-	// Sort all subnets
-	loc_network_list_sort(subnets);
-
 	// Replace network with the first one
 	loc_network_unref(*network);
 
 	*network = loc_network_list_pop_first(subnets);
 
 	// Push the rest onto the stack
-	loc_network_list_merge_reverse(enumerator->stack, subnets);
-
+	loc_network_list_merge(enumerator->stack, subnets);
 	loc_network_list_unref(subnets);
 
 	return 0;

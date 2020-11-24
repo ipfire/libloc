@@ -188,15 +188,6 @@ int main(int argc, char** argv) {
 	}
 
 	loc_network_list_dump(excluded);
-
-	// Reverse it
-	loc_network_list_reverse(excluded);
-	loc_network_list_dump(excluded);
-
-	// Sort them and dump them again
-	loc_network_list_sort(excluded);
-	loc_network_list_dump(excluded);
-
 	loc_network_list_unref(excluded);
 
 	// Create a database

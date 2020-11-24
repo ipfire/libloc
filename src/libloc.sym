@@ -141,15 +141,12 @@ global:
 	loc_network_list_empty;
 	loc_network_list_get;
 	loc_network_list_merge;
-	loc_network_list_merge_reverse;
 	loc_network_list_new;
 	loc_network_list_pop;
 	loc_network_list_pop_first;
 	loc_network_list_push;
 	loc_network_list_ref;
-	loc_network_list_reverse;
 	loc_network_list_size;
-	loc_network_list_sort;
 	loc_network_list_unref;
 
 	# Writer

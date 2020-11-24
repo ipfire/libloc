@@ -257,63 +257,11 @@ LOC_EXPORT int loc_network_list_contains(struct loc_network_list* list, struct l
 	return found;
 }
 
-static void loc_network_list_swap(struct loc_network_list* list, unsigned int i1, unsigned int i2) {
-	// Do nothing for invalid indices
-	if (i1 >= list->size || i2 >= list->size)
-		return;
-
-	struct loc_network* network1 = list->elements[i1];
-	struct loc_network* network2 = list->elements[i2];
-
-	list->elements[i1] = network2;
-	list->elements[i2] = network1;
-}
-
-LOC_EXPORT void loc_network_list_reverse(struct loc_network_list* list) {
-	unsigned int i = 0;
-	unsigned int j = list->size - 1;
-
-	while (i < j) {
-		loc_network_list_swap(list, i++, j--);
-	}
-}
-
-LOC_EXPORT void loc_network_list_sort(struct loc_network_list* list) {
-	unsigned int n = list->size;
-	int swapped;
-
-	do {
-		swapped = 0;
-
-		for (unsigned int i = 1; i < n; i++) {
-			if (loc_network_gt(list->elements[i-1], list->elements[i]) > 0) {
-				loc_network_list_swap(list, i-1, i);
-				swapped = 1;
-			}
-		}
-
-		n--;
-	} while (swapped);
-}
-
 LOC_EXPORT int loc_network_list_merge(
 		struct loc_network_list* self, struct loc_network_list* other) {
 	int r;
 
 	for (unsigned int i = 0; i < other->size; i++) {
-		r = loc_network_list_push(self, other->elements[i]);
-		if (r)
-			return r;
-	}
-
-	return 0;
-}
-
-LOC_EXPORT int loc_network_list_merge_reverse(
-		struct loc_network_list* self, struct loc_network_list* other) {
-	int r;
-
-	for (int i = other->size - 1; i >= 0; i--) {
 		r = loc_network_list_push(self, other->elements[i]);
 		if (r)
 			return r;

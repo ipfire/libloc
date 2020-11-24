@@ -30,9 +30,6 @@ int loc_network_list_push(struct loc_network_list* list, struct loc_network* net
 struct loc_network* loc_network_list_pop(struct loc_network_list* list);
 struct loc_network* loc_network_list_pop_first(struct loc_network_list* list);
 int loc_network_list_contains(struct loc_network_list* list, struct loc_network* network);
-void loc_network_list_sort(struct loc_network_list* list);
-void loc_network_list_reverse(struct loc_network_list* list);
 int loc_network_list_merge(struct loc_network_list* self, struct loc_network_list* other);
-int loc_network_list_merge_reverse(struct loc_network_list* self, struct loc_network_list* other);
 
 #endif
