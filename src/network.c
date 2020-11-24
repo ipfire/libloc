@@ -697,18 +697,17 @@ LOC_EXPORT struct loc_network_list* loc_network_exclude_list(
 	while (!loc_network_list_empty(to_check)) {
 		struct loc_network* subnet_to_check = loc_network_list_pop(to_check);
 
+		// Check whether the subnet to check is part of the input list
+		if (loc_network_list_contains(list, subnet_to_check)) {
+			loc_network_unref(subnet_to_check);
+			continue;
+		}
+
 		// Marks whether this subnet passed all checks
 		int passed = 1;
 
 		for (unsigned int i = 0; i < loc_network_list_size(list); i++) {
 			subnet = loc_network_list_get(list, i);
-
-			// Drop this subnet if is is already in list
-			if (loc_network_cmp(subnet_to_check, subnet) == 0) {
-				passed = 0;
-				loc_network_unref(subnet);
-				break;
-			}
 
 			// Drop this subnet if is a subnet of another subnet
 			if (loc_network_is_subnet(subnet_to_check, subnet)) {
