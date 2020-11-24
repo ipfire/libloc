@@ -106,6 +106,7 @@ global:
 
 	# Network
 	loc_network_address_family;
+	loc_network_cmp;
 	loc_network_eq;
 	loc_network_exclude;
 	loc_network_exclude_list;

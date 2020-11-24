@@ -441,6 +441,28 @@ LOC_EXPORT int loc_network_match_flag(struct loc_network* network, uint32_t flag
 	return loc_network_has_flag(network, flag);
 }
 
+LOC_EXPORT int loc_network_cmp(struct loc_network* self, struct loc_network* other) {
+	// Compare family
+	if (self->family > other->family)
+		return 1;
+	else if (self->family < other->family)
+		return -1;
+
+	// Compare address
+	int r = in6_addr_cmp(&self->first_address, &other->first_address);
+	if (r)
+		return r;
+
+	// Compare prefix
+	if (self->prefix > other->prefix)
+		return 1;
+	else if (self->prefix < other->prefix)
+		return -1;
+
+	// Both networks are equal
+	return 0;
+}
+
 LOC_EXPORT int loc_network_eq(struct loc_network* self, struct loc_network* other) {
 	// Family must be the same
 	if (self->family != other->family)
