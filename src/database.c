@@ -1191,7 +1191,7 @@ static int __loc_database_enumerator_next_network(
 		struct loc_database_enumerator* enumerator, struct loc_network** network, int filter) {
 	// Return top element from the stack
 	while (1) {
-		*network = loc_network_list_pop(enumerator->stack);
+		*network = loc_network_list_pop_first(enumerator->stack);
 
 		// Stack is empty
 		if (!*network)
