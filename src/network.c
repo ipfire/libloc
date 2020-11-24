@@ -374,14 +374,14 @@ LOC_EXPORT char* loc_network_format_last_address(struct loc_network* network) {
 LOC_EXPORT int loc_network_match_address(struct loc_network* network, const struct in6_addr* address) {
 	// Address must be larger than the start address
 	if (in6_addr_cmp(&network->first_address, address) > 0)
-		return 1;
+		return 0;
 
 	// Address must be smaller than the last address
 	if (in6_addr_cmp(&network->last_address, address) < 0)
-		return 1;
+		return 0;
 
 	// The address is inside this network
-	return 0;
+	return 1;
 }
 
 LOC_EXPORT const char* loc_network_get_country_code(struct loc_network* network) {
@@ -464,16 +464,18 @@ LOC_EXPORT int loc_network_cmp(struct loc_network* self, struct loc_network* oth
 }
 
 LOC_EXPORT int loc_network_overlaps(struct loc_network* self, struct loc_network* other) {
-	if (loc_network_match_address(self, &other->first_address) == 0)
+	// Either of the start addresses must be in the other subnet
+	if (loc_network_match_address(self, &other->first_address))
 		return 1;
 
-	if (loc_network_match_address(self, &other->last_address) == 0)
+	if (loc_network_match_address(other, &self->first_address))
 		return 1;
 
-	if (loc_network_match_address(other, &self->first_address) == 0)
+	// Or either of the end addresses is in the other subnet
+	if (loc_network_match_address(self, &other->last_address))
 		return 1;
 
-	if (loc_network_match_address(other, &self->last_address) == 0)
+	if (loc_network_match_address(other, &self->last_address))
 		return 1;
 
 	return 0;

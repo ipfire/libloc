@@ -14,6 +14,7 @@
 	GNU General Public License for more details.
 */
 
+#include <arpa/inet.h>
 #include <errno.h>
 #include <stdio.h>
 #include <stddef.h>
@@ -45,6 +46,13 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 #endif
+
+	struct in6_addr address;
+	err = inet_pton(AF_INET6, "2001:db8::1", &address);
+	if (err != 1) {
+		fprintf(stderr, "Could not parse IP address\n");
+		exit(EXIT_FAILURE);
+	}
 
 	// Create a network
 	struct loc_network* network1;
@@ -89,6 +97,12 @@ int main(int argc, char** argv) {
 
 	if (strcmp(string, "2001:db8:ffff:ffff:ffff:ffff:ffff:ffff") != 0) {
 		fprintf(stderr, "Got an incorrect last address: %s\n", string);
+		exit(EXIT_FAILURE);
+	}
+
+	err = loc_network_match_address(network1, &address);
+	if (!err) {
+		fprintf(stderr, "Network1 does not match address\n");
 		exit(EXIT_FAILURE);
 	}
 

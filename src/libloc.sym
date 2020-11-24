@@ -117,6 +117,7 @@ global:
 	loc_network_get_last_address;
 	loc_network_has_flag;
 	loc_network_is_subnet;
+	loc_network_match_address;
 	loc_network_match_asn;
 	loc_network_match_country_code;
 	loc_network_match_flag;
