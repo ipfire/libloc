@@ -137,8 +137,26 @@ static off_t loc_network_list_find(struct loc_network_list* list,
 		struct loc_network* network, int* found) {
 	off_t lo = 0;
 	off_t hi = list->size - 1;
+	int result;
 
-	*found = 0;
+	// Since we are working on an ordered list, there is often a good chance that
+	// the network we are looking for is at the end or has to go to the end.
+	if (hi >= 0) {
+		result = loc_network_cmp(network, list->elements[hi]);
+
+		// Match, so we are done
+		if (result == 0) {
+			*found = 1;
+
+			return hi;
+
+		// This needs to be added after the last one
+		} else if (result > 0) {
+			*found = 0;
+
+			return hi + 1;
+		}
+	}
 
 #ifdef ENABLE_DEBUG
 	// Save start time
@@ -151,7 +169,7 @@ static off_t loc_network_list_find(struct loc_network_list* list,
 		i = (lo + hi) / 2;
 
 		// Check if this is a match
-		int result = loc_network_cmp(network, list->elements[i]);
+		result = loc_network_cmp(network, list->elements[i]);
 
 		if (result == 0) {
 			*found = 1;
@@ -172,6 +190,8 @@ static off_t loc_network_list_find(struct loc_network_list* list,
 		else
 			hi = i - 1;
 	}
+
+	*found = 0;
 
 #ifdef ENABLE_DEBUG
 	clock_t end = clock();
