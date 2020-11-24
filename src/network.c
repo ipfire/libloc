@@ -463,33 +463,6 @@ LOC_EXPORT int loc_network_cmp(struct loc_network* self, struct loc_network* oth
 	return 0;
 }
 
-LOC_EXPORT int loc_network_gt(struct loc_network* self, struct loc_network* other) {
-	// Families must match
-	if (self->family != other->family)
-		return -1;
-
-	int r = in6_addr_cmp(&self->first_address, &other->first_address);
-
-	switch (r) {
-		// Smaller
-		case -1:
-			return 0;
-
-		// Larger
-		case 1:
-			return 1;
-
-		default:
-			break;
-	}
-
-	if (self->prefix > other->prefix)
-		return 1;
-
-	// Dunno
-	return 0;
-}
-
 LOC_EXPORT int loc_network_overlaps(struct loc_network* self, struct loc_network* other) {
 	if (loc_network_match_address(self, &other->first_address) == 0)
 		return 1;

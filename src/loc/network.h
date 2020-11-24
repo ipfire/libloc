@@ -59,7 +59,6 @@ int loc_network_set_flag(struct loc_network* network, uint32_t flag);
 int loc_network_match_flag(struct loc_network* network, uint32_t flag);
 
 int loc_network_cmp(struct loc_network* self, struct loc_network* other);
-int loc_network_gt(struct loc_network* self, struct loc_network* other);
 int loc_network_overlaps(struct loc_network* self, struct loc_network* other);
 int loc_network_is_subnet(struct loc_network* self, struct loc_network* other);
 int loc_network_subnets(struct loc_network* network, struct loc_network** subnet1, struct loc_network** subnet2);
