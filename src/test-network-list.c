@@ -58,6 +58,20 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
+	struct loc_network* subnet3;
+	err = loc_network_new_from_string(ctx, &subnet3, "2001:db8:c::/48");
+	if (err) {
+		fprintf(stderr, "Could not create the subnet3\n");
+		exit(EXIT_FAILURE);
+	}
+
+	struct loc_network* subnet4;
+	err = loc_network_new_from_string(ctx, &subnet4, "2001:db8:d::/48");
+	if (err) {
+		fprintf(stderr, "Could not create the subnet4\n");
+		exit(EXIT_FAILURE);
+	}
+
 	// Make a list with both subnets
 	struct loc_network_list* subnets;
 	err = loc_network_list_new(ctx, &subnets);
@@ -89,8 +103,24 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
+	// Add the fourth one next
+	err = loc_network_list_push(subnets, subnet4);
+	if (err) {
+		fprintf(stderr, "Could not add subnet4 to subnets list\n");
+		exit(EXIT_FAILURE);
+	}
+
+	// Add the third one
+	err = loc_network_list_push(subnets, subnet3);
+	if (err) {
+		fprintf(stderr, "Could not add subnet3 to subnets list\n");
+		exit(EXIT_FAILURE);
+	}
+
+	loc_network_list_dump(subnets);
+
 	size = loc_network_list_size(subnets);
-	if (size != 2) {
+	if (size != 4) {
 		fprintf(stderr, "Network list is reporting an incorrect size: %zu\n", size);
 		exit(EXIT_FAILURE);
 	}
