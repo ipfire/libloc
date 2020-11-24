@@ -463,22 +463,6 @@ LOC_EXPORT int loc_network_cmp(struct loc_network* self, struct loc_network* oth
 	return 0;
 }
 
-LOC_EXPORT int loc_network_eq(struct loc_network* self, struct loc_network* other) {
-	// Family must be the same
-	if (self->family != other->family)
-		return 0;
-
-	// The start address must be the same
-	if (in6_addr_cmp(&self->first_address, &other->first_address) != 0)
-		return 0;
-
-	// The prefix length must be the same
-	if (self->prefix != other->prefix)
-		return 0;
-
-	return 1;
-}
-
 LOC_EXPORT int loc_network_gt(struct loc_network* self, struct loc_network* other) {
 	// Families must match
 	if (self->family != other->family)
@@ -596,12 +580,12 @@ static int __loc_network_exclude(struct loc_network* network,
 	if (r)
 		goto ERROR;
 
-	if (loc_network_eq(other, subnet1)) {
+	if (loc_network_cmp(other, subnet1) == 0) {
 		r = loc_network_list_push(list, subnet2);
 		if (r)
 			goto ERROR;
 
-	} else if (loc_network_eq(other, subnet2)) {
+	} else if (loc_network_cmp(other, subnet2) == 0) {
 		r = loc_network_list_push(list, subnet1);
 		if (r)
 			goto ERROR;
@@ -657,7 +641,7 @@ static int __loc_network_exclude_to_list(struct loc_network* self,
 	}
 
 	// We cannot perform this operation if both networks equal
-	if (loc_network_eq(self, other)) {
+	if (loc_network_cmp(self, other) == 0) {
 		DEBUG(self->ctx, "Networks %p and %p are equal\n", self, other);
 
 		return 1;
@@ -745,7 +729,7 @@ LOC_EXPORT struct loc_network_list* loc_network_exclude_list(
 			subnet = loc_network_list_get(list, i);
 
 			// Drop this subnet if is is already in list
-			if (loc_network_eq(subnet_to_check, subnet)) {
+			if (loc_network_cmp(subnet_to_check, subnet) == 0) {
 				passed = 0;
 				loc_network_unref(subnet);
 				break;

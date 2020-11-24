@@ -125,14 +125,14 @@ int main(int argc, char** argv) {
 #endif
 
 	// Check equals function
-	err = loc_network_eq(network1, network1);
-	if (!err) {
+	err = loc_network_cmp(network1, network1);
+	if (err) {
 		fprintf(stderr, "Network is not equal with itself\n");
 		exit(EXIT_FAILURE);
 	}
 
-	err = loc_network_eq(network1, network2);
-	if (err) {
+	err = loc_network_cmp(network1, network2);
+	if (!err) {
 		fprintf(stderr, "Networks equal unexpectedly\n");
 		exit(EXIT_FAILURE);
 	}
