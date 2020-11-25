@@ -70,8 +70,8 @@ LOC_EXPORT struct loc_network_list* loc_network_list_ref(struct loc_network_list
 static void loc_network_list_free(struct loc_network_list* list) {
 	DEBUG(list->ctx, "Releasing network list at %p\n", list);
 
-	for (unsigned int i = 0; i < list->size; i++)
-		loc_network_unref(list->elements[i]);
+	// Remove all content
+	loc_network_list_clear(list);
 
 	loc_unref(list->ctx);
 	free(list);
