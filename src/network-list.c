@@ -132,8 +132,6 @@ LOC_EXPORT struct loc_network* loc_network_list_get(struct loc_network_list* lis
 	return loc_network_ref(list->elements[index]);
 }
 
-//MOVE FUNCTION GOES HERE
-
 static off_t loc_network_list_find(struct loc_network_list* list,
 		struct loc_network* network, int* found) {
 	off_t lo = 0;
