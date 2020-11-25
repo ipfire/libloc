@@ -261,9 +261,12 @@ LOC_EXPORT struct loc_network* loc_network_list_pop_first(struct loc_network_lis
 	struct loc_network* network = list->elements[0];
 
 	// Move all elements to the top of the stack
-	for (unsigned int i = 0; i < --list->size; i++) {
+	for (unsigned int i = 0; i < list->size - 1; i++) {
 		list->elements[i] = list->elements[i+1];
 	}
+
+	// The list is shorter now
+	--list->size;
 
 	DEBUG(list->ctx, "%p: Popping network %p from stack\n", list, network);
 
