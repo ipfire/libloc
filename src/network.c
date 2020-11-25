@@ -595,14 +595,16 @@ static int __loc_network_exclude_to_list(struct loc_network* self,
 	if (!loc_network_is_subnet(self, other)) {
 		DEBUG(self->ctx, "Network %p is not contained in network %p\n", other, self);
 
-		return 1;
+		// Exit silently
+		return 0;
 	}
 
 	// We cannot perform this operation if both networks equal
 	if (loc_network_cmp(self, other) == 0) {
 		DEBUG(self->ctx, "Networks %p and %p are equal\n", self, other);
 
-		return 1;
+		// Exit silently
+		return 0;
 	}
 
 	return __loc_network_exclude(self, other, list);
