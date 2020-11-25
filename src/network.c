@@ -695,14 +695,14 @@ LOC_EXPORT struct loc_network_list* loc_network_exclude_list(
 			subnet = loc_network_list_get(list, i);
 
 			// Drop this subnet if is a subnet of another subnet
-			if (loc_network_is_subnet(subnet_to_check, subnet)) {
+			if (loc_network_is_subnet(subnet, subnet_to_check)) {
 				passed = 0;
 				loc_network_unref(subnet);
 				break;
 			}
 
 			// Break it down if it overlaps
-			if (loc_network_overlaps(subnet_to_check, subnet)) {
+			if (loc_network_overlaps(subnet, subnet_to_check)) {
 				passed = 0;
 
 				__loc_network_exclude_to_list(subnet_to_check, subnet, to_check);
