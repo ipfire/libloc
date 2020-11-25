@@ -442,12 +442,6 @@ LOC_EXPORT int loc_network_match_flag(struct loc_network* network, uint32_t flag
 }
 
 LOC_EXPORT int loc_network_cmp(struct loc_network* self, struct loc_network* other) {
-	// Compare family
-	if (self->family > other->family)
-		return 1;
-	else if (self->family < other->family)
-		return -1;
-
 	// Compare address
 	int r = in6_addr_cmp(&self->first_address, &other->first_address);
 	if (r)
@@ -482,10 +476,6 @@ LOC_EXPORT int loc_network_overlaps(struct loc_network* self, struct loc_network
 }
 
 LOC_EXPORT int loc_network_is_subnet(struct loc_network* self, struct loc_network* other) {
-	// Check family
-	if (self->family != other->family)
-		return 0;
-
 	// The prefix must be smaller (this avoids the more complex comparisons later)
 	if (self->prefix > other->prefix)
 		return 0;
@@ -601,13 +591,6 @@ ERROR:
 
 static int __loc_network_exclude_to_list(struct loc_network* self,
 		struct loc_network* other, struct loc_network_list* list) {
-	// Family must match
-	if (self->family != other->family) {
-		DEBUG(self->ctx, "Family mismatch\n");
-
-		return 1;
-	}
-
 	// Other must be a subnet of self
 	if (!loc_network_is_subnet(self, other)) {
 		DEBUG(self->ctx, "Network %p is not contained in network %p\n", other, self);
