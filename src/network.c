@@ -738,9 +738,6 @@ LOC_EXPORT struct loc_network_list* loc_network_exclude_list(
 
 	loc_network_list_unref(to_check);
 
-	// Sort the result
-	loc_network_list_sort(subnets);
-
 	return subnets;
 }
 
