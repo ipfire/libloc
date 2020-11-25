@@ -679,8 +679,10 @@ LOC_EXPORT struct loc_network_list* loc_network_exclude_list(
 		return NULL;
 	}
 
+	off_t smallest_subnet = 0;
+
 	while (!loc_network_list_empty(to_check)) {
-		struct loc_network* subnet_to_check = loc_network_list_pop(to_check);
+		struct loc_network* subnet_to_check = loc_network_list_pop_first(to_check);
 
 		// Check whether the subnet to check is part of the input list
 		if (loc_network_list_contains(list, subnet_to_check)) {
@@ -691,7 +693,7 @@ LOC_EXPORT struct loc_network_list* loc_network_exclude_list(
 		// Marks whether this subnet passed all checks
 		int passed = 1;
 
-		for (unsigned int i = 0; i < loc_network_list_size(list); i++) {
+		for (unsigned int i = smallest_subnet; i < loc_network_list_size(list); i++) {
 			subnet = loc_network_list_get(list, i);
 
 			// Drop this subnet if is a subnet of another subnet
@@ -709,6 +711,19 @@ LOC_EXPORT struct loc_network_list* loc_network_exclude_list(
 
 				loc_network_unref(subnet);
 				break;
+			}
+
+			// If the subnet is strictly greater, we do not need to continue the search
+			r = loc_network_cmp(subnet, subnet_to_check);
+			if (r > 0) {
+				loc_network_unref(subnet);
+				break;
+
+			// If it is strictly smaller, we can continue the search from here next
+			// time because all networks that are to be checked can only be larger
+			// than this one.
+			} else if (r < 0) {
+				smallest_subnet = i;
 			}
 
 			loc_network_unref(subnet);
