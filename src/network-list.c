@@ -119,7 +119,7 @@ LOC_EXPORT void loc_network_list_dump(struct loc_network_list* list) {
 
 		s = loc_network_str(network);
 
-		INFO(list->ctx, "%s\n", s);
+		INFO(list->ctx, "%4d: %s\n", i, s);
 		free(s);
 	}
 }
