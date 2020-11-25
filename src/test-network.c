@@ -192,6 +192,16 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
+	if (!loc_network_overlaps(network1, subnet1)) {
+		fprintf(stderr, "Network1 does not seem to contain subnet1\n");
+		exit(EXIT_FAILURE);
+	}
+
+	if (!loc_network_overlaps(network1, subnet2)) {
+		fprintf(stderr, "Network1 does not seem to contain subnet2\n");
+		exit(EXIT_FAILURE);
+	}
+
 	loc_network_unref(subnet1);
 	loc_network_unref(subnet2);
 
