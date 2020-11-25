@@ -705,11 +705,7 @@ LOC_EXPORT struct loc_network_list* loc_network_exclude_list(
 			if (loc_network_overlaps(subnet_to_check, subnet)) {
 				passed = 0;
 
-				struct loc_network_list* excluded = loc_network_exclude(subnet_to_check, subnet);
-				if (excluded) {
-					loc_network_list_merge(to_check, excluded);
-					loc_network_list_unref(excluded);
-				}
+				__loc_network_exclude_to_list(subnet_to_check, subnet, to_check);
 
 				loc_network_unref(subnet);
 				break;
