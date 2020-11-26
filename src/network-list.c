@@ -184,10 +184,12 @@ static off_t loc_network_list_find(struct loc_network_list* list,
 			return i;
 		}
 
-		if (result > 0)
+		if (result > 0) {
 			lo = i + 1;
-		else
+			i++;
+		} else {
 			hi = i - 1;
+		}
 	}
 
 	*found = 0;
