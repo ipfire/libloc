@@ -533,6 +533,10 @@ LOC_EXPORT int loc_network_subnets(struct loc_network* network,
 		loc_network_set_asn(*subnet2, asn);
 	}
 
+	// Copy flags
+	loc_network_set_flag(*subnet1, network->flags);
+	loc_network_set_flag(*subnet2, network->flags);
+
 	return 0;
 }
 
