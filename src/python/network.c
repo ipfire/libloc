@@ -17,6 +17,7 @@
 #include <Python.h>
 
 #include <errno.h>
+#include <limits.h>
 
 #include <loc/libloc.h>
 #include <loc/network.h>
@@ -133,10 +134,18 @@ static int Network_set_asn(NetworkObject* self, PyObject* value) {
 	long int asn = PyLong_AsLong(value);
 
 	// Check if the ASN is within the valid range
-	if (asn <= 0 || asn > UINT32_MAX) {
+	if (asn <= 0) {
 		PyErr_Format(PyExc_ValueError, "Invalid ASN %ld", asn);
 		return -1;
 	}
+
+#if (__WORDSIZE > 32)
+	// Check whether the input was longer than 32 bit
+	if (asn > UINT32_MAX) {
+		PyErr_Format(PyExc_ValueError, "Invalid ASN %ld", asn);
+		return -1;
+	}
+#endif
 
 	int r = loc_network_set_asn(self->network, asn);
 	if (r)
