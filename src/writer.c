@@ -612,7 +612,7 @@ static int loc_writer_create_signature(struct loc_writer* writer,
 		goto END;
 	}
 
-	DEBUG(writer->ctx, "Successfully generated signature of %lu bytes\n", *length);
+	DEBUG(writer->ctx, "Successfully generated signature of %zu bytes\n", *length);
 	r = 0;
 
 	// Dump signature

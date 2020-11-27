@@ -250,11 +250,11 @@ static int loc_database_read_signature(struct loc_database* db,
 		char** dst, char* src, size_t length) {
 	// Check for a plausible signature length
 	if (length > LOC_SIGNATURE_MAX_LENGTH) {
-		ERROR(db->ctx, "Signature too long: %ld\n", length);
+		ERROR(db->ctx, "Signature too long: %zu\n", length);
 		return -EINVAL;
 	}
 
-	DEBUG(db->ctx, "Reading signature of %ld bytes\n", length);
+	DEBUG(db->ctx, "Reading signature of %zu bytes\n", length);
 
 	// Allocate space
 	*dst = malloc(length);
