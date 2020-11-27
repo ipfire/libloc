@@ -134,6 +134,10 @@ LOC_EXPORT struct loc_network* loc_network_list_get(struct loc_network_list* lis
 
 static off_t loc_network_list_find(struct loc_network_list* list,
 		struct loc_network* network, int* found) {
+	// Insert at the beginning for an empty list
+	if (loc_network_list_empty(list))
+		return 0;
+
 	off_t lo = 0;
 	off_t hi = list->size - 1;
 	int result;
