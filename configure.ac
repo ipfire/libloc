@@ -43,16 +43,16 @@ AC_PROG_MKDIR_P
 
 # - man ------------------------------------------------------------------------
 
-have_manpages=no
-AC_ARG_ENABLE(manpages, AS_HELP_STRING([--disable-man-pages],
+have_man_pages=no
+AC_ARG_ENABLE(man_pages, AS_HELP_STRING([--disable-man-pages],
 	[do not install man pages]))
-AS_IF([test "x$enable_manpages" != xno], [have_manpages=yes])
-AM_CONDITIONAL(ENABLE_MANPAGES, [test "x$have_manpages" = "xyes"])
+AS_IF([test "x$enable_man_pages" != xno], [have_man_pages=yes])
+AM_CONDITIONAL(ENABLE_MAN_PAGES, [test "x$have_man_pages" = "xyes"])
 
 AC_PATH_PROG([XSLTPROC], [xsltproc])
 
 AC_CHECK_PROGS(ASCIIDOC, [asciidoc])
-if test "${have_manpages}" = "yes" && test -z "${ASCIIDOC}"; then
+if test "${have_man_pages}" = "yes" && test -z "${ASCIIDOC}"; then
 	AC_MSG_ERROR([Required program 'asciidoc' not found])
 fi
 # - debug ----------------------------------------------------------------------

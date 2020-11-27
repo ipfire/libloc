@@ -406,7 +406,7 @@ MANPAGES_XML  = $(patsubst %.txt,%.xml,$(MANPAGES_TXT))
 .PHONY: man
 man: $(MANPAGES) $(MANPAGES_HTML)
 
-if ENABLE_MANPAGES
+if ENABLE_MAN_PAGES
 man_MANS = \
 	$(MANPAGES)
 endif
