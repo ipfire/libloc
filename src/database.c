@@ -1380,11 +1380,10 @@ static int __loc_database_enumerator_next_network_flattened(
 	loc_network_list_unref(subnets);
 	loc_network_list_unref(excluded);
 
-	// Replace network with the first one from the stack
+	// Drop the network and restart the whole process again to pick the next network
 	loc_network_unref(*network);
-	*network = loc_network_list_pop_first(enumerator->stack);
 
-	return 0;
+	return __loc_database_enumerator_next_network_flattened(enumerator, network);
 }
 
 LOC_EXPORT int loc_database_enumerator_next_network(
