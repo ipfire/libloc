@@ -768,8 +768,9 @@ class CLI(object):
 				-- DELETE link local address space
 				DELETE FROM announcements WHERE family(network) = 4 AND network <<= '169.254.0.0/16';
 
-				-- DELETE IPv6 to IPv4 (6to4) address space
+				-- DELETE IPv6 to IPv4 (6to4) address space (RFC 3068)
 				DELETE FROM announcements WHERE family(network) = 4 AND network <<= '192.88.99.0/24';
+				DELETE FROM announcements WHERE family(network) = 6 AND network <<= '2002::/16';
 
 				-- DELETE multicast and reserved address space
 				DELETE FROM announcements WHERE family(network) = 4 AND network <<= '224.0.0.0/4';
