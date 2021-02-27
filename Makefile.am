@@ -239,7 +239,7 @@ check-perl: testdata.db
 
 .PHONY: install-perl
 install-perl:
-	cd $(builddir)/src/perl && $(MAKE) install
+	cd $(builddir)/src/perl && $(MAKE) install DESTIDR=$(DESTDIR)
 
 .PHONY: clean-perl
 clean-perl:
