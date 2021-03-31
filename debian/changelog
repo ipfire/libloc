@@ -1,3 +1,9 @@
+libloc (0.9.6-1) UNRELEASED; urgency=medium
+
+  * Initial release. (Closes: #XXXXXX)
+
+ -- Michael Tremer <michael.tremer@ipfire.org>  Wed, 31 Mar 2021 14:06:00 +0100
+
 libloc (0.9.5-1) UNRELEASED; urgency=medium
 
   * Initial release. (Closes: #XXXXXX)
