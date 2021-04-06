@@ -10,6 +10,7 @@ export DEB_BUILD_MAINT_OPTIONS=hardening=+all
 	dh $@ --with python3 --with-systemd
 
 override_dh_auto_configure:
+	intltoolize --force --automake
 	dh_auto_configure -- --disable-perl
 
 override_dh_perl:
