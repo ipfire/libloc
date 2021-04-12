@@ -1,11 +1,18 @@
-libloc (0.9.6-1) UNRELEASED; urgency=medium
+libloc (0.9.6-1) unstable; urgency=medium
 
-  * Initial release. (Closes: #XXXXXX)
+  * location-importer.in: skip networks with unknown country codes
+  * location-importer.in: process unaligned IP ranges in RIR data files
+    correctly
+  * database: Free mmapped countries section
+  * location-importer.in: reduce log noise for unusable networks
+  * location-importer.in: delete 6to4 IPv6 space as well
+  * location-importer.in: fix typo
+  * location: Fix list-networks-by-as
 
  -- Michael Tremer <michael.tremer@ipfire.org>  Wed, 31 Mar 2021 14:06:00 +0100
 
-libloc (0.9.5-1) UNRELEASED; urgency=medium
+libloc (0.9.5-1) unstable; urgency=medium
 
-  * Initial release. (Closes: #XXXXXX)
+  * Initial release.
 
  -- Stefan Schantl <stefan.schantl@ipfire.org>  Sun, 27 Oct 2019 18:55:44 +0100
