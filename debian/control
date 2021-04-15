@@ -16,6 +16,7 @@ Build-Depends:
  systemd,
  xsltproc <!nodoc>,
  docbook-xsl <!nodoc>,
+ git,
 Rules-Requires-Root: no
 Homepage: https://location.ipfire.org/
 Vcs-Git: https://git.ipfire.org/pub/git/location/libloc.git

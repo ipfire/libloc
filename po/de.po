@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libloc 0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2020-08-04 15:44+0000\n"
+"POT-Creation-Date: 2021-04-15 11:29+0000\n"
 "PO-Revision-Date: 2018-02-01 14:05+0000\n"
 "Last-Translator: Michael Tremer <michael.tremer@ipfire.org>\n"
 "Language-Team: German\n"
@@ -217,8 +217,7 @@ msgstr ""
 msgid "AS%(asn)s belongs to %(name)s"
 msgstr ""
 
-#, python-format
-msgid "The datase has recently be updated recently (%s)"
+msgid "The database has been updated recently"
 msgstr ""
 
 msgid "You must at least pass one flag"
