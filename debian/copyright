@@ -1,4 +1,4 @@
-Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: libloc
 Upstream-Contact: Michael Tremer <michael.tremer@ipfire.org>
 Source: https://location.ipfire.org/download
