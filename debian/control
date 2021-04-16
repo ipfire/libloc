@@ -24,6 +24,7 @@ Vcs-Browser: https://git.ipfire.org/pub/git/location/libloc.git
 
 Package: libloc1
 Architecture: any
+Section: libs
 Pre-Depends:
  ${misc:Pre-Depends}
 Depends:
