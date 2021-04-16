@@ -69,7 +69,7 @@ Depends:
  location-python (= ${binary:Version}),
  ${misc:Depends},
  ${python3:Depends}
-Multi-Arch: same
+Multi-Arch: foreign
 Description: Tools to author location databases
  This package contains tools that are required to build location databases
 
@@ -82,6 +82,6 @@ Depends:
  ${misc:Depends},
  ${python3:Depends},
  ${shlibs:Depends}
-Multi-Arch: same
+Multi-Arch: foreign
 Description: Python modules for libloc
  This package contains Python bindings for libloc
