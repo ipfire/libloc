@@ -2,9 +2,10 @@
 /autoreconf.*
 /debhelper-build-stamp
 /files
-/libloc/
-/libloc-dev/
-/libloc-perl/
-/tmp
+/*/
 *.debhelper
+*.log
 *.substvars
+!/patches/
+!/source/
+!/tests/
