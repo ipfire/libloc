@@ -623,16 +623,19 @@ class CLI(object):
 		if not inetnum or not "country" in inetnum:
 			return
 
-		# Skip objects with unknown country codes
-		if validcountries and inetnum.get("country") not in validcountries:
-			log.warning("Skipping network with bogus country '%s': %s" % \
-				(inetnum.get("country"), inetnum.get("inet6num") or inetnum.get("inetnum")))
-			return
-
 		# Iterate through all networks enumerated from above, check them for plausibility and insert
 		# them into the database, if _check_parsed_network() succeeded
 		for single_network in inetnum.get("inet6num") or inetnum.get("inetnum"):
 			if self._check_parsed_network(single_network):
+
+				# Skip objects with unknown country codes - to avoid log spam for invalid or too small
+				# networks, this check is - kinda ugly - done at this point
+				if validcountries and inetnum.get("country") not in validcountries:
+					log.warning("Skipping network with bogus country '%s': %s" % \
+						(inetnum.get("country"), inetnum.get("inet6num") or inetnum.get("inetnum")))
+					break
+
+				# Everything is fine here, run INSERT statement...
 				self.db.execute("INSERT INTO _rirdata(network, country) \
 					VALUES(%s, %s) ON CONFLICT (network) DO UPDATE SET country = excluded.country",
 					"%s" % single_network, inetnum.get("country"),
