@@ -506,7 +506,7 @@ class CLI(object):
 			f = writer(sys.stdout, prefix=country_code)
 
 			# Print all matching networks
-			for n in db.search_networks(country_code=country_code, family=ns.family):
+			for n in db.search_networks(country_codes=[country_code], family=ns.family):
 				f.write(n)
 
 			f.finish()
