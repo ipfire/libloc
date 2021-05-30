@@ -166,6 +166,7 @@ class CLI(object):
 
 				-- networks
 				CREATE TABLE IF NOT EXISTS networks(network inet, country text);
+				ALTER TABLE networks ADD COLUMN IF NOT EXISTS original_countries text[];
 				ALTER TABLE networks ADD COLUMN IF NOT EXISTS source text NOT NULL;
 				CREATE UNIQUE INDEX IF NOT EXISTS networks_network ON networks(network);
 				CREATE INDEX IF NOT EXISTS networks_family ON networks USING BTREE(family(network));
@@ -379,7 +380,7 @@ class CLI(object):
 					ON COMMIT DROP;
 				CREATE UNIQUE INDEX _organizations_handle ON _organizations(handle);
 
-				CREATE TEMPORARY TABLE _rirdata(network inet NOT NULL, country text NOT NULL, source text NOT NULL)
+				CREATE TEMPORARY TABLE _rirdata(network inet NOT NULL, country text NOT NULL, original_countries text[] NOT NULL, source text NOT NULL)
 					ON COMMIT DROP;
 				CREATE INDEX _rirdata_search ON _rirdata USING BTREE(family(network), masklen(network));
 				CREATE UNIQUE INDEX _rirdata_network ON _rirdata(network);
@@ -410,8 +411,8 @@ class CLI(object):
 			for family in (row.family for row in families):
 				smallest = self.db.get("SELECT MIN(masklen(network)) AS prefix FROM _rirdata WHERE family(network) = %s", family)
 
-				self.db.execute("INSERT INTO networks(network, country, source) \
-					SELECT network, country, source FROM _rirdata WHERE masklen(network) = %s AND family(network) = %s", smallest.prefix, family)
+				self.db.execute("INSERT INTO networks(network, country, original_countries, source) \
+					SELECT network, country, original_countries, source FROM _rirdata WHERE masklen(network) = %s AND family(network) = %s", smallest.prefix, family)
 
 				# ... determine any other prefixes for this network family, ...
 				prefixes = self.db.query("SELECT DISTINCT masklen(network) AS prefix FROM _rirdata \
@@ -425,6 +426,7 @@ class CLI(object):
 							SELECT
 								_rirdata.network,
 								_rirdata.country,
+								_rirdata.original_countries,
 								_rirdata.source
 							FROM
 								_rirdata
@@ -438,6 +440,7 @@ class CLI(object):
 								DISTINCT ON (c.network)
 								c.network,
 								c.country,
+								c.original_countries,
 								c.source,
 								masklen(networks.network),
 								networks.country AS parent_country
@@ -452,10 +455,11 @@ class CLI(object):
 								masklen(networks.network) DESC NULLS LAST
 						)
 						INSERT INTO
-							networks(network, country, source)
+							networks(network, country, original_countries, source)
 						SELECT
 							network,
 							country,
+							original_countries,
 							source
 						FROM
 							filtered
@@ -624,28 +628,37 @@ class CLI(object):
 				inetnum[key] = [ipaddress.ip_network(val, strict=False)]
 
 			elif key == "country":
-				inetnum[key] = val.upper()
+				# Catch RIR data objects with more than one country code...
+				if not key in inetnum.keys():
+					inetnum[key] = []
+				else:
+					if val.upper() in inetnum.get("country"):
+						# ... but keep this list distinct...
+						continue
+
+				inetnum[key].append(val.upper())
 
 		# Skip empty objects
 		if not inetnum or not "country" in inetnum:
 			return
+
+		# Prepare skipping objects with unknown country codes...
+		invalidcountries = [singlecountry for singlecountry in inetnum.get("country") if singlecountry not in validcountries]
 
 		# Iterate through all networks enumerated from above, check them for plausibility and insert
 		# them into the database, if _check_parsed_network() succeeded
 		for single_network in inetnum.get("inet6num") or inetnum.get("inetnum"):
 			if self._check_parsed_network(single_network):
 
-				# Skip objects with unknown country codes - to avoid log spam for invalid or too small
-				# networks, this check is - kinda ugly - done at this point
-				if validcountries and inetnum.get("country") not in validcountries:
-					log.warning("Skipping network with bogus country '%s': %s" % \
-						(inetnum.get("country"), inetnum.get("inet6num") or inetnum.get("inetnum")))
-					break
+				# Skip objects with unknown country codes if they are valid to avoid log spam...
+				if validcountries and invalidcountries:
+					log.warning("Skipping network with bogus countr(y|ies) %s (original countries: %s): %s" % \
+						(invalidcountries, inetnum.get("country"), inetnum.get("inet6num") or inetnum.get("inetnum")))
 
 				# Everything is fine here, run INSERT statement...
-				self.db.execute("INSERT INTO _rirdata(network, country, source) \
-					VALUES(%s, %s, %s) ON CONFLICT (network) DO UPDATE SET country = excluded.country",
-					"%s" % single_network, inetnum.get("country"), source_key,
+				self.db.execute("INSERT INTO _rirdata(network, country, original_countries, source) \
+					VALUES(%s, %s, %s, %s) ON CONFLICT (network) DO UPDATE SET country = excluded.country",
+					"%s" % single_network, inetnum.get("country")[0], inetnum.get("country"), source_key,
 				)
 
 	def _parse_org_block(self, block, source_key):
@@ -736,10 +749,10 @@ class CLI(object):
 		if not self._check_parsed_network(network):
 			return
 
-		self.db.execute("INSERT INTO networks(network, country, source) \
-			VALUES(%s, %s, %s) ON CONFLICT (network) DO \
+		self.db.execute("INSERT INTO networks(network, country, original_countries, source) \
+			VALUES(%s, %s, %s, %s) ON CONFLICT (network) DO \
 			UPDATE SET country = excluded.country",
-			"%s" % network, country, source_key,
+			"%s" % network, country, [country], source_key,
 		)
 
 	def handle_update_announcements(self, ns):
