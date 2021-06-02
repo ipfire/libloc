@@ -628,15 +628,17 @@ class CLI(object):
 				inetnum[key] = [ipaddress.ip_network(val, strict=False)]
 
 			elif key == "country":
+				val = val.upper()
+
 				# Catch RIR data objects with more than one country code...
-				if not key in inetnum.keys():
+				if not key in inetnum:
 					inetnum[key] = []
 				else:
-					if val.upper() in inetnum.get("country"):
+					if val in inetnum.get("country"):
 						# ... but keep this list distinct...
 						continue
 
-				inetnum[key].append(val.upper())
+				inetnum[key].append(val)
 
 		# Skip empty objects
 		if not inetnum or not "country" in inetnum:
