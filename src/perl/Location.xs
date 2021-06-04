@@ -198,6 +198,8 @@ lookup_network_has_flag(db, address, flag)
 			iv |= LOC_NETWORK_FLAG_SATELLITE_PROVIDER;
 		else if (strcmp("LOC_NETWORK_FLAG_ANYCAST", flag) == 0)
 			iv |= LOC_NETWORK_FLAG_ANYCAST;
+		else if (strcmp("LOC_NETWORK_FLAG_DROP", flag) == 0)
+			iv |= LOC_NETWORK_FLAG_DROP;
 		else
 			croak("Invalid flag");
 

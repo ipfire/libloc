@@ -10,7 +10,7 @@ location - Query the location database
 `location list-countries [--show-name] [--show-continent]`
 `location list-networks-by-as ASN`
 `location list-networks-by-cc COUNTRY_CODE`
-`location list-networks-by-flags [--anonymous-proxy|--satellite-provider|--anycast]`
+`location list-networks-by-flags [--anonymous-proxy|--satellite-provider|--anycast|--drop]`
 `location lookup ADDRESS [ADDRESS...]`
 `location search-as STRING`
 `location update [--cron=daily|weekly|monthly]`
@@ -73,7 +73,7 @@ or countries.
 	+
 	See above for usage of the '--family' and '--format' parameters.
 
-'list-networks-by-flags [--family=[ipv6|ipv4]] [--format=FORMAT] [--anonymous-proxy|--satellite-provider|--anycast]'::
+'list-networks-by-flags [--family=[ipv6|ipv4]] [--format=FORMAT] [--anonymous-proxy|--satellite-provider|--anycast|--drop]'::
 	Lists all networks that have a certain flag.
 	+
 	See above for usage of the '--family' and '--format' parameters.

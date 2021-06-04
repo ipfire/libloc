@@ -183,6 +183,7 @@ class CLI(object):
 				);
 				CREATE UNIQUE INDEX IF NOT EXISTS autnum_overrides_number
 					ON autnum_overrides(number);
+				ALTER TABLE autnum_overrides ADD COLUMN IF NOT EXISTS is_drop boolean;
 
 				CREATE TABLE IF NOT EXISTS network_overrides(
 					network inet NOT NULL,
@@ -195,6 +196,7 @@ class CLI(object):
 					ON network_overrides(network);
 				CREATE INDEX IF NOT EXISTS network_overrides_search
 					ON network_overrides USING GIST(network inet_ops);
+				ALTER TABLE network_overrides ADD COLUMN IF NOT EXISTS is_drop boolean;
 			""")
 
 		return db
@@ -302,7 +304,20 @@ class CLI(object):
 							WHERE networks.autnum = overrides.number
 					),
 					FALSE
-				) AS is_anycast
+				) AS is_anycast,
+				COALESCE(
+					(
+						SELECT is_drop FROM network_overrides overrides
+							WHERE networks.network <<= overrides.network
+							ORDER BY masklen(overrides.network) DESC
+							LIMIT 1
+					),
+					(
+						SELECT is_drop FROM autnum_overrides overrides
+							WHERE networks.autnum = overrides.number
+					),
+					FALSE
+				) AS is_drop
 			FROM (
 				SELECT
 					known_networks.network AS network,
@@ -350,6 +365,9 @@ class CLI(object):
 
 			if row.is_anycast:
 				network.set_flag(location.NETWORK_FLAG_ANYCAST)
+
+			if row.is_drop:
+				network.set_flag(location.NETWORK_FLAG_DROP)
 
 		# Add all countries
 		log.info("Writing countries...")
@@ -981,14 +999,16 @@ class CLI(object):
 									country,
 									is_anonymous_proxy,
 									is_satellite_provider,
-									is_anycast
-								) VALUES (%s, %s, %s, %s, %s)
+									is_anycast,
+									is_drop
+								) VALUES (%s, %s, %s, %s, %s, %s)
 								ON CONFLICT (network) DO NOTHING""",
 								"%s" % network,
 								block.get("country"),
 								self._parse_bool(block, "is-anonymous-proxy"),
 								self._parse_bool(block, "is-satellite-provider"),
 								self._parse_bool(block, "is-anycast"),
+								self._parse_bool(block, "drop"),
 							)
 
 						elif type == "aut-num":
@@ -1009,8 +1029,9 @@ class CLI(object):
 									country,
 									is_anonymous_proxy,
 									is_satellite_provider,
-									is_anycast
-								) VALUES(%s, %s, %s, %s, %s, %s)
+									is_anycast,
+									is_drop
+								) VALUES(%s, %s, %s, %s, %s, %s, %s)
 								ON CONFLICT DO NOTHING""",
 								autnum,
 								block.get("name"),
@@ -1018,6 +1039,7 @@ class CLI(object):
 								self._parse_bool(block, "is-anonymous-proxy"),
 								self._parse_bool(block, "is-satellite-provider"),
 								self._parse_bool(block, "is-anycast"),
+								self._parse_bool(block, "drop"),
 							)
 
 						else:
