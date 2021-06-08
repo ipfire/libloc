@@ -183,6 +183,7 @@ class CLI(object):
 				);
 				CREATE UNIQUE INDEX IF NOT EXISTS autnum_overrides_number
 					ON autnum_overrides(number);
+				ALTER TABLE autnum_overrides ADD COLUMN IF NOT EXISTS source text;
 				ALTER TABLE autnum_overrides ADD COLUMN IF NOT EXISTS is_drop boolean;
 
 				CREATE TABLE IF NOT EXISTS network_overrides(
@@ -196,6 +197,7 @@ class CLI(object):
 					ON network_overrides(network);
 				CREATE INDEX IF NOT EXISTS network_overrides_search
 					ON network_overrides USING GIST(network inet_ops);
+				ALTER TABLE network_overrides ADD COLUMN IF NOT EXISTS source text;
 				ALTER TABLE network_overrides ADD COLUMN IF NOT EXISTS is_drop boolean;
 			""")
 
@@ -1052,14 +1054,16 @@ class CLI(object):
 								INSERT INTO network_overrides(
 									network,
 									country,
+									source,
 									is_anonymous_proxy,
 									is_satellite_provider,
 									is_anycast,
 									is_drop
-								) VALUES (%s, %s, %s, %s, %s, %s)
+								) VALUES (%s, %s, %s, %s, %s, %s, %s)
 								ON CONFLICT (network) DO NOTHING""",
 								"%s" % network,
 								block.get("country"),
+								"manual",
 								self._parse_bool(block, "is-anonymous-proxy"),
 								self._parse_bool(block, "is-satellite-provider"),
 								self._parse_bool(block, "is-anycast"),
@@ -1082,15 +1086,17 @@ class CLI(object):
 									number,
 									name,
 									country,
+									source,
 									is_anonymous_proxy,
 									is_satellite_provider,
 									is_anycast,
 									is_drop
-								) VALUES(%s, %s, %s, %s, %s, %s, %s)
+								) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)
 								ON CONFLICT DO NOTHING""",
 								autnum,
 								block.get("name"),
 								block.get("country"),
+								"manual",
 								self._parse_bool(block, "is-anonymous-proxy"),
 								self._parse_bool(block, "is-satellite-provider"),
 								self._parse_bool(block, "is-anycast"),
