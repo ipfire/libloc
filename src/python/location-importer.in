@@ -505,6 +505,9 @@ class CLI(object):
 						for line in f:
 							self._parse_line(line, source_key, validcountries)
 
+		# Download and import (technical) AS names from ARIN
+		self._import_as_names_from_arin()
+
 	def _check_parsed_network(self, network):
 		"""
 			Assistive function to detect and subsequently sort out parsed
@@ -774,6 +777,58 @@ class CLI(object):
 			UPDATE SET country = excluded.country",
 			"%s" % network, country, [country], source_key,
 		)
+
+	def _import_as_names_from_arin(self):
+		downloader = location.importer.Downloader()
+
+		# XXX: Download AS names file from ARIN (note that these names appear to be quite
+		# technical, not intended for human consumption, as description fields in
+		# organisation handles for other RIRs are - however, this is what we have got,
+		# and in some cases, it might be still better than nothing)
+		with downloader.request("https://ftp.arin.net/info/asn.txt", return_blocks=False) as f:
+			for line in f:
+				# Convert binary line to string...
+				line = str(line)
+
+				# ... valid lines start with a space, followed by the number of the Autonomous System ...
+				if not line.startswith(" "):
+					continue
+
+				# Split line and check if there is a valid ASN in it...
+				asn, name = line.split()[0:2]
+
+				try:
+					asn = int(asn)
+				except ValueError:
+					log.debug("Skipping ARIN AS names line not containing an integer for ASN")
+					continue
+
+				if not ((1 <= asn and asn <= 23455) or (23457 <= asn and asn <= 64495) or (131072 <= asn and asn <= 4199999999)):
+					log.debug("Skipping ARIN AS names line not containing a valid ASN: %s" % asn)
+					continue
+
+				# Skip any AS name that appears to be a placeholder for a different RIR or entity...
+				if re.match(r"^(ASN-BLK|)(AFCONC|AFRINIC|APNIC|ASNBLK|DNIC|LACNIC|RIPE|IANA)(\d?$|\-.*)", name):
+					continue
+
+				# Bail out in case the AS name contains anything we do not expect here...
+				if re.search(r"[^a-zA-Z0-9-_]", name):
+					log.debug("Skipping ARIN AS name for %s containing invalid characters: %s" % \
+							(asn, name))
+
+				# Things look good here, run INSERT statement and skip this one if we already have
+				# a (better?) name for this Autonomous System...
+				self.db.execute("""
+					INSERT INTO autnums(
+						number,
+						name,
+						source
+					) VALUES (%s, %s, %s)
+					ON CONFLICT (number) DO NOTHING""",
+					asn,
+					name,
+					"ARIN",
+				)
 
 	def handle_update_announcements(self, ns):
 		server = ns.server[0]
