@@ -19,6 +19,7 @@
 
 import argparse
 import ipaddress
+import json
 import logging
 import math
 import re
@@ -1031,6 +1032,10 @@ class CLI(object):
 				TRUNCATE TABLE network_overrides;
 			""")
 
+			# Update overrides for various cloud providers big enough to publish their own IP
+			# network allocation lists in a machine-readable format...
+			self._update_overrides_for_aws()
+
 			for file in ns.files:
 				log.info("Reading %s..." % file)
 
@@ -1105,6 +1110,115 @@ class CLI(object):
 
 						else:
 							log.warning("Unsupported type: %s" % type)
+
+	def _update_overrides_for_aws(self):
+		# Download Amazon AWS IP allocation file to create overrides...
+		downloader = location.importer.Downloader()
+
+		try:
+			with downloader.request("https://ip-ranges.amazonaws.com/ip-ranges.json", return_blocks=False) as f:
+				aws_ip_dump = json.load(f.body)
+		except Exception as e:
+			log.error("unable to preprocess Amazon AWS IP ranges: %s" % e)
+			return
+
+		# XXX: Set up a dictionary for mapping a region name to a country. Unfortunately,
+		# there seems to be no machine-readable version available of this other than
+		# https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html
+		# (worse, it seems to be incomplete :-/ ); https://www.cloudping.cloud/endpoints
+		# was helpful here as well.
+		aws_region_country_map = {
+				"af-south-1": "ZA",
+				"ap-east-1": "HK",
+				"ap-south-1": "IN",
+				"ap-south-2": "IN",
+				"ap-northeast-3": "JP",
+				"ap-northeast-2": "KR",
+				"ap-southeast-1": "SG",
+				"ap-southeast-2": "AU",
+				"ap-southeast-3": "MY",
+				"ap-southeast-4": "AU",
+				"ap-northeast-1": "JP",
+				"ca-central-1": "CA",
+				"eu-central-1": "DE",
+				"eu-central-2": "CH",
+				"eu-west-1": "IE",
+				"eu-west-2": "GB",
+				"eu-south-1": "IT",
+				"eu-south-2": "ES",
+				"eu-west-3": "FR",
+				"eu-north-1": "SE",
+				"me-central-1": "AE",
+				"me-south-1": "BH",
+				"sa-east-1": "BR"
+				}
+
+		# Fetch all valid country codes to check parsed networks aganist...
+		rows = self.db.query("SELECT * FROM countries ORDER BY country_code")
+		validcountries = []
+
+		for row in rows:
+			validcountries.append(row.country_code)
+
+		with self.db.transaction():
+			for snetwork in aws_ip_dump["prefixes"] + aws_ip_dump["ipv6_prefixes"]:
+				try:
+					network = ipaddress.ip_network(snetwork.get("ip_prefix") or snetwork.get("ipv6_prefix"), strict=False)
+				except ValueError:
+					log.warning("Unable to parse line: %s" % snetwork)
+					continue
+
+				# Sanitize parsed networks...
+				if not self._check_parsed_network(network):
+					continue
+
+				# Determine region of this network...
+				region = snetwork["region"]
+				cc = None
+				is_anycast = False
+
+				# Any region name starting with "us-" will get "US" country code assigned straight away...
+				if region.startswith("us-"):
+					cc = "US"
+				elif region.startswith("cn-"):
+					# ... same goes for China ...
+					cc = "CN"
+				elif region == "GLOBAL":
+					# ... funny region name for anycast-like networks ...
+					is_anycast = True
+				elif region in aws_region_country_map:
+					# ... assign looked up country code otherwise ...
+					cc = aws_region_country_map[region]
+				else:
+					# ... and bail out if we are missing something here
+					log.warning("Unable to determine country code for line: %s" % snetwork)
+					continue
+
+				# Skip networks with unknown country codes
+				if not is_anycast and validcountries and cc not in validcountries:
+					log.warning("Skipping Amazon AWS network with bogus country '%s': %s" % \
+						(cc, network))
+					return
+
+				# Conduct SQL statement...
+				self.db.execute("""
+					INSERT INTO network_overrides(
+						network,
+						country,
+						source,
+						is_anonymous_proxy,
+						is_satellite_provider,
+						is_anycast
+					) VALUES (%s, %s, %s, %s, %s, %s)
+					ON CONFLICT (network) DO NOTHING""",
+					"%s" % network,
+					cc,
+					"Amazon AWS IP feed",
+					None,
+					None,
+					is_anycast,
+				)
+
 
 	@staticmethod
 	def _parse_bool(block, key):
