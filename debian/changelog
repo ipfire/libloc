@@ -1,13 +1,16 @@
 libloc (0.9.6-1) unstable; urgency=medium
 
-  * location-importer.in: skip networks with unknown country codes
+  [ Michael Tremer ]
+  * location: Fix list-networks-by-as
+  * database: Free mmapped countries section
+
+  [ Peter Müller ]
+  * location-importer.in: fix typo
+  * location-importer.in: delete 6to4 IPv6 space as well
+  * location-importer.in: reduce log noise for unusable networks
   * location-importer.in: process unaligned IP ranges in RIR data files
     correctly
-  * database: Free mmapped countries section
-  * location-importer.in: reduce log noise for unusable networks
-  * location-importer.in: delete 6to4 IPv6 space as well
-  * location-importer.in: fix typo
-  * location: Fix list-networks-by-as
+  * location-importer.in: skip networks with unknown country codes
 
  -- Michael Tremer <michael.tremer@ipfire.org>  Wed, 31 Mar 2021 14:06:00 +0100
 
