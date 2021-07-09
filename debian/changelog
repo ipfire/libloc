@@ -1,3 +1,33 @@
+libloc (0.9.7-1) unstable; urgency=medium
+
+  [ Valters Jansons ]
+  * Non-maintainer upload.
+  * po: Update translations
+  * systemd: Add Documentation= to location-update
+
+  [ Peter Müller ]
+  * location-importer.in: emit warnings due to unknown country code for
+    valid networks only
+  * location.in: fix search_networks() function call
+  * location-importer.in: keep track of sources for networks, ASNs, and
+    organisations
+  * importer.py: add source information for RIR data feeds
+  * location-importer.in: track original countries as well
+  * location-importer.in: track original countries more pythonic
+  * Implement an additional flag for hostile networks safe to drop
+  * location-importer.in: Import (technical) AS names from ARIN
+  * location-importer.in: add source column for overrides as well
+  * location-importer.in: import additional IP information for Amazon
+    AWS IP networks
+  * location-import.in: optimise regular expression for filtering ASN
+    allocations to other RIRs when parsing ARIN AS names file
+
+  [ Michael Tremer ]
+  * countries: Fix matching invalid country codes
+  * Bump version to 0.9.7
+
+ -- Valters Jansons <valter.jansons@gmail.com>  Fri, 09 Jul 2021 17:16:59 +0000
+
 libloc (0.9.6-1) unstable; urgency=medium
 
   [ Michael Tremer ]
