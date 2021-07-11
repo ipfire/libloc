@@ -104,6 +104,14 @@ my_CFLAGS="\
 "
 AC_SUBST([my_CFLAGS])
 
+# Enable -fanalyzer if requested
+AC_ARG_ENABLE([analyzer],
+	AS_HELP_STRING([--enable-analyzer], [enable static analyzer (-fanalyzer) @<:@default=disabled@:>@]),
+	[], [enable_analyzer=no])
+AS_IF([test "x$enable_analyzer" = "xyes"],
+	CC_CHECK_FLAGS_APPEND([my_CFLAGS], [CFLAGS], [-fanalyzer])
+)
+
 # ------------------------------------------------------------------------------
 
 AC_ARG_WITH([systemd],
