@@ -208,6 +208,8 @@ LOC_EXPORT struct loc_stringpool* loc_stringpool_unref(struct loc_stringpool* po
 
 static off_t loc_stringpool_get_next_offset(struct loc_stringpool* pool, off_t offset) {
 	const char* string = loc_stringpool_get(pool, offset);
+	if (!string)
+		return offset;
 
 	return offset + strlen(string) + 1;
 }
