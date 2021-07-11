@@ -105,31 +105,20 @@ static off_t loc_stringpool_append(struct loc_stringpool* pool, const char* stri
 	return offset;
 }
 
-static int __loc_stringpool_new(struct loc_ctx* ctx, struct loc_stringpool** pool, enum loc_stringpool_mode mode) {
+LOC_EXPORT int loc_stringpool_new(struct loc_ctx* ctx, struct loc_stringpool** pool) {
 	struct loc_stringpool* p = calloc(1, sizeof(*p));
 	if (!p)
-		return -ENOMEM;
+		return 1;
 
 	p->ctx = loc_ref(ctx);
 	p->refcount = 1;
 
 	// Save mode
-	p->mode = mode;
+	p->mode = STRINGPOOL_DEFAULT;
 
 	*pool = p;
 
 	return 0;
-}
-
-LOC_EXPORT int loc_stringpool_new(struct loc_ctx* ctx, struct loc_stringpool** pool) {
-	int r = __loc_stringpool_new(ctx, pool, STRINGPOOL_DEFAULT);
-	if (r)
-		return r;
-
-	// Add an empty string to new string pools
-	loc_stringpool_append(*pool, "");
-
-	return r;
 }
 
 static int loc_stringpool_mmap(struct loc_stringpool* pool, FILE* f, size_t length, off_t offset) {
@@ -153,13 +142,18 @@ static int loc_stringpool_mmap(struct loc_stringpool* pool, FILE* f, size_t leng
 
 LOC_EXPORT int loc_stringpool_open(struct loc_ctx* ctx, struct loc_stringpool** pool,
 		FILE* f, size_t length, off_t offset) {
-	int r = __loc_stringpool_new(ctx, pool, STRINGPOOL_MMAP);
+	int r = loc_stringpool_new(ctx, pool);
 	if (r)
 		return r;
 
+	struct loc_stringpool* p = *pool;
+
+	// Change mode to mmap
+	p->mode = STRINGPOOL_MMAP;
+
 	// Map data into memory
 	if (length > 0) {
-		r = loc_stringpool_mmap(*pool, f, length, offset);
+		r = loc_stringpool_mmap(p, f, length, offset);
 		if (r)
 			return r;
 	}
