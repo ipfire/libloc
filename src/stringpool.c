@@ -81,7 +81,7 @@ static int loc_stringpool_grow(struct loc_stringpool* pool, size_t length) {
 }
 
 static off_t loc_stringpool_append(struct loc_stringpool* pool, const char* string) {
-	if (!string || !*string)
+	if (!string)
 		return -EINVAL;
 
 	DEBUG(pool->ctx, "Appending '%s' to string pool at %p\n", string, pool);
