@@ -98,21 +98,6 @@ static struct in6_addr make_last_address(const struct in6_addr* address, const s
 	return a;
 }
 
-static struct in6_addr address_increment(const struct in6_addr* address) {
-	struct in6_addr a = *address;
-
-	for (int octet = 15; octet >= 0; octet--) {
-		if (a.s6_addr[octet] < 255) {
-			a.s6_addr[octet]++;
-			break;
-		} else {
-			a.s6_addr[octet] = 0;
-		}
-	}
-
-	return a;
-}
-
 LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network,
 		struct in6_addr* address, unsigned int prefix) {
 	// Address cannot be unspecified
@@ -163,10 +148,7 @@ LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network
 	n->last_address = make_last_address(&n->first_address, &bitmask);
 
 	// Set family
-	if (IN6_IS_ADDR_V4MAPPED(&n->first_address))
-		n->family = AF_INET;
-	else
-		n->family = AF_INET6;
+	n->family = loc_address_family(&n->first_address);
 
 	DEBUG(n->ctx, "Network allocated at %p\n", n);
 	*network = n;

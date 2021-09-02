@@ -70,6 +70,56 @@ struct loc_network_list* loc_network_exclude_list(
 
 #ifdef LIBLOC_PRIVATE
 
+
+static inline struct in6_addr address_increment(const struct in6_addr* address) {
+	struct in6_addr a = *address;
+
+	for (int octet = 15; octet >= 0; octet--) {
+		if (a.s6_addr[octet] < 255) {
+			a.s6_addr[octet]++;
+			break;
+		} else {
+			a.s6_addr[octet] = 0;
+		}
+	}
+
+	return a;
+}
+
+static inline struct in6_addr address_decrement(const struct in6_addr* address) {
+	struct in6_addr a = *address;
+
+	for (int octet = 15; octet >= 0; octet--) {
+		if (a.s6_addr[octet] > 0) {
+			a.s6_addr[octet]--;
+			break;
+		}
+	}
+
+	return a;
+}
+
+static inline int loc_address_family(const struct in6_addr* address) {
+	if (IN6_IS_ADDR_V4MAPPED(address))
+		return AF_INET;
+	else
+		return AF_INET6;
+}
+
+static inline int loc_address_count_trailing_zero_bits(const struct in6_addr* address) {
+	int zeroes = 0;
+
+	for (int octet = 15; octet >= 0; octet--) {
+		if (address->s6_addr[octet]) {
+			zeroes += __builtin_ctz(address->s6_addr[octet]);
+			break;
+		} else
+			zeroes += 8;
+	}
+
+	return zeroes;
+}
+
 int loc_network_to_database_v1(struct loc_network* network, struct loc_database_network_v1* dbobj);
 int loc_network_new_from_database_v1(struct loc_ctx* ctx, struct loc_network** network,
 		struct in6_addr* address, unsigned int prefix, const struct loc_database_network_v1* dbobj);
