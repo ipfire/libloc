@@ -78,6 +78,11 @@ or countries.
 	+
 	See above for usage of the '--family' and '--format' parameters.
 
+'list-bogons [--family=[ipv6|ipv4]] [--format=FORMAT]'::
+	Lists all bogons (i.e. networks that are unknown to the database).
+	+
+	See above for usage of the '--family' and '--format' parameters.
+
 'lookup ADDRESS [ADDRESS...]'::
 	This command returns the network the given IP address has been found in
 	as well as its Autonomous System if that information is available.

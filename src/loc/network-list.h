@@ -34,4 +34,13 @@ struct loc_network* loc_network_list_pop_first(struct loc_network_list* list);
 int loc_network_list_contains(struct loc_network_list* list, struct loc_network* network);
 int loc_network_list_merge(struct loc_network_list* self, struct loc_network_list* other);
 
+#ifdef LIBLOC_PRIVATE
+
+#include <netinet/in.h>
+
+int loc_network_list_summarize(struct loc_ctx* ctx,
+	const struct in6_addr* first, const struct in6_addr* last, struct loc_network_list** list);
+
+#endif /* LOC_PRIVATE */
+
 #endif

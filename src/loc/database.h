@@ -54,6 +54,7 @@ enum loc_database_enumerator_mode {
 	LOC_DB_ENUMERATE_NETWORKS  = 1,
 	LOC_DB_ENUMERATE_ASES      = 2,
 	LOC_DB_ENUMERATE_COUNTRIES = 3,
+	LOC_DB_ENUMERATE_BOGONS    = 4,
 };
 
 enum loc_database_enumerator_flags {

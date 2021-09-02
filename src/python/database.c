@@ -426,6 +426,17 @@ static PyObject* Database_countries(DatabaseObject* self) {
 	return Database_iterate_all(self, LOC_DB_ENUMERATE_COUNTRIES, AF_UNSPEC, 0);
 }
 
+static PyObject* Database_list_bogons(DatabaseObject* self, PyObject* args, PyObject* kwargs) {
+	char* kwlist[] = { "family", NULL };
+	int family = AF_UNSPEC;
+
+	// Parse arguments
+	if (!PyArg_ParseTupleAndKeywords(args, kwargs, "|i", kwlist, &family))
+		return NULL;
+
+	return Database_iterate_all(self, LOC_DB_ENUMERATE_BOGONS, family, 0);
+}
+
 static struct PyMethodDef Database_methods[] = {
 	{
 		"get_as",
@@ -437,6 +448,12 @@ static struct PyMethodDef Database_methods[] = {
 		"get_country",
 		(PyCFunction)Database_get_country,
 		METH_VARARGS,
+		NULL,
+	},
+	{
+		"list_bogons",
+		(PyCFunction)Database_list_bogons,
+		METH_VARARGS|METH_KEYWORDS,
 		NULL,
 	},
 	{

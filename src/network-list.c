@@ -297,3 +297,70 @@ LOC_EXPORT int loc_network_list_merge(
 
 	return 0;
 }
+
+int loc_network_list_summarize(struct loc_ctx* ctx,
+		const struct in6_addr* first, const struct in6_addr* last, struct loc_network_list** list) {
+	int r;
+
+	if (!list) {
+		errno = EINVAL;
+		return 1;
+	}
+
+	int family = loc_address_family(first);
+
+	// Families must match
+	if (family != loc_address_family(last)) {
+		ERROR(ctx, "Address families do not match\n");
+		errno = EINVAL;
+		return 1;
+	}
+
+	// Check if the last address is larger than the first address
+	if (in6_addr_cmp(first, last) >= 0) {
+		ERROR(ctx, "The first address must be smaller than the last address\n");
+		errno = EINVAL;
+		return 1;
+	}
+
+	struct loc_network* network = NULL;
+
+	struct in6_addr start = *first;
+	const struct in6_addr* end = NULL;
+
+	while (in6_addr_cmp(&start, last) <= 0) {
+		// Guess the prefix
+		int prefix = 128 - loc_address_count_trailing_zero_bits(&start);
+
+		while (1) {
+			// Create a new network object
+			r = loc_network_new(ctx, &network, &start, prefix);
+			if (r)
+				return r;
+
+			// Is this network within bounds?
+			end = loc_network_get_last_address(network);
+			if (in6_addr_cmp(last, end) <= 0)
+				break;
+
+			// Drop network and decrease prefix
+			loc_network_unref(network);
+			prefix--;
+		}
+
+		// Push it on the list
+		r = loc_network_list_push(*list, network);
+		if (r) {
+			loc_network_unref(network);
+			return r;
+		}
+
+		// Reset addr to the next start address
+		start = address_increment(end);
+
+		// Cleanup
+		loc_network_unref(network);
+	}
+
+	return 0;
+}
