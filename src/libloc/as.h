@@ -19,9 +19,9 @@
 
 #include <stdint.h>
 
-#include <loc/libloc.h>
-#include <loc/format.h>
-#include <loc/stringpool.h>
+#include <libloc/libloc.h>
+#include <libloc/format.h>
+#include <libloc/stringpool.h>
 
 struct loc_as;
 int loc_as_new(struct loc_ctx* ctx, struct loc_as** as, uint32_t number);

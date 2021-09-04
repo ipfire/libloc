@@ -36,18 +36,18 @@
 #include <openssl/evp.h>
 #include <openssl/pem.h>
 
-#include <loc/libloc.h>
-#include <loc/as.h>
-#include <loc/as-list.h>
-#include <loc/compat.h>
-#include <loc/country.h>
-#include <loc/country-list.h>
-#include <loc/database.h>
-#include <loc/format.h>
-#include <loc/network.h>
-#include <loc/network-list.h>
-#include <loc/private.h>
-#include <loc/stringpool.h>
+#include <libloc/libloc.h>
+#include <libloc/as.h>
+#include <libloc/as-list.h>
+#include <libloc/compat.h>
+#include <libloc/country.h>
+#include <libloc/country-list.h>
+#include <libloc/database.h>
+#include <libloc/format.h>
+#include <libloc/network.h>
+#include <libloc/network-list.h>
+#include <libloc/private.h>
+#include <libloc/stringpool.h>
 
 struct loc_database {
 	struct loc_ctx* ctx;

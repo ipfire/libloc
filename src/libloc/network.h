@@ -19,9 +19,9 @@
 
 #include <netinet/in.h>
 
-#include <loc/libloc.h>
-#include <loc/format.h>
-#include <loc/network-list.h>
+#include <libloc/libloc.h>
+#include <libloc/format.h>
+#include <libloc/network-list.h>
 
 enum loc_network_flags {
 	LOC_NETWORK_FLAG_ANONYMOUS_PROXY    = (1 << 0), // A1

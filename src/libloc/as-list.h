@@ -17,8 +17,8 @@
 #ifndef LIBLOC_AS_LIST_H
 #define LIBLOC_AS_LIST_H
 
-#include <loc/as.h>
-#include <loc/libloc.h>
+#include <libloc/as.h>
+#include <libloc/libloc.h>
 
 struct loc_as_list;
 

@@ -19,8 +19,8 @@
 
 #include <stdlib.h>
 
-#include <loc/libloc.h>
-#include <loc/country.h>
+#include <libloc/libloc.h>
+#include <libloc/country.h>
 
 struct loc_country_list;
 

@@ -25,12 +25,12 @@
 #  include <endian.h>
 #endif
 
-#include <loc/libloc.h>
-#include <loc/compat.h>
-#include <loc/country.h>
-#include <loc/network.h>
-#include <loc/network-list.h>
-#include <loc/private.h>
+#include <libloc/libloc.h>
+#include <libloc/compat.h>
+#include <libloc/country.h>
+#include <libloc/network.h>
+#include <libloc/network-list.h>
+#include <libloc/private.h>
 
 struct loc_network {
 	struct loc_ctx* ctx;

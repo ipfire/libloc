@@ -17,7 +17,7 @@
 #ifndef LIBLOC_NETWORK_LIST_H
 #define LIBLOC_NETWORK_LIST_H
 
-#include <loc/network.h>
+#include <libloc/network.h>
 
 struct loc_network_list;
 int loc_network_list_new(struct loc_ctx* ctx, struct loc_network_list** list);

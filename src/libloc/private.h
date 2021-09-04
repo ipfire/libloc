@@ -24,7 +24,7 @@
 #include <stdio.h>
 #include <syslog.h>
 
-#include <loc/libloc.h>
+#include <libloc/libloc.h>
 
 static inline void __attribute__((always_inline, format(printf, 2, 3)))
 loc_log_null(struct loc_ctx *ctx, const char *format, ...) {}

@@ -19,11 +19,11 @@
 
 #include <stdio.h>
 
-#include <loc/libloc.h>
-#include <loc/as.h>
-#include <loc/country.h>
-#include <loc/database.h>
-#include <loc/network.h>
+#include <libloc/libloc.h>
+#include <libloc/as.h>
+#include <libloc/country.h>
+#include <libloc/database.h>
+#include <libloc/network.h>
 
 struct loc_writer;
 

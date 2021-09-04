@@ -18,9 +18,9 @@
 #include <stdlib.h>
 #include <time.h>
 
-#include <loc/libloc.h>
-#include <loc/network.h>
-#include <loc/private.h>
+#include <libloc/libloc.h>
+#include <libloc/network.h>
+#include <libloc/private.h>
 
 struct loc_network_list {
 	struct loc_ctx* ctx;

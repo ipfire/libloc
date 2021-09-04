@@ -22,7 +22,7 @@
 #include <stddef.h>
 #include <stdio.h>
 
-#include <loc/libloc.h>
+#include <libloc/libloc.h>
 
 struct loc_stringpool;
 int loc_stringpool_new(struct loc_ctx* ctx, struct loc_stringpool** pool);

@@ -6,10 +6,10 @@
 #include <stdio.h>
 #include <string.h>
 
-#include <loc/libloc.h>
-#include <loc/database.h>
-#include <loc/network.h>
-#include <loc/country.h>
+#include <libloc/libloc.h>
+#include <libloc/database.h>
+#include <libloc/network.h>
+#include <libloc/country.h>
 
 MODULE = Location		PACKAGE = Location
 

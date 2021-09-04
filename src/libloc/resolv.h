@@ -19,7 +19,7 @@
 
 #include <time.h>
 
-#include <loc/libloc.h>
+#include <libloc/libloc.h>
 
 int loc_discover_latest_version(struct loc_ctx* ctx, unsigned int version, time_t* t);
 

@@ -16,10 +16,10 @@
 
 #include <Python.h>
 
-#include <loc/libloc.h>
-#include <loc/as.h>
-#include <loc/as-list.h>
-#include <loc/database.h>
+#include <libloc/libloc.h>
+#include <libloc/as.h>
+#include <libloc/as-list.h>
+#include <libloc/database.h>
 
 #include "locationmodule.h"
 #include "as.h"

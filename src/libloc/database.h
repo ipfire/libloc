@@ -21,11 +21,11 @@
 #include <stdio.h>
 #include <stdint.h>
 
-#include <loc/libloc.h>
-#include <loc/network.h>
-#include <loc/as.h>
-#include <loc/country.h>
-#include <loc/country-list.h>
+#include <libloc/libloc.h>
+#include <libloc/network.h>
+#include <libloc/as.h>
+#include <libloc/country.h>
+#include <libloc/country-list.h>
 
 struct loc_database;
 int loc_database_new(struct loc_ctx* ctx, struct loc_database** database, FILE* f);

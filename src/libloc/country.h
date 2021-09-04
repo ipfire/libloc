@@ -17,9 +17,9 @@
 #ifndef LIBLOC_COUNTRY_H
 #define LIBLOC_COUNTRY_H
 
-#include <loc/libloc.h>
-#include <loc/format.h>
-#include <loc/stringpool.h>
+#include <libloc/libloc.h>
+#include <libloc/format.h>
+#include <libloc/stringpool.h>
 
 struct loc_country;
 int loc_country_new(struct loc_ctx* ctx, struct loc_country** country, const char* country_code);
