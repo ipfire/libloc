@@ -848,7 +848,7 @@ static int __loc_database_lookup(struct loc_database* db, const struct in6_addr*
 }
 
 LOC_EXPORT int loc_database_lookup(struct loc_database* db,
-		struct in6_addr* address, struct loc_network** network) {
+		const struct in6_addr* address, struct loc_network** network) {
 	struct in6_addr network_address;
 	memset(&network_address, 0, sizeof(network_address));
 
