@@ -1,3 +1,28 @@
+libloc (0.9.8-1) UNRELEASED; urgency=medium
+
+  [ Michael Tremer ]
+  * importer: Do not try to initialise a column that cannot be NULL with
+    NULL
+  * configure: Add option to enable GCC's -fanalyzer
+  * writer: Break when a network cound not be allocated
+  * stringpool: Allow adding empty strings
+  * stringpool: Do not call strlen() on potential NULL pointer
+  * stringpool: Slightly refactor initialization to help the compiler
+    understand
+  * stringpool: Avoid memory leak if mmap() fails
+  * network: Move some helper functions into network.h
+  * python: Permit passing family to database enumerator
+  * location: Implement listing bogons
+  * Move include files to /usr/include/libloc
+
+  [ Peter Müller ]
+  * location-importer.in: Attempt to provide meaningful AS names if
+    organisation handles are missing
+  * location-importer.in: Braindead me accidentally forgot a "break"
+    statement
+
+ -- Michael Tremer <michael.tremer@ipfire.org>  Tue, 21 Sep 2021 10:29:11 +0000
+
 libloc (0.9.7-1) unstable; urgency=medium
 
   [ Valters Jansons ]
