@@ -31,6 +31,8 @@ main () {
     echo "$author_name <$author_email>  $subject"
     DEBFULLNAME="$author_name" DEBEMAIL="$author_email" debchange --upstream --multimaint-merge "$subject"
   done
+
+  debchange --release ''
 }
 
 main "$@" || exit $?

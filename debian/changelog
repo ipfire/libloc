@@ -1,4 +1,4 @@
-libloc (0.9.8-1) UNRELEASED; urgency=medium
+libloc (0.9.8-1) unstable; urgency=medium
 
   [ Michael Tremer ]
   * importer: Do not try to initialise a column that cannot be NULL with
