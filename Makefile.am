@@ -22,7 +22,7 @@ AM_CFLAGS = ${my_CFLAGS} \
 	-ffunction-sections \
 	-fdata-sections
 
-AM_LDFLAGS =
+AM_LDFLAGS = ${my_LDFLAGS}
 
 # leaving a space here to work around automake's conditionals
  ifeq ($(OS),Darwin)
