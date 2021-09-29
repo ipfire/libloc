@@ -405,10 +405,6 @@ LOC_EXPORT int loc_network_set_asn(struct loc_network* network, uint32_t asn) {
 	return 0;
 }
 
-LOC_EXPORT int loc_network_match_asn(struct loc_network* network, uint32_t asn) {
-	return network->asn == asn;
-}
-
 LOC_EXPORT int loc_network_has_flag(struct loc_network* network, uint32_t flag) {
 	return network->flags & flag;
 }
