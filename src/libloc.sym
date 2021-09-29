@@ -120,7 +120,6 @@ global:
 	loc_network_match_address;
 	loc_network_match_asn;
 	loc_network_match_country_code;
-	loc_network_match_flag;
 	loc_network_new;
 	loc_network_new_from_string;
 	loc_network_overlaps;

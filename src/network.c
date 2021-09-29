@@ -419,10 +419,6 @@ LOC_EXPORT int loc_network_set_flag(struct loc_network* network, uint32_t flag) 
 	return 0;
 }
 
-LOC_EXPORT int loc_network_match_flag(struct loc_network* network, uint32_t flag) {
-	return loc_network_has_flag(network, flag);
-}
-
 LOC_EXPORT int loc_network_cmp(struct loc_network* self, struct loc_network* other) {
 	// Compare address
 	int r = in6_addr_cmp(&self->first_address, &other->first_address);

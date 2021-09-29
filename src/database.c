@@ -1189,7 +1189,7 @@ static int loc_database_enumerator_filter_network(
 	}
 
 	// Skip if flags do not match
-	if (enumerator->flags && !loc_network_match_flag(network, enumerator->flags)) {
+	if (enumerator->flags && !loc_network_has_flag(network, enumerator->flags)) {
 		DEBUG(enumerator->ctx, "Filtered network %p because of flags not matching\n", network);
 		return 1;
 	}
