@@ -39,6 +39,7 @@ global:
 	loc_country_ref;
 	loc_country_set_continent_code;
 	loc_country_set_name;
+	loc_country_special_code_to_flag;
 	loc_country_unref;
 
 	# Country List

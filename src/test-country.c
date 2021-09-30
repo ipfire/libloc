@@ -29,6 +29,7 @@
 
 int main(int argc, char** argv) {
 	struct loc_country* country;
+	int flag;
 	int err;
 
 	// Check some valid country codes
@@ -40,6 +41,48 @@ int main(int argc, char** argv) {
 	// Check some invalid country codes
 	if (loc_country_code_is_valid("X1")) {
 		fprintf(stderr, "Invalid country code detected as valid: %s\n", "X1");
+		exit(EXIT_FAILURE);
+	}
+
+	// Test special country codes
+	flag = loc_country_special_code_to_flag("XX");
+	if (flag) {
+		fprintf(stderr, "Unexpectedly received a flag for XX: %d\n", flag);
+		exit(EXIT_FAILURE);
+	}
+
+	// A1
+	flag = loc_country_special_code_to_flag("A1");
+	if (flag != LOC_NETWORK_FLAG_ANONYMOUS_PROXY) {
+		fprintf(stderr, "Got a wrong flag for A1: %d\n", flag);
+		exit(EXIT_FAILURE);
+	}
+
+	// A2
+	flag = loc_country_special_code_to_flag("A2");
+	if (flag != LOC_NETWORK_FLAG_SATELLITE_PROVIDER) {
+		fprintf(stderr, "Got a wrong flag for A2: %d\n", flag);
+		exit(EXIT_FAILURE);
+	}
+
+	// A3
+	flag = loc_country_special_code_to_flag("A3");
+	if (flag != LOC_NETWORK_FLAG_ANYCAST) {
+		fprintf(stderr, "Got a wrong flag for A3: %d\n", flag);
+		exit(EXIT_FAILURE);
+	}
+
+	// XD
+	flag = loc_country_special_code_to_flag("XD");
+	if (flag != LOC_NETWORK_FLAG_DROP) {
+		fprintf(stderr, "Got a wrong flag for XD: %d\n", flag);
+		exit(EXIT_FAILURE);
+	}
+
+	// NULL input
+	flag = loc_country_special_code_to_flag(NULL);
+	if (flag >= 0) {
+		fprintf(stderr, "loc_country_special_code_to_flag didn't throw an error for NULL\n");
 		exit(EXIT_FAILURE);
 	}
 
