@@ -33,8 +33,8 @@ int main(int argc, char** argv) {
 	int err;
 
 	// Check some valid country codes
-	if (!loc_country_code_is_valid("XX")) {
-		fprintf(stderr, "Valid country code detected as invalid: %s\n", "XX");
+	if (!loc_country_code_is_valid("DE")) {
+		fprintf(stderr, "Valid country code detected as invalid: %s\n", "DE");
 		exit(EXIT_FAILURE);
 	}
 
@@ -101,7 +101,7 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 
 	// Create a country
-	err = loc_writer_add_country(writer, &country, "XX");
+	err = loc_writer_add_country(writer, &country, "DE");
 	if (err) {
 		fprintf(stderr, "Could not create country\n");
 		exit(EXIT_FAILURE);

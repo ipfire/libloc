@@ -209,6 +209,10 @@ LOC_EXPORT int loc_country_code_is_valid(const char* cc) {
 			return 0;
 	}
 
+	// The code cannot begin with an X (those are reserved for private use)
+	if (*cc == 'X')
+		return 0;
+
 	// Looks valid
 	return 1;
 }
