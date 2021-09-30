@@ -387,10 +387,18 @@ LOC_EXPORT int loc_network_set_country_code(struct loc_network* network, const c
 }
 
 LOC_EXPORT int loc_network_match_country_code(struct loc_network* network, const char* country_code) {
+	// Search for any special flags
+	const int flag = loc_country_special_code_to_flag(country_code);
+
+	// If we found a flag, we will return whether it is set or not
+	if (flag)
+		return loc_network_has_flag(network, flag);
+
 	// Check country code
 	if (!loc_country_code_is_valid(country_code))
 		return -EINVAL;
 
+	// Check for an exact match
 	return (network->country_code[0] == country_code[0])
 		&& (network->country_code[1] == country_code[1]);
 }

@@ -151,6 +151,42 @@ int main(int argc, char** argv) {
 	}
 	loc_country_unref(country);
 
+	struct loc_network* network = NULL;
+
+	// Create a test network
+	err = loc_network_new_from_string(ctx, &network, "2001:db8::/64");
+	if (err) {
+		fprintf(stderr, "Could not create network: %m\n");
+		exit(EXIT_FAILURE);
+	}
+
+	// Set country code & flag
+	loc_network_set_country_code(network, "YY");
+	loc_network_set_flag(network, LOC_NETWORK_FLAG_ANONYMOUS_PROXY);
+
+	// Check if this network matches its own country code
+	err = loc_network_match_country_code(network, "YY");
+	if (!err) {
+		fprintf(stderr, "Network does not match its own country code\n");
+		exit(EXIT_FAILURE);
+	}
+
+	// Check if this network matches the special country code
+	err = loc_network_match_country_code(network, "A1");
+	if (!err) {
+		fprintf(stderr, "Network does not match the special country code A1\n");
+		exit(EXIT_FAILURE);
+	}
+
+	// Check if this network does not match another special country code
+	err = loc_network_match_country_code(network, "A2");
+	if (err) {
+		fprintf(stderr, "Network matches another special country code A2\n");
+		exit(EXIT_FAILURE);
+	}
+
+	loc_network_unref(network);
+
 	loc_database_unref(db);
 	loc_unref(ctx);
 	fclose(f);
