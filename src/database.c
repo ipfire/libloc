@@ -785,7 +785,7 @@ static int __loc_database_lookup_handle_leaf(struct loc_database* db, const stru
 	}
 
 	// Check if the given IP address is inside the network
-	if (!loc_network_match_address(*network, address)) {
+	if (!loc_network_matches_address(*network, address)) {
 		DEBUG(db->ctx, "Searched address is not part of the network\n");
 
 		loc_network_unref(*network);

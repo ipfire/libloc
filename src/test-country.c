@@ -165,21 +165,21 @@ int main(int argc, char** argv) {
 	loc_network_set_flag(network, LOC_NETWORK_FLAG_ANONYMOUS_PROXY);
 
 	// Check if this network matches its own country code
-	err = loc_network_match_country_code(network, "YY");
+	err = loc_network_matches_country_code(network, "YY");
 	if (!err) {
 		fprintf(stderr, "Network does not match its own country code\n");
 		exit(EXIT_FAILURE);
 	}
 
 	// Check if this network matches the special country code
-	err = loc_network_match_country_code(network, "A1");
+	err = loc_network_matches_country_code(network, "A1");
 	if (!err) {
 		fprintf(stderr, "Network does not match the special country code A1\n");
 		exit(EXIT_FAILURE);
 	}
 
 	// Check if this network does not match another special country code
-	err = loc_network_match_country_code(network, "A2");
+	err = loc_network_matches_country_code(network, "A2");
 	if (err) {
 		fprintf(stderr, "Network matches another special country code A2\n");
 		exit(EXIT_FAILURE);
