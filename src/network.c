@@ -719,7 +719,7 @@ LOC_EXPORT struct loc_network_list* loc_network_exclude_list(
 	return subnets;
 }
 
-LOC_EXPORT int loc_network_to_database_v1(struct loc_network* network, struct loc_database_network_v1* dbobj) {
+int loc_network_to_database_v1(struct loc_network* network, struct loc_database_network_v1* dbobj) {
 	// Add country code
 	loc_country_code_copy(dbobj->country_code, network->country_code);
 
@@ -732,7 +732,7 @@ LOC_EXPORT int loc_network_to_database_v1(struct loc_network* network, struct lo
 	return 0;
 }
 
-LOC_EXPORT int loc_network_new_from_database_v1(struct loc_ctx* ctx, struct loc_network** network,
+int loc_network_new_from_database_v1(struct loc_ctx* ctx, struct loc_network** network,
 		struct in6_addr* address, unsigned int prefix, const struct loc_database_network_v1* dbobj) {
 	char country_code[3] = "\0\0";
 
