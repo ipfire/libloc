@@ -151,9 +151,6 @@ noinst_LTLIBRARIES = \
 src_libloc_internal_la_SOURCES = \
 	$(src_libloc_la_SOURCES)
 
-src_libloc_internal_la_CPPFLAGS = \
-	$(src_libloc_la_CPPFLAGS)
-
 src_libloc_internal_la_CFLAGS = \
 	$(src_libloc_la_CFLAGS)
 
