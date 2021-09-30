@@ -68,7 +68,6 @@ struct loc_network_list* loc_network_exclude_list(
 
 #ifdef LIBLOC_PRIVATE
 
-
 static inline struct in6_addr address_increment(const struct in6_addr* address) {
 	struct in6_addr a = *address;
 
