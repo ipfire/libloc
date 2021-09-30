@@ -7,15 +7,6 @@ global:
 	loc_network_tree_dump;
 	loc_network_tree_new;
 	loc_network_tree_unref;
-
-	# String Pool
-	loc_stringpool_add;
-	loc_stringpool_dump;
-	loc_stringpool_get;
-	loc_stringpool_get_size;
-	loc_stringpool_new;
-	loc_stringpool_ref;
-	loc_stringpool_unref;
 };
 
 LIBLOC_1 {
