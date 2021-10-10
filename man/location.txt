@@ -15,6 +15,7 @@ location - Query the location database
 `location search-as STRING`
 `location update [--cron=daily|weekly|monthly]`
 `location verify`
+`location version`
 
 == DESCRIPTION
 `location` retrieves information from the location database.
@@ -106,6 +107,9 @@ or countries.
 'verify'::
 	Verifies the downloaded database.
 
+'version'::
+	Shows the version information of the downloaded database.
+
 '--help'::
 	Shows a short help text on using this program.
 
@@ -134,8 +138,9 @@ It will then try to download a file with that version from a mirror server.
 If the downloaded file is outdated, the next mirror will be tried until we
 have found a file that is recent enough.
 
-== BUGS
-Please report all bugs to the bugtracker at https://bugzilla.ipfire.org/.
+== BUG REPORTS
+Please report all bugs to the bugtracker at https://bugzilla.ipfire.org/;
+refer to https://wiki.ipfire.org/devel/bugzilla for details.
 
 == AUTHORS
 Michael Tremer
