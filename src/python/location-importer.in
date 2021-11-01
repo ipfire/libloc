@@ -37,6 +37,14 @@ from location.i18n import _
 log = logging.getLogger("location.importer")
 log.propagate = 1
 
+# Define constants
+VALID_ASN_RANGES = (
+	(1, 23455),
+	(23457, 64495),
+	(131072, 4199999999),
+)
+
+
 class CLI(object):
 	def parse_cli(self):
 		parser = argparse.ArgumentParser(
@@ -574,6 +582,19 @@ class CLI(object):
 		# be suitable for libloc consumption...
 		return True
 
+	def _check_parsed_asn(self, asn):
+		"""
+			Assistive function to filter Autonomous System Numbers not being suitable
+			for adding to our database. Returns False in such cases, and True otherwise.
+		"""
+
+		for start, end in VALID_ASN_RANGES:
+			if start <= asn and end >= asn:
+				return True
+
+		log.info("Supplied ASN %s out of publicly routable ASN ranges" % asn)
+		return False
+
 	def _parse_block(self, block, source_key, validcountries = None):
 		# Get first line to find out what type of block this is
 		line = block[0]
@@ -829,8 +850,8 @@ class CLI(object):
 					log.debug("Skipping ARIN AS names line not containing an integer for ASN")
 					continue
 
-				if not ((1 <= asn and asn <= 23455) or (23457 <= asn and asn <= 64495) or (131072 <= asn and asn <= 4199999999)):
-					log.debug("Skipping ARIN AS names line not containing a valid ASN: %s" % asn)
+				# Filter invalid ASNs...
+				if not self._check_parsed_asn(asn):
 					continue
 
 				# Skip any AS name that appears to be a placeholder for a different RIR or entity...
