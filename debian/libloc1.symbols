@@ -1,7 +1,6 @@
 libloc.so.1 libloc1 #MINVER#
 * Build-Depends-Package: libloc-dev
  LIBLOC_1@LIBLOC_1 0.9.4
- LIBLOC_PRIVATE@LIBLOC_PRIVATE 0.9.4
  loc_as_cmp@LIBLOC_1 0.9.4
  loc_as_get_name@LIBLOC_1 0.9.4
  loc_as_get_number@LIBLOC_1 0.9.4
@@ -38,6 +37,7 @@ libloc.so.1 libloc1 #MINVER#
  loc_country_ref@LIBLOC_1 0.9.4
  loc_country_set_continent_code@LIBLOC_1 0.9.4
  loc_country_set_name@LIBLOC_1 0.9.4
+ loc_country_special_code_to_flag@LIBLOC_1 0.9.8
  loc_country_unref@LIBLOC_1 0.9.4
  loc_database_count_as@LIBLOC_1 0.9.4
  loc_database_created_at@LIBLOC_1 0.9.4
@@ -92,10 +92,8 @@ libloc.so.1 libloc1 #MINVER#
  loc_network_list_ref@LIBLOC_1 0.9.5
  loc_network_list_size@LIBLOC_1 0.9.5
  loc_network_list_unref@LIBLOC_1 0.9.5
- loc_network_match_address@LIBLOC_1 0.9.5
- loc_network_match_asn@LIBLOC_1 0.9.4
- loc_network_match_country_code@LIBLOC_1 0.9.4
- loc_network_match_flag@LIBLOC_1 0.9.4
+ loc_network_matches_address@LIBLOC_1 0.9.8
+ loc_network_matches_country_code@LIBLOC_1 0.9.8
  loc_network_new@LIBLOC_1 0.9.4
  loc_network_new_from_string@LIBLOC_1 0.9.4
  loc_network_overlaps@LIBLOC_1 0.9.5
@@ -111,13 +109,6 @@ libloc.so.1 libloc1 #MINVER#
  loc_ref@LIBLOC_1 0.9.4
  loc_set_log_fn@LIBLOC_1 0.9.4
  loc_set_log_priority@LIBLOC_1 0.9.4
- loc_stringpool_add@LIBLOC_PRIVATE 0.9.4
- loc_stringpool_dump@LIBLOC_PRIVATE 0.9.4
- loc_stringpool_get@LIBLOC_PRIVATE 0.9.4
- loc_stringpool_get_size@LIBLOC_PRIVATE 0.9.4
- loc_stringpool_new@LIBLOC_PRIVATE 0.9.4
- loc_stringpool_ref@LIBLOC_PRIVATE 0.9.4
- loc_stringpool_unref@LIBLOC_PRIVATE 0.9.4
  loc_unref@LIBLOC_1 0.9.4
  loc_writer_add_as@LIBLOC_1 0.9.4
  loc_writer_add_country@LIBLOC_1 0.9.4
