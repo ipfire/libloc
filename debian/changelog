@@ -1,3 +1,27 @@
+libloc (0.9.9-1) unstable; urgency=medium
+
+  [ Michael Tremer ]
+  * database: Make IP address const for lookup
+  * configure: Enable -fno-semantic-interposition by default
+  * network: Drop redundant loc_network_match_flag
+  * network: Drop useless loc_network_match_asn function
+  * stringpool: Make functions properly private
+  * Make loc_network_tree_* functions propertly private
+  * Remove LOC_EXPORT from
+    loc_network_to_database_v1/loc_network_new_from_database_v1
+  * country: Add function that returns flags for special country
+  * country: Make country codes beginning with X invalid
+  * network: Make loc_network_match_country_code match special countries
+  * network: Rename "match" functions to "matches"
+
+  [ Peter Müller ]
+  * location.txt: Improve manpage
+  * importer.py: Import JPNIC feed as well
+  * location-importer: Introduce auxiliary function to sanitise ASNs
+  * location-importer.in: Add Spamhaus DROP lists
+
+ -- Michael Tremer <michael.tremer@ipfire.org>  Sat, 20 Nov 2021 15:12:28 +0000
+
 libloc (0.9.8-1) unstable; urgency=medium
 
   [ Michael Tremer ]
