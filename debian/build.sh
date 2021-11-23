@@ -1,6 +1,6 @@
 #!/bin/bash
 
-ARCHITECTURES=( amd64 arm64 riscv64 i386 armhf )
+ARCHITECTURES=( amd64 arm64 i386 armhf )
 RELEASES=( buster bullseye bookworm sid )
 
 CHROOT_PATH="/var/tmp"
