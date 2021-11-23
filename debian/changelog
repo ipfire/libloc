@@ -1,3 +1,9 @@
+libloc (0.9.9-2) unstable; urgency=medium
+
+  * Fix broken Debian build
+
+ -- Michael Tremer <michael.tremer@ipfire.org>  Tue, 23 Nov 2021 11:07:22 +0000
+
 libloc (0.9.9-1) unstable; urgency=medium
 
   [ Michael Tremer ]
