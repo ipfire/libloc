@@ -1320,7 +1320,7 @@ class CLI(object):
 							source,
 							is_drop
 						) VALUES (%s, %s, %s)
-						ON CONFLICT (network) DO NOTHING""",
+						ON CONFLICT (network) DO UPDATE SET is_drop = True""",
 						"%s" % network,
 						"Spamhaus DROP lists",
 						True
@@ -1368,7 +1368,7 @@ class CLI(object):
 							source,
 							is_drop
 						) VALUES (%s, %s, %s)
-						ON CONFLICT (number) DO NOTHING""",
+						ON CONFLICT (number) DO UPDATE SET is_drop = True""",
 						"%s" % asn,
 						"Spamhaus ASN-DROP list",
 						True
