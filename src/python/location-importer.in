@@ -671,7 +671,7 @@ class CLI(object):
 			# Filter any inetnum records which are only referring to IP space
 			# not managed by that specific RIR...
 			if key == "netname":
-				if re.match(r"(ERX-NETBLOCK|(AFRINIC|ARIN|LACNIC|RIPE)-CIDR-BLOCK|IANA-NETBLOCK-\d{1,3}|NON-RIPE-NCC-MANAGED-ADDRESS-BLOCK)", val.strip()):
+				if re.match(r"^(ERX-NETBLOCK|(AFRINIC|ARIN|LACNIC|RIPE)-CIDR-BLOCK|IANA-NETBLOCK-\d{1,3}|NON-RIPE-NCC-MANAGED-ADDRESS-BLOCK|STUB-[\d-]{3,}SLASH\d{1,2})", val.strip()):
 					log.debug("Skipping record indicating historic/orphaned data: %s" % val.strip())
 					return
 
