@@ -734,6 +734,10 @@ class CLI(object):
 						# ... but keep this list distinct...
 						continue
 
+				# When people set country codes to "UK", they actually mean "GB"
+				if val == "UK":
+					val = "GB"
+
 				inetnum[key].append(val)
 
 		# Skip empty objects
