@@ -420,11 +420,18 @@ src_test_signature_LDADD = \
 # ------------------------------------------------------------------------------
 
 MANPAGES = \
-	man/location.8
+	man/libloc.3 \
+	man/location.8 \
+	man/loc_get_log_priority.3 \
+	man/loc_new.3 \
+	man/loc_set_log_fn.3 \
+	man/loc_set_log_priority.3
 
-MANPAGES_TXT  = $(patsubst %.8,%.txt,$(MANPAGES))
-MANPAGES_HTML = $(patsubst %.txt,%.html,$(MANPAGES_TXT))
-MANPAGES_XML  = $(patsubst %.txt,%.xml,$(MANPAGES_TXT))
+MANPAGES_TXT   = $(MANPAGES_TXT_3) $(MANPAGES_TXT_8)
+MANPAGES_TXT_3 = $(patsubst %.3,%.txt,$(MANPAGES))
+MANPAGES_TXT_8 = $(patsubst %.8,%.txt,$(MANPAGES))
+MANPAGES_HTML  = $(patsubst %.txt,%.html,$(MANPAGES_TXT))
+MANPAGES_XML   = $(patsubst %.txt,%.xml,$(MANPAGES_TXT))
 
 .PHONY: man
 man: $(MANPAGES) $(MANPAGES_HTML)
@@ -466,6 +473,9 @@ man/%.xml: man/%.txt man/asciidoc.conf
 	$(ASCIIDOC) \
 		-f $(abs_srcdir)/man/asciidoc.conf \
 		-d manpage -b docbook -o $@ $<
+
+man/%.3: man/%.xml
+	$(XSLTPROC_COMMAND_MAN)
 
 man/%.8: man/%.xml
 	$(XSLTPROC_COMMAND_MAN)
