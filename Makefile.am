@@ -425,6 +425,10 @@ MANPAGES = \
 
 MANPAGES_3 = \
 	man/libloc.3 \
+	man/loc_database_count_as.3 \
+	man/loc_database_get_as.3 \
+	man/loc_database_get_country.3 \
+	man/loc_database_lookup.3 \
 	man/loc_database_new.3 \
 	man/loc_get_log_priority.3 \
 	man/loc_new.3 \
