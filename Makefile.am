@@ -422,6 +422,7 @@ src_test_signature_LDADD = \
 MANPAGES = \
 	man/libloc.3 \
 	man/location.8 \
+	man/loc_database_new.3 \
 	man/loc_get_log_priority.3 \
 	man/loc_new.3 \
 	man/loc_set_log_fn.3 \
