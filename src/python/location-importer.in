@@ -1228,6 +1228,7 @@ class CLI(object):
 				"eu-south-2": "ES",
 				"eu-west-3": "FR",
 				"eu-north-1": "SE",
+				"il-central-1": "IL", # XXX: This one is not documented anywhere except for ip-ranges.json itself
 				"me-central-1": "AE",
 				"me-south-1": "BH",
 				"sa-east-1": "BR"
