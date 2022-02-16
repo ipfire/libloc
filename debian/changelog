@@ -1,3 +1,23 @@
+libloc (0.9.10-1) unstable; urgency=medium
+
+  [ Peter Müller ]
+  * Non-maintainer upload.
+  * location-importer: Set "is_drop" to "True" even in case of conflicts
+  * Process LACNIC geofeed as well
+  * location-importer: Improve regex for catching historic/orphaned data
+  * location-importer: Replace "UK" with "GB"
+  * location-importer.in: Add country code for AWS's "il-central-1" zone
+  * location-importer.in: Do not make things more complicated than they
+    are
+
+  [ Michael Tremer ]
+  * man: Add pages for top level functions
+  * man: Add man page for loc_database_new
+  * man: Add man pages for all loc_database_* functions
+  * export: Make ipset files easily reloadable
+
+ -- Michael Tremer <michael.tremer@ipfire.org>  Wed, 16 Feb 2022 08:53:48 +0000
+
 libloc (0.9.9-2) unstable; urgency=medium
 
   * Fix broken Debian build
