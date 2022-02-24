@@ -149,7 +149,7 @@ class Exporter(object):
 					directory, prefix=country_code, suffix=self.writer.suffix, family=family,
 				)
 
-				writers[country_code] = self.writer.open(filename, prefix="CC_%s" % country_code)
+				writers[country_code] = self.writer.open(filename, prefix="%s" % country_code)
 
 			# Create writers for ASNs
 			for asn in asns:
