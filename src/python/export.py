@@ -20,6 +20,7 @@
 import io
 import ipaddress
 import logging
+import math
 import os
 import socket
 
@@ -43,8 +44,17 @@ class OutputWriter(object):
 	def __init__(self, f, prefix=None):
 		self.f, self.prefix = f, prefix
 
+		# Call any custom initialization
+		self.init()
+
 		# Immediately write the header
 		self._write_header()
+
+	def init(self):
+		"""
+			To be overwritten by anything that inherits from this
+		"""
+		pass
 
 	@classmethod
 	def open(cls, filename, **kwargs):
@@ -89,12 +99,63 @@ class IpsetOutputWriter(OutputWriter):
 	"""
 	suffix = "ipset"
 
+	# The value is being used if we don't know any better
+	DEFAULT_HASHSIZE = 64
+
+	# We aim for this many networks in a bucket on average. This allows us to choose
+	# how much memory we want to sacrifice to gain better performance. The lower the
+	# factor, the faster a lookup will be, but it will use more memory.
+	# We will aim for only using three quarters of all buckets to avoid any searches
+	# through the linked lists.
+	HASHSIZE_FACTOR = 0.75
+
+	def init(self):
+		# Count all networks
+		self.networks = 0
+
+	@property
+	def hashsize(self):
+		"""
+			Calculates an optimized hashsize
+		"""
+		# Return the default value if we don't know the size of the set
+		if not self.networks:
+			return self.DEFAULT_HASHSIZE
+
+		# Find the nearest power of two that is larger than the number of networks
+		# divided by the hashsize factor.
+		exponent = math.log(self.networks / self.HASHSIZE_FACTOR, 2)
+
+		# Return the size of the hash
+		return 2 ** math.ceil(exponent)
+
+	@property
+	def maxelem(self):
+		"""
+			Tells ipset how large the set will be.
+
+			Since these are considered immutable, we will use the total number of networks.
+		"""
+		return self.networks
+
 	def _write_header(self):
-		self.f.write("create %s hash:net family inet hashsize 1024 maxelem 65536 -exist\n" % self.prefix)
+		# This must have a fixed size, because we will write the header again in the end
+		self.f.write("create %s hash:net family inet "
+			"hashsize %8d maxelem %8d -exist\n" % (self.prefix, self.hashsize, self.maxelem))
 		self.f.write("flush %s\n" % self.prefix)
 
 	def write(self, network):
 		self.f.write("add %s %s\n" % (self.prefix, network))
+
+		# Increment network counter
+		self.networks += 1
+
+	def _write_footer(self):
+		# Jump back to the beginning of the file
+		self.f.seek(0)
+
+		# Rewrite the header with better configuration
+		self._write_header()
 
 
 class NftablesOutputWriter(OutputWriter):
