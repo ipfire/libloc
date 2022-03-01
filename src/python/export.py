@@ -41,8 +41,10 @@ class OutputWriter(object):
 	suffix = "networks"
 	mode = "w"
 
-	def __init__(self, f, prefix=None):
-		self.f, self.prefix = f, prefix
+	def __init__(self, f, family=None, prefix=None):
+		self.f = f
+		self.prefix = prefix
+		self.family = family
 
 		# Call any custom initialization
 		self.init()
@@ -57,13 +59,13 @@ class OutputWriter(object):
 		pass
 
 	@classmethod
-	def open(cls, filename, **kwargs):
+	def open(cls, filename, *args, **kwargs):
 		"""
 			Convenience function to open a file
 		"""
 		f = open(filename, cls.mode)
 
-		return cls(f, **kwargs)
+		return cls(f, *args, **kwargs)
 
 	def __repr__(self):
 		return "<%s f=%s>" % (self.__class__.__name__, self.f)
@@ -140,8 +142,11 @@ class IpsetOutputWriter(OutputWriter):
 
 	def _write_header(self):
 		# This must have a fixed size, because we will write the header again in the end
-		self.f.write("create %s hash:net family inet "
-			"hashsize %8d maxelem %8d -exist\n" % (self.prefix, self.hashsize, self.maxelem))
+		self.f.write("create %s hash:net family inet%s" % (
+			self.prefix,
+			"6" if self.family == socket.AF_INET6 else ""
+		))
+		self.f.write(" hashsize %8d maxelem %8d -exist\n" % (self.hashsize, self.maxelem))
 		self.f.write("flush %s\n" % self.prefix)
 
 	def write(self, network):
@@ -210,7 +215,7 @@ class Exporter(object):
 					directory, prefix=country_code, suffix=self.writer.suffix, family=family,
 				)
 
-				writers[country_code] = self.writer.open(filename, prefix="%s" % country_code)
+				writers[country_code] = self.writer.open(filename, family, prefix="%s" % country_code)
 
 			# Create writers for ASNs
 			for asn in asns:
@@ -218,7 +223,7 @@ class Exporter(object):
 					directory, "AS%s" % asn, suffix=self.writer.suffix, family=family,
 				)
 
-				writers[asn] = self.writer.open(filename, prefix="AS%s" % asn)
+				writers[asn] = self.writer.open(filename, family, prefix="AS%s" % asn)
 
 			# Filter countries from special country codes
 			country_codes = [
