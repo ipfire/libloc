@@ -131,22 +131,13 @@ class IpsetOutputWriter(OutputWriter):
 		# Return the size of the hash
 		return 2 ** math.ceil(exponent)
 
-	@property
-	def maxelem(self):
-		"""
-			Tells ipset how large the set will be.
-
-			Since these are considered immutable, we will use the total number of networks.
-		"""
-		return self.networks
-
 	def _write_header(self):
 		# This must have a fixed size, because we will write the header again in the end
 		self.f.write("create %s hash:net family inet%s" % (
 			self.prefix,
 			"6" if self.family == socket.AF_INET6 else ""
 		))
-		self.f.write(" hashsize %8d maxelem %8d -exist\n" % (self.hashsize, self.maxelem))
+		self.f.write(" hashsize %8d maxelem 1048576 -exist\n" % self.hashsize)
 		self.f.write("flush %s\n" % self.prefix)
 
 	def write(self, network):
