@@ -41,6 +41,9 @@ class OutputWriter(object):
 	suffix = "networks"
 	mode = "w"
 
+	# Enable network flattening (i.e. networks cannot overlap)
+	flatten = False
+
 	def __init__(self, f, family=None, prefix=None):
 		self.f = f
 		self.prefix = prefix
@@ -177,6 +180,7 @@ class XTGeoIPOutputWriter(OutputWriter):
 	"""
 	suffix = "iv"
 	mode = "wb"
+	flatten = True
 
 	def write(self, network):
 		self.f.write(network._first_address)
@@ -223,7 +227,7 @@ class Exporter(object):
 
 			# Get all networks that match the family
 			networks = self.db.search_networks(family=family,
-				country_codes=country_codes, asns=asns, flatten=True)
+				country_codes=country_codes, asns=asns, flatten=self.writer.flatten)
 
 			# Walk through all networks
 			for network in networks:
