@@ -238,6 +238,11 @@ class CLI(object):
 			sys.stderr.write("%s\n" % e)
 			ret = 2
 
+		# Catch any other exceptions
+		except Exception as e:
+			sys.stderr.write("%s\n" % e)
+			ret = 1
+
 		# Return with exit code
 		if ret:
 			sys.exit(ret)
