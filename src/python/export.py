@@ -152,8 +152,8 @@ class IpsetOutputWriter(OutputWriter):
 		# divided by the hashsize factor.
 		exponent = math.log(self.networks / self.HASHSIZE_FACTOR, 2)
 
-		# Return the size of the hash
-		return 2 ** math.ceil(exponent)
+		# Return the size of the hash (the minimum is 64)
+		return max(2 ** math.ceil(exponent), 64)
 
 	def _write_header(self):
 		# This must have a fixed size, because we will write the header again in the end
