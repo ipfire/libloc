@@ -39,7 +39,7 @@ or countries.
 
 == COMMANDS
 
-'export --directory=DIR [--format=FORMAT] [--family=ipv6|ipv4] [ASN|CC ...]'::
+'export [--directory=DIR] [--format=FORMAT] [--family=ipv6|ipv4] [ASN|CC ...]'::
 	This command exports the whole database into the given directory.
 	+
 	The output can be filtered by only exporting a certain address family, or by passing
@@ -47,6 +47,9 @@ or countries.
 	+
 	The output format can be chosen with the '--format' parameter. For possible formats,
 	please see below.
+	+
+	If the '--directory' option is omitted, the output will be written to stdout which
+	is useful when you want to load any custom exports straight into nftables or ipset.
 
 'get-as ASN [ASN...]'::
 	This command returns the name of the owning organisation of the Autonomous

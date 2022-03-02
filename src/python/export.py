@@ -23,7 +23,9 @@ import logging
 import math
 import os
 import socket
+import sys
 
+from .i18n import _
 import _location
 
 # Initialise logging
@@ -66,7 +68,12 @@ class OutputWriter(object):
 		"""
 			Convenience function to open a file
 		"""
-		f = open(filename, cls.mode)
+		if filename:
+			f = open(filename, cls.mode)
+		elif "b" in cls.mode:
+			f = io.BytesIO()
+		else:
+			f = io.StringIO()
 
 		return cls(f, *args, **kwargs)
 
@@ -94,8 +101,22 @@ class OutputWriter(object):
 		"""
 		self._write_footer()
 
-		# Close the file
-		self.f.close()
+		# Flush all output
+		self.f.flush()
+
+	def print(self):
+		"""
+			Prints the entire output line by line
+		"""
+		if isinstance(self.f, io.BytesIO):
+			raise TypeError(_("Won't write binary output to stdout"))
+
+		# Go back to the beginning
+		self.f.seek(0)
+
+		# Iterate over everything line by line
+		for line in self.f:
+			sys.stdout.write(line)
 
 
 class IpsetOutputWriter(OutputWriter):
@@ -199,6 +220,8 @@ class Exporter(object):
 		self.db, self.writer = db, writer
 
 	def export(self, directory, families, countries, asns):
+		filename = None
+
 		for family in families:
 			log.debug("Exporting family %s" % family)
 
@@ -206,17 +229,25 @@ class Exporter(object):
 
 			# Create writers for countries
 			for country_code in countries:
-				filename = self._make_filename(
-					directory, prefix=country_code, suffix=self.writer.suffix, family=family,
-				)
+				if directory:
+					filename = self._make_filename(
+						directory,
+						prefix=country_code,
+						suffix=self.writer.suffix,
+						family=family,
+					)
 
-				writers[country_code] = self.writer.open(filename, family, prefix="%s" % country_code)
+				writers[country_code] = self.writer.open(filename, family, prefix=country_code)
 
 			# Create writers for ASNs
 			for asn in asns:
-				filename = self._make_filename(
-					directory, "AS%s" % asn, suffix=self.writer.suffix, family=family,
-				)
+				if directory:
+					filename = self._make_filename(
+						directory,
+						prefix="AS%s" % asn,
+						suffix=self.writer.suffix,
+						family=family,
+					)
 
 				writers[asn] = self.writer.open(filename, family, prefix="AS%s" % asn)
 
@@ -257,6 +288,11 @@ class Exporter(object):
 			# Write everything to the filesystem
 			for writer in writers.values():
 				writer.finish()
+
+			# Print to stdout
+			if not directory:
+				for writer in writers.values():
+					writer.print()
 
 	def _make_filename(self, directory, prefix, suffix, family):
 		filename = "%s.%s%s" % (

@@ -181,7 +181,7 @@ class CLI(object):
 		)
 		export.add_argument("--format", help=_("Output format"),
 			choices=location.export.formats.keys(), default="list")
-		export.add_argument("--directory", help=_("Output directory"), required=True)
+		export.add_argument("--directory", help=_("Output directory"))
 		export.add_argument("--family",
 			help=_("Specify address family"), choices=("ipv6", "ipv4"),
 		)
