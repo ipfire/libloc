@@ -1,3 +1,25 @@
+libloc (0.9.11-1) unstable; urgency=medium
+
+  [ Stefan Schantl ]
+  * export: Remove prefix when exporting countries.
+
+  [ Michael Tremer ]
+  * ipset: Optimise hash table size
+  * ipset: Fix hash type for IPv6
+  * ipset: Set maxelem to a fixed size
+  * export: Conditionally enable flattening
+  * location: Print proper error message for any uncaught exceptions
+  * export: Allow exporting to stdout
+  * ipset: The minimum hashsize is 64
+  * export: Fix filtering logic
+  * export: Sightly refactor export logic
+  * Bump release to 0.9.11
+
+  [ Peter Müller ]
+  * location-importer: Fix parsing LACNIC-flavoured inetnums
+
+ -- Michael Tremer <michael.tremer@ipfire.org>  Thu, 03 Mar 2022 10:44:44 +0000
+
 libloc (0.9.10-1) unstable; urgency=medium
 
   [ Peter Müller ]
