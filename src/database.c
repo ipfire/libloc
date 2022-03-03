@@ -1160,41 +1160,41 @@ static int loc_database_enumerator_stack_push_node(
 	return 0;
 }
 
-static int loc_database_enumerator_filter_network(
+static int loc_database_enumerator_match_network(
 		struct loc_database_enumerator* enumerator, struct loc_network* network) {
-	// Skip if the family does not match
+	// If family is set, it must match
 	if (enumerator->family && loc_network_address_family(network) != enumerator->family) {
 		DEBUG(enumerator->ctx, "Filtered network %p because of family not matching\n", network);
-		return 1;
+		return 0;
 	}
 
-	// Skip if the country code does not match
+	// Check if the country code matches
 	if (enumerator->countries && !loc_country_list_empty(enumerator->countries)) {
 		const char* country_code = loc_network_get_country_code(network);
 
-		if (!loc_country_list_contains_code(enumerator->countries, country_code)) {
-			DEBUG(enumerator->ctx, "Filtered network %p because of country code not matching\n", network);
+		if (loc_country_list_contains_code(enumerator->countries, country_code)) {
+			DEBUG(enumerator->ctx, "Matched network %p because of its country code\n", network);
 			return 1;
 		}
 	}
 
-	// Skip if the ASN does not match
+	// Check if the ASN matches
 	if (enumerator->asns && !loc_as_list_empty(enumerator->asns)) {
 		uint32_t asn = loc_network_get_asn(network);
 
-		if (!loc_as_list_contains_number(enumerator->asns, asn)) {
-			DEBUG(enumerator->ctx, "Filtered network %p because of ASN not matching\n", network);
+		if (loc_as_list_contains_number(enumerator->asns, asn)) {
+			DEBUG(enumerator->ctx, "Matched network %p because of its ASN\n", network);
 			return 1;
 		}
 	}
 
-	// Skip if flags do not match
-	if (enumerator->flags && !loc_network_has_flag(network, enumerator->flags)) {
-		DEBUG(enumerator->ctx, "Filtered network %p because of flags not matching\n", network);
+	// Check if flags match
+	if (enumerator->flags && loc_network_has_flag(network, enumerator->flags)) {
+		DEBUG(enumerator->ctx, "Matched network %p because of its flags\n", network);
 		return 1;
 	}
 
-	// Do not filter
+	// Not a match
 	return 0;
 }
 
@@ -1208,15 +1208,13 @@ static int __loc_database_enumerator_next_network(
 		if (!*network)
 			break;
 
-		// Throw away any networks by filter
-		if (filter && loc_database_enumerator_filter_network(enumerator, *network)) {
-			loc_network_unref(*network);
-			*network = NULL;
-			continue;
-		}
+		// Return everything if filter isn't enabled, or only return matches
+		if (!filter || loc_database_enumerator_match_network(enumerator, *network))
+			return 0;
 
-		// Return result
-		return 0;
+		// Throw away anything that doesn't match
+		loc_network_unref(*network);
+		*network = NULL;
 	}
 
 	DEBUG(enumerator->ctx, "Called with a stack of %u nodes\n",
@@ -1273,19 +1271,13 @@ static int __loc_database_enumerator_next_network(
 			if (r)
 				return r;
 
-			// Return all networks when the filter is disabled
-			if (!filter)
+			// Return all networks when the filter is disabled, or check for match
+			if (!filter || loc_database_enumerator_match_network(enumerator, *network))
 				return 0;
 
-			// Check if we are interested in this network
-			if (loc_database_enumerator_filter_network(enumerator, *network)) {
-				loc_network_unref(*network);
-				*network = NULL;
-
-				continue;
-			}
-
-			return 0;
+			// Does not seem to be a match, so we cleanup and move on
+			loc_network_unref(*network);
+			*network = NULL;
 		}
 	}
 
