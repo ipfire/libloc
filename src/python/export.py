@@ -47,13 +47,15 @@ class OutputWriter(object):
 	# Enable network flattening (i.e. networks cannot overlap)
 	flatten = False
 
-	def __init__(self, name, family=None, directory=None):
+	def __init__(self, name, family=None, directory=None, f=None):
 		self.name = name
 		self.family = family
 		self.directory = directory
 
 		# Open output file
-		if self.directory:
+		if f:
+			self.f = f
+		elif self.directory:
 			self.f = open(self.filename, self.mode)
 		elif "b" in self.mode:
 			self.f = io.BytesIO()
