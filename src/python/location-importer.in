@@ -988,6 +988,11 @@ class CLI(object):
 		for line in self._bird_cmd(server, "show route"):
 			m = route.match(line)
 			if not m:
+				# Ignore any header lines with the name of the routing table
+				if line.startswith(b"Table"):
+					continue
+
+				# Log anything else
 				log.debug("Could not parse line: %s" % line.decode())
 				continue
 
