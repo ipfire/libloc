@@ -1168,6 +1168,10 @@ static int loc_database_enumerator_match_network(
 		return 0;
 	}
 
+	// Match if no filter criteria is configured
+	if (!enumerator->countries && !enumerator->asns && !enumerator->flags)
+		return 1;
+
 	// Check if the country code matches
 	if (enumerator->countries && !loc_country_list_empty(enumerator->countries)) {
 		const char* country_code = loc_network_get_country_code(network);
