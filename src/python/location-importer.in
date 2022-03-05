@@ -978,9 +978,11 @@ class CLI(object):
 
 	def _handle_update_announcements_from_bird(self, server):
 		# Pre-compile the regular expression for faster searching
-		route = re.compile(b"^\s(.+?)\s+.+?\[AS(.*?).\]$")
+		route = re.compile(b"^\s(.+?)\s+.+?\[(?:AS(.*?))?.\]$")
 
 		log.info("Requesting routing table from Bird (%s)" % server)
+
+		aggregated_networks = []
 
 		# Send command to list all routes
 		for line in self._bird_cmd(server, "show route"):
@@ -992,12 +994,46 @@ class CLI(object):
 			# Fetch the extracted network and ASN
 			network, autnum = m.groups()
 
+			# Decode into strings
+			if network:
+				network = network.decode()
+			if autnum:
+				autnum = autnum.decode()
+
+			# Collect all aggregated networks
+			if not autnum:
+				log.debug("%s is an aggregated network" % network)
+				aggregated_networks.append(network)
+				continue
+
 			# Insert it into the database
 			self.db.execute("INSERT INTO announcements(network, autnum) \
 				VALUES(%s, %s) ON CONFLICT (network) DO \
 				UPDATE SET autnum = excluded.autnum, last_seen_at = CURRENT_TIMESTAMP",
-				network.decode(), autnum.decode(),
+				network, autnum,
 			)
+
+		# Process any aggregated networks
+		for network in aggregated_networks:
+			log.debug("Processing aggregated network %s" % network)
+
+			# Run "show route all" for each network
+			for line in self._bird_cmd(server, "show route %s all" % network):
+				# Try finding the path
+				m = re.match(b"\s+BGP\.as_path:.* (\d+) {\d+}$", line)
+				if m:
+					# Select the last AS number in the path
+					autnum = m.group(1).decode()
+
+					# Insert it into the database
+					self.db.execute("INSERT INTO announcements(network, autnum) \
+						VALUES(%s, %s) ON CONFLICT (network) DO \
+						UPDATE SET autnum = excluded.autnum, last_seen_at = CURRENT_TIMESTAMP",
+						network, autnum,
+					)
+
+					# We don't need to process any more
+					break
 
 	def _handle_update_announcements_from_telnet(self, server):
 		# Pre-compile regular expression for routes
