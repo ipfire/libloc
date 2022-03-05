@@ -1109,6 +1109,8 @@ class CLI(object):
 		# Allocate some buffer
 		buffer = b""
 
+		log.debug("Sending Bird command: %s" % command)
+
 		# Send the command
 		s.send(b"%s\n" % command.encode())
 
@@ -1130,9 +1132,19 @@ class CLI(object):
 				# Split the line we want and keep the rest in buffer
 				line, buffer = buffer[:pos], buffer[pos:]
 
-				# Look for the end-of-output indicator
-				if line == b"0000 \n":
-					return
+				# Try parsing any status lines
+				if len(line) > 4 and line[:4].isdigit() and line[4] in (32, 45):
+					code, delim, line = int(line[:4]), line[4], line[5:]
+
+					log.debug("Received response code %s from bird" % code)
+
+					# End of output
+					if code == 0:
+						return
+
+					# Ignore hello line
+					elif code == 1:
+						continue
 
 				# Otherwise return the line
 				yield line
