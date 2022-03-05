@@ -78,6 +78,44 @@ static inline void in6_addr_set_bit(struct in6_addr* address, unsigned int i, un
 	address->s6_addr[i / 8] ^= (-val ^ address->s6_addr[i / 8]) & (1 << (7 - (i % 8)));
 }
 
+static inline struct in6_addr loc_prefix_to_bitmask(const unsigned int prefix) {
+	struct in6_addr bitmask;
+
+	for (unsigned int i = 0; i < 16; i++)
+		bitmask.s6_addr[i] = 0;
+
+	for (int i = prefix, j = 0; i > 0; i -= 8, j++) {
+		if (i >= 8)
+			bitmask.s6_addr[j] = 0xff;
+		else
+			bitmask.s6_addr[j] = 0xff << (8 - i);
+	}
+
+	return bitmask;
+}
+
+static inline struct in6_addr loc_address_and(
+		const struct in6_addr* address, const struct in6_addr* bitmask) {
+	struct in6_addr a;
+
+	// Perform bitwise AND
+	for (unsigned int i = 0; i < 4; i++)
+		a.s6_addr32[i] = address->s6_addr32[i] & bitmask->s6_addr32[i];
+
+	return a;
+}
+
+static inline struct in6_addr loc_address_or(
+		const struct in6_addr* address, const struct in6_addr* bitmask) {
+	struct in6_addr a;
+
+	// Perform bitwise OR
+	for (unsigned int i = 0; i < 4; i++)
+		a.s6_addr32[i] = address->s6_addr32[i] | ~bitmask->s6_addr32[i];
+
+	return a;
+}
+
 static inline void hexdump(struct loc_ctx* ctx, const void* addr, size_t len) {
 	char buffer_hex[16 * 3 + 6];
 	char buffer_ascii[17];

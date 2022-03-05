@@ -141,11 +141,11 @@ LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network
 	n->prefix = prefix;
 
 	// Convert the prefix into a bitmask
-	struct in6_addr bitmask = prefix_to_bitmask(n->prefix);
+	struct in6_addr bitmask = loc_prefix_to_bitmask(n->prefix);
 
 	// Store the first and last address in the network
-	n->first_address = make_first_address(address, &bitmask);
-	n->last_address = make_last_address(&n->first_address, &bitmask);
+	n->first_address = loc_address_and(address, &bitmask);
+	n->last_address  = loc_address_or(&n->first_address, &bitmask);
 
 	// Set family
 	n->family = loc_address_family(&n->first_address);
