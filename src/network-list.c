@@ -324,42 +324,46 @@ int loc_network_list_summarize(struct loc_ctx* ctx,
 	}
 
 	struct loc_network* network = NULL;
-
 	struct in6_addr start = *first;
-	const struct in6_addr* end = NULL;
 
 	while (in6_addr_cmp(&start, last) <= 0) {
-		// Guess the prefix
-		int prefix = 128 - loc_address_count_trailing_zero_bits(&start);
+		// Find the number of trailing zeroes of the start address
+		int bits1 = loc_address_count_trailing_zero_bits(&start);
 
-		while (1) {
-			// Create a new network object
-			r = loc_network_new(ctx, &network, &start, prefix);
-			if (r)
-				return r;
+		// Subtract the start address from the last address and add one
+		// (i.e. how many addresses are in this network?)
+		struct in6_addr num = loc_address_sub(last, &start);
+		num = address_increment(&num);
 
-			// Is this network within bounds?
-			end = loc_network_get_last_address(network);
-			if (in6_addr_cmp(last, end) <= 0)
-				break;
+		// How many bits do we need to represent this address?
+		int bits2 = loc_address_bit_length(&num) - 1;
 
-			// Drop network and decrease prefix
-			loc_network_unref(network);
-			prefix--;
+		// Select the smaller one
+		int bits = (bits1 > bits2) ? bits2 : bits1;
+
+		// Create a network
+		r = loc_network_new(ctx, &network, &start, 128 - bits);
+		if (r)
+			return r;
+
+#ifdef ENABLE_DEBUG
+		char* n = loc_network_str(network);
+		if (n) {
+			DEBUG(ctx, "Found network %s\n", n);
+			free(n);
 		}
+#endif
 
-		// Push it on the list
+		// Push network on the list
 		r = loc_network_list_push(*list, network);
 		if (r) {
 			loc_network_unref(network);
 			return r;
 		}
 
-		// Reset addr to the next start address
-		start = address_increment(end);
-
-		// Cleanup
-		loc_network_unref(network);
+		// The next network starts right after this one
+		start = *loc_network_get_last_address(network);
+		start = address_increment(&start);
 	}
 
 	return 0;

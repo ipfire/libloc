@@ -130,6 +130,24 @@ static inline struct in6_addr loc_address_or(
 	return a;
 }
 
+static inline struct in6_addr loc_address_sub(
+		const struct in6_addr* address1, const struct in6_addr* address2) {
+	struct in6_addr a;
+
+	int remainder = 0;
+
+	for (int octet = 15; octet >= 0; octet--) {
+		int x = address1->s6_addr[octet] - address2->s6_addr[octet] + remainder;
+
+		// Store remainder for the next iteration
+		remainder = (x >> 8);
+
+		a.s6_addr[octet] = x & 0xff;
+	}
+
+	return a;
+}
+
 static inline void hexdump(struct loc_ctx* ctx, const void* addr, size_t len) {
 	char buffer_hex[16 * 3 + 6];
 	char buffer_ascii[17];
