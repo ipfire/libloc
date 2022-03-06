@@ -62,42 +62,6 @@ static int valid_prefix(struct in6_addr* address, unsigned int prefix) {
 	return 0;
 }
 
-static struct in6_addr prefix_to_bitmask(unsigned int prefix) {
-	struct in6_addr bitmask;
-
-	for (unsigned int i = 0; i < 16; i++)
-		bitmask.s6_addr[i] = 0;
-
-	for (int i = prefix, j = 0; i > 0; i -= 8, j++) {
-		if (i >= 8)
-			bitmask.s6_addr[j] = 0xff;
-		else
-			bitmask.s6_addr[j] = 0xff << (8 - i);
-	}
-
-	return bitmask;
-}
-
-static struct in6_addr make_first_address(const struct in6_addr* address, const struct in6_addr* bitmask) {
-	struct in6_addr a;
-
-	// Perform bitwise AND
-	for (unsigned int i = 0; i < 4; i++)
-		a.s6_addr32[i] = address->s6_addr32[i] & bitmask->s6_addr32[i];
-
-	return a;
-}
-
-static struct in6_addr make_last_address(const struct in6_addr* address, const struct in6_addr* bitmask) {
-	struct in6_addr a;
-
-	// Perform bitwise OR
-	for (unsigned int i = 0; i < 4; i++)
-		a.s6_addr32[i] = address->s6_addr32[i] | ~bitmask->s6_addr32[i];
-
-	return a;
-}
-
 LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network,
 		struct in6_addr* address, unsigned int prefix) {
 	// Address cannot be unspecified
