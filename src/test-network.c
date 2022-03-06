@@ -25,6 +25,7 @@
 #include <libloc/libloc.h>
 #include <libloc/database.h>
 #include <libloc/network.h>
+#include <libloc/private.h>
 #include <libloc/writer.h>
 
 int main(int argc, char** argv) {
@@ -310,6 +311,36 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 	loc_network_unref(network1);
+
+	const struct bit_length_test {
+		const char* network;
+		unsigned int bit_length;
+	} bit_length_tests[] = {
+		{ "::/0", 0 },
+		{ "2001::/128", 126 },
+		{ NULL, 0, },
+	};
+
+	for (const struct bit_length_test* t = bit_length_tests; t->network; t++) {
+		err = loc_network_new_from_string(ctx, &network1, t->network);
+		if (err) {
+			fprintf(stderr, "Could not create network %s: %m\n", t->network);
+			exit(EXIT_FAILURE);
+		}
+
+		const struct in6_addr* addr = loc_network_get_first_address(network1);
+
+		unsigned int bit_length = loc_address_bit_length(addr);
+
+		if (bit_length != t->bit_length) {
+			printf("Bit length of %s didn't match: %u != %u\n",
+				t->network, t->bit_length, bit_length);
+			loc_network_unref(network1);
+			exit(EXIT_FAILURE);
+		}
+
+		loc_network_unref(network1);
+	}
 
 	loc_unref(ctx);
 	fclose(f);

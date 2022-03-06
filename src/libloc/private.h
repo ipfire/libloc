@@ -94,6 +94,20 @@ static inline struct in6_addr loc_prefix_to_bitmask(const unsigned int prefix) {
 	return bitmask;
 }
 
+static inline unsigned int loc_address_bit_length(const struct in6_addr* address) {
+	unsigned int length = 128;
+
+	for (int octet = 0; octet <= 15; octet++) {
+		if (address->s6_addr[octet]) {
+			length -= __builtin_clz(address->s6_addr[octet]) - 24;
+			break;
+		} else
+			length -= 8;
+	}
+
+	return length;
+}
+
 static inline struct in6_addr loc_address_and(
 		const struct in6_addr* address, const struct in6_addr* bitmask) {
 	struct in6_addr a;
