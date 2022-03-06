@@ -51,10 +51,6 @@ static int valid_prefix(struct in6_addr* address, unsigned int prefix) {
 	if (prefix > 128)
 		return 1;
 
-	// And the prefix cannot be zero
-	if (prefix == 0)
-		return 1;
-
 	// For IPv4-mapped addresses the prefix has to be 96 or lager
 	if (IN6_IS_ADDR_V4MAPPED(address) && prefix <= 96)
 		return 1;
@@ -64,39 +60,18 @@ static int valid_prefix(struct in6_addr* address, unsigned int prefix) {
 
 LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network,
 		struct in6_addr* address, unsigned int prefix) {
-	// Address cannot be unspecified
-	if (IN6_IS_ADDR_UNSPECIFIED(address)) {
-		DEBUG(ctx, "Start address is unspecified\n");
-		return -EINVAL;
-	}
-
-	// Address cannot be loopback
-	if (IN6_IS_ADDR_LOOPBACK(address)) {
-		DEBUG(ctx, "Start address is loopback address\n");
-		return -EINVAL;
-	}
-
-	// Address cannot be link-local
-	if (IN6_IS_ADDR_LINKLOCAL(address)) {
-		DEBUG(ctx, "Start address cannot be link-local\n");
-		return -EINVAL;
-	}
-
-	// Address cannot be site-local
-	if (IN6_IS_ADDR_SITELOCAL(address)) {
-		DEBUG(ctx, "Start address cannot be site-local\n");
-		return -EINVAL;
-	}
-
 	// Validate the prefix
 	if (valid_prefix(address, prefix) != 0) {
-		DEBUG(ctx, "Invalid prefix: %u\n", prefix);
-		return -EINVAL;
+		ERROR(ctx, "Invalid prefix: %u\n", prefix);
+		errno = EINVAL;
+		return 1;
 	}
 
 	struct loc_network* n = calloc(1, sizeof(*n));
-	if (!n)
-		return -ENOMEM;
+	if (!n) {
+		errno = ENOMEM;
+		return 1;
+	}
 
 	n->ctx = loc_ref(ctx);
 	n->refcount = 1;
