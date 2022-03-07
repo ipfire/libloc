@@ -19,6 +19,7 @@
 
 #ifdef LIBLOC_PRIVATE
 
+#include <errno.h>
 #include <netinet/in.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -151,10 +152,8 @@ static inline struct in6_addr loc_address_or(
 	return a;
 }
 
-static inline struct in6_addr loc_address_sub(
+static inline int __loc_address6_sub(struct in6_addr* result,
 		const struct in6_addr* address1, const struct in6_addr* address2) {
-	struct in6_addr a;
-
 	int remainder = 0;
 
 	for (int octet = 15; octet >= 0; octet--) {
@@ -163,10 +162,56 @@ static inline struct in6_addr loc_address_sub(
 		// Store remainder for the next iteration
 		remainder = (x >> 8);
 
-		a.s6_addr[octet] = x & 0xff;
+		result->s6_addr[octet] = x & 0xff;
 	}
 
-	return a;
+	return 0;
+}
+
+static inline int __loc_address4_sub(struct in6_addr* result,
+		const struct in6_addr* address1, const struct in6_addr* address2) {
+	int remainder = 0;
+
+	for (int octet = 4; octet >= 0; octet--) {
+		int x = address1->s6_addr[octet] - address2->s6_addr[octet] + remainder;
+
+		// Store remainder for the next iteration
+		remainder = (x >> 8);
+
+		result->s6_addr[octet] = x & 0xff;
+	}
+
+	return 0;
+}
+
+static inline int loc_address_sub(struct in6_addr* result,
+		const struct in6_addr* address1, const struct in6_addr* address2) {
+	// XXX should be using loc_address_family
+	int family1 = IN6_IS_ADDR_V4MAPPED(address1) ? AF_INET : AF_INET6;
+	int family2 = IN6_IS_ADDR_V4MAPPED(address2) ? AF_INET : AF_INET6;
+
+	// Address family must match
+	if (family1 != family2) {
+		errno = EINVAL;
+		return 1;
+	}
+
+	// Clear result
+	int r = loc_address_reset(result, family1);
+	if (r)
+		return r;
+
+	switch (family1) {
+		case AF_INET6:
+			return __loc_address6_sub(result, address1, address2);
+
+		case AF_INET:
+			return __loc_address4_sub(result, address1, address2);
+
+		default:
+			errno = ENOTSUP;
+			return 1;
+	}
 }
 
 static inline void hexdump(struct loc_ctx* ctx, const void* addr, size_t len) {

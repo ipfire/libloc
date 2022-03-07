@@ -327,12 +327,17 @@ int loc_network_list_summarize(struct loc_ctx* ctx,
 	struct in6_addr start = *first;
 
 	while (in6_addr_cmp(&start, last) <= 0) {
+		struct in6_addr num;
+
 		// Find the number of trailing zeroes of the start address
 		int bits1 = loc_address_count_trailing_zero_bits(&start);
 
 		// Subtract the start address from the last address and add one
 		// (i.e. how many addresses are in this network?)
-		struct in6_addr num = loc_address_sub(last, &start);
+		r = loc_address_sub(&num, last, &start);
+		if (r)
+			return r;
+
 		num = address_increment(&num);
 
 		// How many bits do we need to represent this address?
