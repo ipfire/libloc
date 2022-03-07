@@ -1488,6 +1488,9 @@ FINISH:
 			if (r)
 				return r;
 		}
+
+		// Reset start
+		loc_address_reset(&enumerator->gap6_start, AF_INET6);
 	}
 
 	if (!loc_address_all_zeroes(&enumerator->gap4_start)) {
@@ -1501,6 +1504,9 @@ FINISH:
 			if (r)
 				return r;
 		}
+
+		// Reset start
+		loc_address_reset(&enumerator->gap4_start, AF_INET);
 	}
 
 	// Try to return something
