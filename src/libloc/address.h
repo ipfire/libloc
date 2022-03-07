@@ -137,17 +137,17 @@ static inline unsigned int loc_address_bit_length(const struct in6_addr* address
 static inline int loc_address_reset(struct in6_addr* address, int family) {
 	switch (family) {
 		case AF_INET6:
-			address->s6_addr32[0] = 0x0000;
-			address->s6_addr32[1] = 0x0000;
-			address->s6_addr32[2] = 0x0000;
-			address->s6_addr32[3] = 0x0000;
+			address->s6_addr32[0] = 0x00000000;
+			address->s6_addr32[1] = 0x00000000;
+			address->s6_addr32[2] = 0x00000000;
+			address->s6_addr32[3] = 0x00000000;
 			return 0;
 
 		case AF_INET:
-			address->s6_addr32[0] = 0x0000;
-			address->s6_addr32[1] = 0x0000;
+			address->s6_addr32[0] = 0x00000000;
+			address->s6_addr32[1] = 0x00000000;
 			address->s6_addr32[2] = htonl(0xffff);
-			address->s6_addr32[3] = 0x0000;
+			address->s6_addr32[3] = 0x00000000;
 			return 0;
 	}
 
@@ -157,17 +157,17 @@ static inline int loc_address_reset(struct in6_addr* address, int family) {
 static inline int loc_address_reset_last(struct in6_addr* address, int family) {
 	switch (family) {
 		case AF_INET6:
-			address->s6_addr32[0] = 0xffff;
-			address->s6_addr32[1] = 0xffff;
-			address->s6_addr32[2] = 0xffff;
-			address->s6_addr32[3] = 0xffff;
+			address->s6_addr32[0] = 0xffffffff;
+			address->s6_addr32[1] = 0xffffffff;
+			address->s6_addr32[2] = 0xffffffff;
+			address->s6_addr32[3] = 0xffffffff;
 			return 0;
 
 		case AF_INET:
-			address->s6_addr32[0] = 0x0000;
-			address->s6_addr32[1] = 0x0000;
+			address->s6_addr32[0] = 0x00000000;
+			address->s6_addr32[1] = 0x00000000;
 			address->s6_addr32[2] = htonl(0xffff);
-			address->s6_addr32[3] = 0xffff;
+			address->s6_addr32[3] = 0xffffffff;
 			return 0;
 	}
 
