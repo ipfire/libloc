@@ -103,6 +103,19 @@ static inline int loc_address_family(const struct in6_addr* address) {
 		return AF_INET6;
 }
 
+static inline int loc_address_family_bit_length(const int family) {
+	switch (family) {
+		case AF_INET6:
+			return 128;
+
+		case AF_INET:
+			return 32;
+
+		default:
+			return -1;
+	}
+}
+
 static inline int loc_address_all_zeroes(const struct in6_addr* address) {
 	struct in6_addr all_zeroes = IN6ADDR_ANY_INIT;
 
