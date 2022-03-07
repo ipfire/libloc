@@ -78,6 +78,9 @@ static inline int loc_address_cmp(const struct in6_addr* a1, const struct in6_ad
 #define foreach_octet_in_address(octet, address) \
 	for (octet = (IN6_IS_ADDR_V4MAPPED(address) ? 12 : 0); octet <= 15; octet++)
 
+#define foreach_octet_in_address_reverse(octet, address) \
+	for (octet = 15; octet >= (IN6_IS_ADDR_V4MAPPED(address) ? 12 : 0); octet--)
+
 static inline int loc_address_all_zeroes(const struct in6_addr* address) {
 	int octet = 0;
 
@@ -124,39 +127,14 @@ static inline struct in6_addr loc_prefix_to_bitmask(const unsigned int prefix) {
 	return bitmask;
 }
 
-static inline unsigned int __loc_address6_bit_length(const struct in6_addr* address) {
-	unsigned int length = 128;
-
-	for (int octet = 0; octet <= 15; octet++) {
-		if (address->s6_addr[octet]) {
-			length -= __builtin_clz(address->s6_addr[octet]) - 24;
-			break;
-		} else
-			length -= 8;
-	}
-
-	return length;
-}
-
-static inline unsigned int __loc_address4_bit_length(const struct in6_addr* address) {
-	unsigned int length = 32;
-
-	for (int octet = 12; octet <= 15; octet++) {
-		if (address->s6_addr[octet]) {
-			length -= __builtin_clz(address->s6_addr[octet]) - 24;
-			break;
-		} else
-			length -= 8;
-	}
-
-	return length;
-}
-
 static inline unsigned int loc_address_bit_length(const struct in6_addr* address) {
-	if (IN6_IS_ADDR_V4MAPPED(address))
-		return __loc_address4_bit_length(address);
-	else
-		return __loc_address6_bit_length(address);
+	int octet = 0;
+	foreach_octet_in_address(octet, address) {
+		if (address->s6_addr[octet])
+			return (15 - octet) * 8 + 32 - __builtin_clz(address->s6_addr[octet]);
+	}
+
+	return 0;
 }
 
 static inline int loc_address_reset(struct in6_addr* address, int family) {
@@ -221,38 +199,6 @@ static inline struct in6_addr loc_address_or(
 	return a;
 }
 
-static inline int __loc_address6_sub(struct in6_addr* result,
-		const struct in6_addr* address1, const struct in6_addr* address2) {
-	int remainder = 0;
-
-	for (int octet = 15; octet >= 0; octet--) {
-		int x = address1->s6_addr[octet] - address2->s6_addr[octet] + remainder;
-
-		// Store remainder for the next iteration
-		remainder = (x >> 8);
-
-		result->s6_addr[octet] = x & 0xff;
-	}
-
-	return 0;
-}
-
-static inline int __loc_address4_sub(struct in6_addr* result,
-		const struct in6_addr* address1, const struct in6_addr* address2) {
-	int remainder = 0;
-
-	for (int octet = 15; octet >= 12; octet--) {
-		int x = address1->s6_addr[octet] - address2->s6_addr[octet] + remainder;
-
-		// Store remainder for the next iteration
-		remainder = (x >> 8);
-
-		result->s6_addr[octet] = x & 0xff;
-	}
-
-	return 0;
-}
-
 static inline int loc_address_sub(struct in6_addr* result,
 		const struct in6_addr* address1, const struct in6_addr* address2) {
 	int family1 = loc_address_family(address1);
@@ -269,17 +215,19 @@ static inline int loc_address_sub(struct in6_addr* result,
 	if (r)
 		return r;
 
-	switch (family1) {
-		case AF_INET6:
-			return __loc_address6_sub(result, address1, address2);
+	int octet = 0;
+	int remainder = 0;
 
-		case AF_INET:
-			return __loc_address4_sub(result, address1, address2);
+	foreach_octet_in_address_reverse(octet, address1) {
+		int x = address1->s6_addr[octet] - address2->s6_addr[octet] + remainder;
 
-		default:
-			errno = ENOTSUP;
-			return 1;
+		// Store remainder for the next iteration
+		remainder = (x >> 8);
+
+		result->s6_addr[octet] = x & 0xff;
 	}
+
+	return 0;
 }
 
 static inline void loc_address_increment(struct in6_addr* address) {
@@ -287,7 +235,8 @@ static inline void loc_address_increment(struct in6_addr* address) {
 	if (loc_address_all_ones(address))
 		return;
 
-	for (int octet = 15; octet >= 0; octet--) {
+	int octet = 0;
+	foreach_octet_in_address_reverse(octet, address) {
 		if (address->s6_addr[octet] < 255) {
 			address->s6_addr[octet]++;
 			break;
@@ -302,7 +251,8 @@ static inline void loc_address_decrement(struct in6_addr* address) {
 	if (loc_address_all_zeroes(address))
 		return;
 
-	for (int octet = 15; octet >= 0; octet--) {
+	int octet = 0;
+	foreach_octet_in_address_reverse(octet, address) {
 		if (address->s6_addr[octet] > 0) {
 			address->s6_addr[octet]--;
 			break;
@@ -313,7 +263,8 @@ static inline void loc_address_decrement(struct in6_addr* address) {
 static inline int loc_address_count_trailing_zero_bits(const struct in6_addr* address) {
 	int zeroes = 0;
 
-	for (int octet = 15; octet >= 0; octet--) {
+	int octet = 0;
+	foreach_octet_in_address_reverse(octet, address) {
 		if (address->s6_addr[octet]) {
 			zeroes += __builtin_ctz(address->s6_addr[octet]);
 			break;
