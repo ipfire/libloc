@@ -33,7 +33,7 @@ static inline int loc_address_family(const struct in6_addr* address) {
 		return AF_INET6;
 }
 
-static inline int in6_addr_cmp(const struct in6_addr* a1, const struct in6_addr* a2) {
+static inline int loc_address_cmp(const struct in6_addr* a1, const struct in6_addr* a2) {
 	for (unsigned int i = 0; i < 16; i++) {
 		if (a1->s6_addr[i] > a2->s6_addr[i])
 			return 1;
@@ -278,7 +278,7 @@ static inline int loc_address_all_zeroes(const struct in6_addr* address) {
 	if (r)
 		return r;
 
-	if (in6_addr_cmp(address, &all_zeroes) == 0)
+	if (loc_address_cmp(address, &all_zeroes) == 0)
 		return 1;
 
 	return 0;

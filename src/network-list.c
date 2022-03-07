@@ -319,7 +319,7 @@ int loc_network_list_summarize(struct loc_ctx* ctx,
 	}
 
 	// Check if the last address is larger than the first address
-	if (in6_addr_cmp(first, last) >= 0) {
+	if (loc_address_cmp(first, last) >= 0) {
 		ERROR(ctx, "The first address must be smaller than the last address\n");
 		errno = EINVAL;
 		return 1;
@@ -330,7 +330,7 @@ int loc_network_list_summarize(struct loc_ctx* ctx,
 
 	const int family_bit_length = loc_address_family_bit_length(family1);
 
-	while (in6_addr_cmp(&start, last) <= 0) {
+	while (loc_address_cmp(&start, last) <= 0) {
 		struct in6_addr num;
 		int bits1;
 

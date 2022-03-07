@@ -1466,7 +1466,7 @@ static int __loc_database_enumerator_next_bogon(
 		gap_end = address_decrement(loc_network_get_first_address(network));
 
 		// There is a gap
-		if (in6_addr_cmp(gap_start, &gap_end) < 0) {
+		if (loc_address_cmp(gap_start, &gap_end) < 0) {
 			r = loc_network_list_summarize(enumerator->ctx,
 				gap_start, &gap_end, &enumerator->stack);
 			if (r) {
@@ -1496,7 +1496,7 @@ FINISH:
 		if (r)
 			return r;
 
-		if (in6_addr_cmp(&enumerator->gap6_start, &gap_end) < 0) {
+		if (loc_address_cmp(&enumerator->gap6_start, &gap_end) < 0) {
 			r = loc_network_list_summarize(enumerator->ctx,
 				&enumerator->gap6_start, &gap_end, &enumerator->stack);
 			if (r)
@@ -1512,7 +1512,7 @@ FINISH:
 		if (r)
 			return r;
 
-		if (in6_addr_cmp(&enumerator->gap4_start, &gap_end) < 0) {
+		if (loc_address_cmp(&enumerator->gap4_start, &gap_end) < 0) {
 			r = loc_network_list_summarize(enumerator->ctx,
 				&enumerator->gap4_start, &gap_end, &enumerator->stack);
 			if (r)

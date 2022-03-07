@@ -295,11 +295,11 @@ LOC_EXPORT char* loc_network_format_last_address(struct loc_network* network) {
 
 LOC_EXPORT int loc_network_matches_address(struct loc_network* network, const struct in6_addr* address) {
 	// Address must be larger than the start address
-	if (in6_addr_cmp(&network->first_address, address) > 0)
+	if (loc_address_cmp(&network->first_address, address) > 0)
 		return 0;
 
 	// Address must be smaller than the last address
-	if (in6_addr_cmp(&network->last_address, address) < 0)
+	if (loc_address_cmp(&network->last_address, address) < 0)
 		return 0;
 
 	// The address is inside this network
@@ -365,7 +365,7 @@ LOC_EXPORT int loc_network_set_flag(struct loc_network* network, uint32_t flag) 
 
 LOC_EXPORT int loc_network_cmp(struct loc_network* self, struct loc_network* other) {
 	// Compare address
-	int r = in6_addr_cmp(&self->first_address, &other->first_address);
+	int r = loc_address_cmp(&self->first_address, &other->first_address);
 	if (r)
 		return r;
 
@@ -404,12 +404,12 @@ LOC_EXPORT int loc_network_is_subnet(struct loc_network* self, struct loc_networ
 
 	// If the start address of the other network is smaller than this network,
 	// it cannot be a subnet.
-	if (in6_addr_cmp(&self->first_address, &other->first_address) > 0)
+	if (loc_address_cmp(&self->first_address, &other->first_address) > 0)
 		return 0;
 
 	// If the end address of the other network is greater than this network,
 	// it cannot be a subnet.
-	if (in6_addr_cmp(&self->last_address, &other->last_address) < 0)
+	if (loc_address_cmp(&self->last_address, &other->last_address) < 0)
 		return 0;
 
 	return 1;
