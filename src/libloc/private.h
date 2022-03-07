@@ -212,7 +212,7 @@ static inline int __loc_address4_sub(struct in6_addr* result,
 		const struct in6_addr* address1, const struct in6_addr* address2) {
 	int remainder = 0;
 
-	for (int octet = 4; octet >= 0; octet--) {
+	for (int octet = 15; octet >= 12; octet--) {
 		int x = address1->s6_addr[octet] - address2->s6_addr[octet] + remainder;
 
 		// Store remainder for the next iteration
