@@ -227,32 +227,24 @@ static inline int loc_address_sub(struct in6_addr* result,
 	}
 }
 
-static inline struct in6_addr address_increment(const struct in6_addr* address) {
-	struct in6_addr a = *address;
-
+static inline void loc_address_increment(struct in6_addr* address) {
 	for (int octet = 15; octet >= 0; octet--) {
-		if (a.s6_addr[octet] < 255) {
-			a.s6_addr[octet]++;
+		if (address->s6_addr[octet] < 255) {
+			address->s6_addr[octet]++;
 			break;
 		} else {
-			a.s6_addr[octet] = 0;
+			address->s6_addr[octet] = 0;
 		}
 	}
-
-	return a;
 }
 
-static inline struct in6_addr address_decrement(const struct in6_addr* address) {
-	struct in6_addr a = *address;
-
+static inline void loc_address_decrement(struct in6_addr* address) {
 	for (int octet = 15; octet >= 0; octet--) {
-		if (a.s6_addr[octet] > 0) {
-			a.s6_addr[octet]--;
+		if (address->s6_addr[octet] > 0) {
+			address->s6_addr[octet]--;
 			break;
 		}
 	}
-
-	return a;
 }
 
 static inline int loc_address_family_bit_length(const int family) {

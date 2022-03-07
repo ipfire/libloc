@@ -349,7 +349,7 @@ int loc_network_list_summarize(struct loc_ctx* ctx,
 		if (r)
 			return r;
 
-		num = address_increment(&num);
+		loc_address_increment(&num);
 
 		// How many bits do we need to represent this address?
 		int bits2 = loc_address_bit_length(&num) - 1;
@@ -379,7 +379,7 @@ int loc_network_list_summarize(struct loc_ctx* ctx,
 
 		// The next network starts right after this one
 		start = *loc_network_get_last_address(network);
-		start = address_increment(&start);
+		loc_address_increment(&start);
 	}
 
 	return 0;

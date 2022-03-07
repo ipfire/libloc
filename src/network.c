@@ -434,7 +434,8 @@ LOC_EXPORT int loc_network_subnets(struct loc_network* network,
 		return r;
 
 	// The next subnet starts after the first one
-	struct in6_addr first_address = address_increment(&(*subnet1)->last_address);
+	struct in6_addr first_address = (*subnet1)->last_address;
+	loc_address_increment(&first_address);
 
 	// Create the second half of the network
 	r = loc_network_new(network->ctx, subnet2, &first_address, prefix);

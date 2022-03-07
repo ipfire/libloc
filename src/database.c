@@ -1463,7 +1463,8 @@ static int __loc_database_enumerator_next_bogon(
 		}
 
 		// Search where the gap could end
-		gap_end = address_decrement(loc_network_get_first_address(network));
+		gap_end = *loc_network_get_first_address(network);
+		loc_address_decrement(&gap_end);
 
 		// There is a gap
 		if (loc_address_cmp(gap_start, &gap_end) < 0) {
@@ -1476,8 +1477,8 @@ static int __loc_database_enumerator_next_bogon(
 		}
 
 		// The gap now starts after this network
-		const struct in6_addr* network_end = loc_network_get_last_address(network);
-		(*gap_start) = address_increment(network_end);
+		(*gap_start) = *loc_network_get_last_address(network);
+		loc_address_increment(gap_start);
 
 		loc_network_unref(network);
 
