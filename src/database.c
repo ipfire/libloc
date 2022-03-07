@@ -124,7 +124,10 @@ struct loc_database_enumerator {
 
 	// For subnet search and bogons
 	struct loc_network_list* stack;
-	struct loc_network* last_network;
+
+	// For bogons
+	struct in6_addr gap6_start;
+	struct in6_addr gap4_start;
 };
 
 static int loc_database_read_magic(struct loc_database* db) {
@@ -985,9 +988,6 @@ static void loc_database_enumerator_free(struct loc_database_enumerator* enumera
 	if (enumerator->stack)
 		loc_network_list_unref(enumerator->stack);
 
-	if (enumerator->last_network)
-		loc_network_unref(enumerator->last_network);
-
 	free(enumerator);
 }
 
@@ -1016,6 +1016,10 @@ LOC_EXPORT int loc_database_enumerator_new(struct loc_database_enumerator** enum
 		loc_database_enumerator_free(e);
 		return r;
 	}
+
+	// Initialize bogon search
+	loc_address_reset(&e->gap6_start, AF_INET6);
+	loc_address_reset(&e->gap4_start, AF_INET);
 
 	DEBUG(e->ctx, "Database enumerator object allocated at %p\n", e);
 
@@ -1397,23 +1401,6 @@ static int __loc_database_enumerator_next_network_flattened(
 /*
 	This function finds all bogons (i.e. gaps) between the input networks
 */
-static int __loc_database_enumerator_find_bogons(struct loc_ctx* ctx,
-		struct loc_network* first, struct loc_network* second, struct loc_network_list* bogons) {
-	// We do not need to check if first < second because the graph is always ordered
-
-	// The last address of the first network + 1 is the start of the gap
-	struct in6_addr first_address = address_increment(loc_network_get_last_address(first));
-
-	// The first address of the second network - 1 is the end of the gap
-	struct in6_addr last_address = address_decrement(loc_network_get_first_address(second));
-
-	// If first address is now greater than last address, there is no gap
-	if (in6_addr_cmp(&first_address, &last_address) >= 0)
-		return 0;
-
-	return loc_network_list_summarize(ctx, &first_address, &last_address, &bogons);
-}
-
 static int __loc_database_enumerator_next_bogon(
 		struct loc_database_enumerator* enumerator, struct loc_network** bogon) {
 	int r;
@@ -1431,26 +1418,53 @@ static int __loc_database_enumerator_next_bogon(
 	}
 
 	struct loc_network* network = NULL;
+	struct in6_addr* gap_start = NULL;
+	struct in6_addr gap_end = IN6ADDR_ANY_INIT;
 
 	while (1) {
 		r = __loc_database_enumerator_next_network(enumerator, &network, 1);
 		if (r)
-			goto ERROR;
+			return r;
 
+		// We have read the last network
 		if (!network)
-			break;
+			goto FINISH;
 
-		if (enumerator->last_network && loc_network_address_family(enumerator->last_network) == loc_network_address_family(network)) {
-			r = __loc_database_enumerator_find_bogons(enumerator->ctx,
-				enumerator->last_network, network, enumerator->stack);
+		// Determine the network family
+		int family = loc_network_address_family(network);
+
+		switch (family) {
+			case AF_INET6:
+				gap_start = &enumerator->gap6_start;
+				break;
+
+			case AF_INET:
+				gap_start = &enumerator->gap4_start;
+				break;
+
+			default:
+				ERROR(enumerator->ctx, "Unsupported network family %d\n", family);
+				errno = ENOTSUP;
+				return 1;
+		}
+
+		// Search where the gap could end
+		gap_end = address_decrement(loc_network_get_first_address(network));
+
+		// There is a gap
+		if (in6_addr_cmp(gap_start, &gap_end) < 0) {
+			r = loc_network_list_summarize(enumerator->ctx,
+				gap_start, &gap_end, &enumerator->stack);
 			if (r) {
 				loc_network_unref(network);
-				goto ERROR;
+				return r;
 			}
 		}
 
-		// Remember network for next iteration
-		enumerator->last_network = loc_network_ref(network);
+		// The gap now starts after this network
+		const struct in6_addr* network_end = loc_network_get_last_address(network);
+		(*gap_start) = address_increment(network_end);
+
 		loc_network_unref(network);
 
 		// Try to return something
@@ -1459,8 +1473,40 @@ static int __loc_database_enumerator_next_bogon(
 			break;
 	}
 
-ERROR:
-	return r;
+	return 0;
+
+FINISH:
+
+	if (!loc_address_all_zeroes(&enumerator->gap6_start)) {
+		r = loc_address_reset_last(&gap_end, AF_INET6);
+		if (r)
+			return r;
+
+		if (in6_addr_cmp(&enumerator->gap6_start, &gap_end) < 0) {
+			r = loc_network_list_summarize(enumerator->ctx,
+				&enumerator->gap6_start, &gap_end, &enumerator->stack);
+			if (r)
+				return r;
+		}
+	}
+
+	if (!loc_address_all_zeroes(&enumerator->gap4_start)) {
+		r = loc_address_reset_last(&gap_end, AF_INET);
+		if (r)
+			return r;
+
+		if (in6_addr_cmp(&enumerator->gap4_start, &gap_end) < 0) {
+			r = loc_network_list_summarize(enumerator->ctx,
+				&enumerator->gap4_start, &gap_end, &enumerator->stack);
+			if (r)
+				return r;
+		}
+	}
+
+	// Try to return something
+	*bogon = loc_network_list_pop_first(enumerator->stack);
+
+	return 0;
 }
 
 LOC_EXPORT int loc_database_enumerator_next_network(

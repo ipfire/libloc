@@ -130,6 +130,46 @@ static inline unsigned int loc_address_bit_length(const struct in6_addr* address
 		return __loc_address6_bit_length(address);
 }
 
+static inline int loc_address_reset(struct in6_addr* address, int family) {
+	switch (family) {
+		case AF_INET6:
+			address->s6_addr32[0] = 0x0000;
+			address->s6_addr32[1] = 0x0000;
+			address->s6_addr32[2] = 0x0000;
+			address->s6_addr32[3] = 0x0000;
+			return 0;
+
+		case AF_INET:
+			address->s6_addr32[0] = 0x0000;
+			address->s6_addr32[1] = 0x0000;
+			address->s6_addr32[2] = htonl(0xffff);
+			address->s6_addr32[3] = 0x0000;
+			return 0;
+	}
+
+	return -1;
+}
+
+static inline int loc_address_reset_last(struct in6_addr* address, int family) {
+	switch (family) {
+		case AF_INET6:
+			address->s6_addr32[0] = 0xffff;
+			address->s6_addr32[1] = 0xffff;
+			address->s6_addr32[2] = 0xffff;
+			address->s6_addr32[3] = 0xffff;
+			return 0;
+
+		case AF_INET:
+			address->s6_addr32[0] = 0x0000;
+			address->s6_addr32[1] = 0x0000;
+			address->s6_addr32[2] = htonl(0xffff);
+			address->s6_addr32[3] = 0xffff;
+			return 0;
+	}
+
+	return -1;
+}
+
 static inline struct in6_addr loc_address_and(
 		const struct in6_addr* address, const struct in6_addr* bitmask) {
 	struct in6_addr a;

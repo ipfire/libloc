@@ -103,6 +103,21 @@ static inline int loc_address_family(const struct in6_addr* address) {
 		return AF_INET6;
 }
 
+static inline int loc_address_all_zeroes(const struct in6_addr* address) {
+	struct in6_addr all_zeroes = IN6ADDR_ANY_INIT;
+
+	const int family = loc_address_family(address);
+
+	int r = loc_address_reset(&all_zeroes, family);
+	if (r)
+		return r;
+
+	if (in6_addr_cmp(address, &all_zeroes) == 0)
+		return 1;
+
+	return 0;
+}
+
 static inline int loc_address_count_trailing_zero_bits(const struct in6_addr* address) {
 	int zeroes = 0;
 
