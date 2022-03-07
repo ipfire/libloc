@@ -75,6 +75,31 @@ static inline int loc_address_cmp(const struct in6_addr* a1, const struct in6_ad
 	return 0;
 }
 
+#define foreach_octet_in_address(octet, address) \
+	for (octet = (IN6_IS_ADDR_V4MAPPED(address) ? 12 : 0); octet <= 15; octet++)
+
+static inline int loc_address_all_zeroes(const struct in6_addr* address) {
+	int octet = 0;
+
+	foreach_octet_in_address(octet, address) {
+		if (address->s6_addr[octet])
+			return 0;
+	}
+
+	return 1;
+}
+
+static inline int loc_address_all_ones(const struct in6_addr* address) {
+	int octet = 0;
+
+	foreach_octet_in_address(octet, address) {
+		if (address->s6_addr[octet] < 255)
+			return 0;
+	}
+
+	return 1;
+}
+
 static inline int loc_address_get_bit(const struct in6_addr* address, unsigned int i) {
 	return ((address->s6_addr[i / 8] >> (7 - (i % 8))) & 1);
 }
@@ -258,6 +283,10 @@ static inline int loc_address_sub(struct in6_addr* result,
 }
 
 static inline void loc_address_increment(struct in6_addr* address) {
+	// Prevent overflow when everything is ones
+	if (loc_address_all_ones(address))
+		return;
+
 	for (int octet = 15; octet >= 0; octet--) {
 		if (address->s6_addr[octet] < 255) {
 			address->s6_addr[octet]++;
@@ -269,27 +298,16 @@ static inline void loc_address_increment(struct in6_addr* address) {
 }
 
 static inline void loc_address_decrement(struct in6_addr* address) {
+	// Prevent underflow when everything is ones
+	if (loc_address_all_zeroes(address))
+		return;
+
 	for (int octet = 15; octet >= 0; octet--) {
 		if (address->s6_addr[octet] > 0) {
 			address->s6_addr[octet]--;
 			break;
 		}
 	}
-}
-
-static inline int loc_address_all_zeroes(const struct in6_addr* address) {
-	struct in6_addr all_zeroes = IN6ADDR_ANY_INIT;
-
-	const int family = loc_address_family(address);
-
-	int r = loc_address_reset(&all_zeroes, family);
-	if (r)
-		return r;
-
-	if (loc_address_cmp(address, &all_zeroes) == 0)
-		return 1;
-
-	return 0;
 }
 
 static inline int loc_address_count_trailing_zero_bits(const struct in6_addr* address) {
