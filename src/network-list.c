@@ -356,8 +356,6 @@ int loc_network_list_summarize(struct loc_ctx* ctx,
 		// Select the smaller one
 		int bits = (bits1 > bits2) ? bits2 : bits1;
 
-		printf("prefix = %d, bits1 = %d, bits2 = %d\n", family_bit_length, bits1, bits2);
-
 		// Create a network
 		r = loc_network_new(ctx, &network, &start, family_bit_length - bits);
 		if (r)
