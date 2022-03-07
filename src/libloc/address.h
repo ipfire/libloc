@@ -200,9 +200,8 @@ static inline int __loc_address4_sub(struct in6_addr* result,
 
 static inline int loc_address_sub(struct in6_addr* result,
 		const struct in6_addr* address1, const struct in6_addr* address2) {
-	// XXX should be using loc_address_family
-	int family1 = IN6_IS_ADDR_V4MAPPED(address1) ? AF_INET : AF_INET6;
-	int family2 = IN6_IS_ADDR_V4MAPPED(address2) ? AF_INET : AF_INET6;
+	int family1 = loc_address_family(address1);
+	int family2 = loc_address_family(address2);
 
 	// Address family must match
 	if (family1 != family2) {
