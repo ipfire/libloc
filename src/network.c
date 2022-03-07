@@ -47,22 +47,10 @@ struct loc_network {
 	enum loc_network_flags flags;
 };
 
-static int valid_prefix(struct in6_addr* address, unsigned int prefix) {
-	// The prefix cannot be larger than 128 bits
-	if (prefix > 128)
-		return 1;
-
-	// For IPv4-mapped addresses the prefix has to be 96 or lager
-	if (IN6_IS_ADDR_V4MAPPED(address) && prefix <= 96)
-		return 1;
-
-	return 0;
-}
-
 LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network,
 		struct in6_addr* address, unsigned int prefix) {
 	// Validate the prefix
-	if (valid_prefix(address, prefix) != 0) {
+	if (!loc_address_valid_prefix(address, prefix)) {
 		ERROR(ctx, "Invalid prefix: %u\n", prefix);
 		errno = EINVAL;
 		return 1;
@@ -78,7 +66,10 @@ LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network
 	n->refcount = 1;
 
 	// Store the prefix
-	n->prefix = prefix;
+	if (IN6_IS_ADDR_V4MAPPED(address))
+		n->prefix = prefix + 96;
+	else
+		n->prefix = prefix;
 
 	// Convert the prefix into a bitmask
 	struct in6_addr bitmask = loc_prefix_to_bitmask(n->prefix);
@@ -129,10 +120,6 @@ LOC_EXPORT int loc_network_new_from_string(struct loc_ctx* ctx, struct loc_netwo
 			DEBUG(ctx, "The prefix was not parsable: %s\n", prefix_string);
 			goto FAIL;
 		}
-
-		// Map the prefix to IPv6 if needed
-		if (IN6_IS_ADDR_V4MAPPED(&first_address))
-			prefix += 96;
 	}
 
 FAIL:
@@ -425,7 +412,7 @@ LOC_EXPORT int loc_network_subnets(struct loc_network* network,
 	unsigned int prefix = network->prefix + 1;
 
 	// Check if the new prefix is valid
-	if (valid_prefix(&network->first_address, prefix))
+	if (!loc_address_valid_prefix(&network->first_address, prefix))
 		return -1;
 
 	// Create the first half of the network
@@ -684,6 +671,10 @@ int loc_network_to_database_v1(struct loc_network* network, struct loc_database_
 int loc_network_new_from_database_v1(struct loc_ctx* ctx, struct loc_network** network,
 		struct in6_addr* address, unsigned int prefix, const struct loc_database_network_v1* dbobj) {
 	char country_code[3] = "\0\0";
+
+	// Adjust prefix for IPv4
+	if (IN6_IS_ADDR_V4MAPPED(address))
+		prefix -= 96;
 
 	int r = loc_network_new(ctx, network, address, prefix);
 	if (r) {

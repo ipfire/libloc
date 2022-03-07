@@ -33,6 +33,34 @@ static inline int loc_address_family(const struct in6_addr* address) {
 		return AF_INET6;
 }
 
+static inline unsigned int loc_address_family_bit_length(const int family) {
+	switch (family) {
+		case AF_INET6:
+			return 128;
+
+		case AF_INET:
+			return 32;
+
+		default:
+			return 0;
+	}
+}
+
+/*
+	Checks whether prefix is valid for the given address
+*/
+static inline int loc_address_valid_prefix(const struct in6_addr* address, unsigned int prefix) {
+	const int family = loc_address_family(address);
+
+	// What is the largest possible prefix?
+	const unsigned int bit_length = loc_address_family_bit_length(family);
+
+	if (prefix <= bit_length)
+		return 1;
+
+	return 0;
+}
+
 static inline int loc_address_cmp(const struct in6_addr* a1, const struct in6_addr* a2) {
 	for (unsigned int i = 0; i < 16; i++) {
 		if (a1->s6_addr[i] > a2->s6_addr[i])
@@ -244,19 +272,6 @@ static inline void loc_address_decrement(struct in6_addr* address) {
 			address->s6_addr[octet]--;
 			break;
 		}
-	}
-}
-
-static inline int loc_address_family_bit_length(const int family) {
-	switch (family) {
-		case AF_INET6:
-			return 128;
-
-		case AF_INET:
-			return 32;
-
-		default:
-			return -1;
 	}
 }
 

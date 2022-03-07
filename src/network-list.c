@@ -358,7 +358,7 @@ int loc_network_list_summarize(struct loc_ctx* ctx,
 		int bits = (bits1 > bits2) ? bits2 : bits1;
 
 		// Create a network
-		r = loc_network_new(ctx, &network, &start, 128 - bits);
+		r = loc_network_new(ctx, &network, &start, family_bit_length - bits);
 		if (r)
 			return r;
 
