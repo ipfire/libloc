@@ -809,8 +809,8 @@ static int __loc_database_lookup(struct loc_database* db, const struct in6_addr*
 	off_t node_index;
 
 	// Follow the path
-	int bit = in6_addr_get_bit(address, level);
-	in6_addr_set_bit(network_address, level, bit);
+	int bit = loc_address_get_bit(address, level);
+	loc_address_set_bit(network_address, level, bit);
 
 	if (bit == 0)
 		node_index = be32toh(node->zero);
@@ -1243,7 +1243,7 @@ static int __loc_database_enumerator_next_network(
 		}
 
 		// Mark the bits on the path correctly
-		in6_addr_set_bit(&enumerator->network_address,
+		loc_address_set_bit(&enumerator->network_address,
 			(node->depth > 0) ? node->depth - 1 : 0, node->i);
 
 		DEBUG(enumerator->ctx, "Looking at node %jd\n", (intmax_t)node->offset);

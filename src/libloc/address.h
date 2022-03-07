@@ -45,11 +45,11 @@ static inline int loc_address_cmp(const struct in6_addr* a1, const struct in6_ad
 	return 0;
 }
 
-static inline int in6_addr_get_bit(const struct in6_addr* address, unsigned int i) {
+static inline int loc_address_get_bit(const struct in6_addr* address, unsigned int i) {
 	return ((address->s6_addr[i / 8] >> (7 - (i % 8))) & 1);
 }
 
-static inline void in6_addr_set_bit(struct in6_addr* address, unsigned int i, unsigned int val) {
+static inline void loc_address_set_bit(struct in6_addr* address, unsigned int i, unsigned int val) {
 	address->s6_addr[i / 8] ^= (-val ^ address->s6_addr[i / 8]) & (1 << (7 - (i % 8)));
 }
 

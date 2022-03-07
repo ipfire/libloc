@@ -782,7 +782,7 @@ static struct loc_network_tree_node* loc_network_tree_get_path(struct loc_networ
 
 	for (unsigned int i = 0; i < prefix; i++) {
 		// Check if the ith bit is one or zero
-		node = loc_network_tree_get_node(node, in6_addr_get_bit(address, i));
+		node = loc_network_tree_get_node(node, loc_address_get_bit(address, i));
 	}
 
 	return node;
