@@ -374,6 +374,11 @@ int loc_network_list_summarize(struct loc_ctx* ctx,
 
 		// The next network starts right after this one
 		start = *loc_network_get_last_address(network);
+
+		// If we have reached the end of possible IP addresses, we stop
+		if (loc_address_all_ones(&start))
+			break;
+
 		loc_address_increment(&start);
 	}
 
