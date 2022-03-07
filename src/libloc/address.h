@@ -256,6 +256,8 @@ static inline void loc_address_decrement(struct in6_addr* address) {
 		if (address->s6_addr[octet] > 0) {
 			address->s6_addr[octet]--;
 			break;
+		} else {
+			address->s6_addr[octet] = 255;
 		}
 	}
 }
