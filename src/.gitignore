@@ -5,6 +5,7 @@
 *.lo
 *.trs
 libloc.pc
+test-address
 test-as
 test-libloc
 test-database

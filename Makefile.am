@@ -327,7 +327,8 @@ TESTS = \
 	src/test-as \
 	src/test-network \
 	src/test-country \
-	src/test-signature
+	src/test-signature \
+	src/test-address
 
 CLEANFILES += \
 	testdata.db
@@ -345,7 +346,8 @@ check_PROGRAMS = \
 	src/test-network \
 	src/test-network-list \
 	src/test-country \
-	src/test-signature
+	src/test-signature \
+	src/test-address
 
 src_test_libloc_SOURCES = \
 	src/test-libloc.c
@@ -417,6 +419,15 @@ src_test_signature_CFLAGS = \
 	$(TESTS_CFLAGS)
 
 src_test_signature_LDADD = \
+	$(TESTS_LDADD)
+
+src_test_address_SOURCES = \
+	src/test-address.c
+
+src_test_address_CFLAGS = \
+	$(TESTS_CFLAGS)
+
+src_test_address_LDADD = \
 	$(TESTS_LDADD)
 
 # ------------------------------------------------------------------------------
