@@ -1457,8 +1457,17 @@ static int __loc_database_enumerator_next_bogon(
 				return 1;
 		}
 
+		const struct in6_addr* first_address = loc_network_get_first_address(network);
+		const struct in6_addr* last_address = loc_network_get_last_address(network);
+
+		// Skip if this network is a subnet of a former one
+		if (loc_address_cmp(gap_start, last_address) >= 0) {
+			loc_network_unref(network);
+			continue;
+		}
+
 		// Search where the gap could end
-		gap_end = *loc_network_get_first_address(network);
+		gap_end = *first_address;
 		loc_address_decrement(&gap_end);
 
 		// There is a gap
@@ -1472,7 +1481,7 @@ static int __loc_database_enumerator_next_bogon(
 		}
 
 		// The gap now starts after this network
-		(*gap_start) = *loc_network_get_last_address(network);
+		*gap_start = *last_address;
 		loc_address_increment(gap_start);
 
 		loc_network_unref(network);
