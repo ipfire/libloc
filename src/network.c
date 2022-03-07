@@ -26,6 +26,7 @@
 #endif
 
 #include <libloc/libloc.h>
+#include <libloc/address.h>
 #include <libloc/compat.h>
 #include <libloc/country.h>
 #include <libloc/network.h>

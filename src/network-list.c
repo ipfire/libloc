@@ -18,6 +18,7 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include <libloc/address.h>
 #include <libloc/libloc.h>
 #include <libloc/network.h>
 #include <libloc/private.h>

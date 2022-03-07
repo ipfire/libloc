@@ -37,6 +37,7 @@
 #include <openssl/pem.h>
 
 #include <libloc/libloc.h>
+#include <libloc/address.h>
 #include <libloc/as.h>
 #include <libloc/as-list.h>
 #include <libloc/compat.h>

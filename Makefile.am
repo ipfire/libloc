@@ -91,6 +91,7 @@ EXTRA_DIST += \
 
 pkginclude_HEADERS = \
 	src/libloc/libloc.h \
+	src/libloc/address.h \
 	src/libloc/as.h \
 	src/libloc/as-list.h \
 	src/libloc/compat.h \
