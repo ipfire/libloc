@@ -23,7 +23,7 @@
 #define LOC_ADDRESS_BUFFERS				6
 #define LOC_ADDRESS_BUFFER_LENGTH		INET6_ADDRSTRLEN
 
-static char __loc_address_buffers[LOC_ADDRESS_BUFFER_LENGTH + 1][LOC_ADDRESS_BUFFERS];
+static char __loc_address_buffers[LOC_ADDRESS_BUFFERS][LOC_ADDRESS_BUFFER_LENGTH + 1];
 static int  __loc_address_buffer_idx = 0;
 
 static const char* __loc_address6_str(const struct in6_addr* address, char* buffer, size_t length) {
