@@ -1430,6 +1430,19 @@ static int __loc_database_enumerator_next_bogon(
 		if (!network)
 			goto FINISH;
 
+		const char* country_code = loc_network_get_country_code(network);
+
+		/*
+			Skip anything that does not have a country code
+
+			Even if a network is part of the routing table, and the database provides
+			an ASN, this does not mean that this is a legitimate announcement.
+		*/
+		if (country_code && !*country_code) {
+			loc_network_unref(network);
+			continue;
+		}
+
 		// Determine the network family
 		int family = loc_network_address_family(network);
 
