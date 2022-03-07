@@ -363,12 +363,7 @@ int loc_network_list_summarize(struct loc_ctx* ctx,
 		if (r)
 			return r;
 
-#ifdef ENABLE_DEBUG
-		const char* n = loc_network_str(network);
-		if (n) {
-			DEBUG(ctx, "Found network %s\n", n);
-		}
-#endif
+		DEBUG(ctx, "Found network %s\n", loc_network_str(network));
 
 		// Push network on the list
 		r = loc_network_list_push(*list, network);
