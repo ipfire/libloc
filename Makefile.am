@@ -111,6 +111,7 @@ lib_LTLIBRARIES = \
 
 src_libloc_la_SOURCES = \
 	src/libloc.c \
+	src/address.c \
 	src/as.c \
 	src/as-list.c \
 	src/country.c \

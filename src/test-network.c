@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
 #endif
 
 	// Check if the first and last addresses are correct
-	char* string = loc_network_format_first_address(network1);
+	const char* string = loc_network_format_first_address(network1);
 	if (!string) {
 		fprintf(stderr, "Did get NULL instead of a string for the first address\n");
 		exit(EXIT_FAILURE);
@@ -176,13 +176,11 @@ int main(int argc, char** argv) {
 		exit(EXIT_FAILURE);
 	}
 
-	char* s = loc_network_str(subnet1);
+	const char* s = loc_network_str(subnet1);
 	printf("Received subnet1 = %s\n", s);
-	free(s);
 
 	s = loc_network_str(subnet2);
 	printf("Received subnet2 = %s\n", s);
-	free(s);
 
 	if (!loc_network_is_subnet(network1, subnet1)) {
 		fprintf(stderr, "Subnet1 is not a subnet\n");

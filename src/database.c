@@ -758,13 +758,8 @@ static int loc_database_fetch_network(struct loc_database* db, struct loc_networ
 			return -1;
 	}
 
-#ifdef ENABLE_DEBUG
-	if (r == 0) {
-		char* string = loc_network_str(*network);
-		DEBUG(db->ctx, "Got network %s\n", string);
-		free(string);
-	}
-#endif
+	if (r == 0)
+		DEBUG(db->ctx, "Got network %s\n", loc_network_str(*network));
 
 	return r;
 }

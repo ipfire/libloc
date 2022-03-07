@@ -37,14 +37,14 @@ int loc_network_new_from_string(struct loc_ctx* ctx, struct loc_network** networ
 		const char* address_string);
 struct loc_network* loc_network_ref(struct loc_network* network);
 struct loc_network* loc_network_unref(struct loc_network* network);
-char* loc_network_str(struct loc_network* network);
+const char* loc_network_str(struct loc_network* network);
 int loc_network_address_family(struct loc_network* network);
 unsigned int loc_network_prefix(struct loc_network* network);
 
 const struct in6_addr* loc_network_get_first_address(struct loc_network* network);
-char* loc_network_format_first_address(struct loc_network* network);
+const char* loc_network_format_first_address(struct loc_network* network);
 const struct in6_addr* loc_network_get_last_address(struct loc_network* network);
-char* loc_network_format_last_address(struct loc_network* network);
+const char* loc_network_format_last_address(struct loc_network* network);
 int loc_network_matches_address(struct loc_network* network, const struct in6_addr* address);
 
 const char* loc_network_get_country_code(struct loc_network* network);

@@ -26,6 +26,8 @@
 	All of these functions are private and for internal use only
 */
 
+const char* loc_address_str(const struct in6_addr* address);
+
 static inline int loc_address_family(const struct in6_addr* address) {
 	if (IN6_IS_ADDR_V4MAPPED(address))
 		return AF_INET;

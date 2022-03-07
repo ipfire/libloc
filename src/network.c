@@ -45,6 +45,8 @@ struct loc_network {
 	char country_code[3];
 	uint32_t asn;
 	enum loc_network_flags flags;
+
+	char string[INET6_ADDRSTRLEN + 4];
 };
 
 LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network,
@@ -158,61 +160,27 @@ LOC_EXPORT struct loc_network* loc_network_unref(struct loc_network* network) {
 	return NULL;
 }
 
-static int format_ipv6_address(const struct in6_addr* address, char* string, size_t length) {
-	const char* ret = inet_ntop(AF_INET6, address, string, length);
-	if (!ret)
-		return -1;
+LOC_EXPORT const char* loc_network_str(struct loc_network* network) {
+	if (!*network->string) {
+		// Format the address
+		const char* address = loc_address_str(&network->first_address);
+		if (!address)
+			return NULL;
 
-	return 0;
-}
+		// Fetch the prefix
+		unsigned int prefix = loc_network_prefix(network);
 
-static int format_ipv4_address(const struct in6_addr* address, char* string, size_t length) {
-	struct in_addr ipv4_address;
-	ipv4_address.s_addr = address->s6_addr32[3];
-
-	const char* ret = inet_ntop(AF_INET, &ipv4_address, string, length);
-	if (!ret)
-		return -1;
-
-	return 0;
-}
-
-LOC_EXPORT char* loc_network_str(struct loc_network* network) {
-	int r;
-	const size_t length = INET6_ADDRSTRLEN + 4;
-
-	char* string = malloc(length);
-	if (!string)
-		return NULL;
-
-	unsigned int prefix = network->prefix;
-
-	switch (network->family) {
-		case AF_INET6:
-			r = format_ipv6_address(&network->first_address, string, length);
-			break;
-
-		case AF_INET:
-			r = format_ipv4_address(&network->first_address, string, length);
-			prefix -= 96;
-			break;
-
-		default:
-			r = -1;
-			break;
+		// Format the string
+		int r = snprintf(network->string, sizeof(network->string) - 1,
+			"%s/%u", address, prefix);
+		if (r < 0) {
+			ERROR(network->ctx, "Could not format network string: %m\n");
+			*network->string = '\0';
+			return NULL;
+		}
 	}
 
-	if (r) {
-		ERROR(network->ctx, "Could not convert network to string: %s\n", strerror(errno));
-		free(string);
-
-		return NULL;
-	}
-
-	// Append prefix
-	sprintf(string + strlen(string), "/%u", prefix);
-
-	return string;
+	return network->string;
 }
 
 LOC_EXPORT int loc_network_address_family(struct loc_network* network) {
@@ -231,53 +199,20 @@ LOC_EXPORT unsigned int loc_network_prefix(struct loc_network* network) {
 	return 0;
 }
 
-static char* loc_network_format_address(struct loc_network* network, const struct in6_addr* address) {
-	const size_t length = INET6_ADDRSTRLEN;
-
-	char* string = malloc(length);
-	if (!string)
-		return NULL;
-
-	int r = 0;
-
-	switch (network->family) {
-		case AF_INET6:
-			r = format_ipv6_address(address, string, length);
-			break;
-
-		case AF_INET:
-			r = format_ipv4_address(address, string, length);
-			break;
-
-		default:
-			r = -1;
-			break;
-	}
-
-	if (r) {
-		ERROR(network->ctx, "Could not format IP address to string: %s\n", strerror(errno));
-		free(string);
-
-		return NULL;
-	}
-
-	return string;
-}
-
 LOC_EXPORT const struct in6_addr* loc_network_get_first_address(struct loc_network* network) {
 	return &network->first_address;
 }
 
-LOC_EXPORT char* loc_network_format_first_address(struct loc_network* network) {
-	return loc_network_format_address(network, &network->first_address);
+LOC_EXPORT const char* loc_network_format_first_address(struct loc_network* network) {
+	return loc_address_str(&network->first_address);
 }
 
 LOC_EXPORT const struct in6_addr* loc_network_get_last_address(struct loc_network* network) {
 	return &network->last_address;
 }
 
-LOC_EXPORT char* loc_network_format_last_address(struct loc_network* network) {
-	return loc_network_format_address(network, &network->last_address);
+LOC_EXPORT const char* loc_network_format_last_address(struct loc_network* network) {
+	return loc_address_str(&network->last_address);
 }
 
 LOC_EXPORT int loc_network_matches_address(struct loc_network* network, const struct in6_addr* address) {
@@ -528,15 +463,8 @@ LOC_EXPORT struct loc_network_list* loc_network_exclude(
 		struct loc_network* self, struct loc_network* other) {
 	struct loc_network_list* list;
 
-#ifdef ENABLE_DEBUG
-	char* n1 = loc_network_str(self);
-	char* n2 = loc_network_str(other);
-
-	DEBUG(self->ctx, "Returning %s excluding %s...\n", n1, n2);
-
-	free(n1);
-	free(n2);
-#endif
+	DEBUG(self->ctx, "Returning %s excluding %s...\n",
+		loc_network_str(self), loc_network_str(other));
 
 	// Create a new list with the result
 	int r = loc_network_list_new(self->ctx, &list);
@@ -845,12 +773,11 @@ struct loc_network_tree* loc_network_tree_unref(struct loc_network_tree* tree) {
 static int __loc_network_tree_dump(struct loc_network* network, void* data) {
 	DEBUG(network->ctx, "Dumping network at %p\n", network);
 
-	char* s = loc_network_str(network);
+	const char* s = loc_network_str(network);
 	if (!s)
 		return 1;
 
 	INFO(network->ctx, "%s\n", s);
-	free(s);
 
 	return 0;
 }

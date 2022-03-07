@@ -113,15 +113,12 @@ LOC_EXPORT void loc_network_list_clear(struct loc_network_list* list) {
 
 LOC_EXPORT void loc_network_list_dump(struct loc_network_list* list) {
 	struct loc_network* network;
-	char* s;
 
 	for (unsigned int i = 0; i < list->size; i++) {
 		network = list->elements[i];
 
-		s = loc_network_str(network);
-
-		INFO(list->ctx, "%4d: %s\n", i, s);
-		free(s);
+		INFO(list->ctx, "%4d: %s\n",
+			i, loc_network_str(network));
 	}
 }
 
@@ -308,6 +305,8 @@ int loc_network_list_summarize(struct loc_ctx* ctx,
 		return 1;
 	}
 
+	DEBUG(ctx, "Summarizing %s - %s\n", loc_address_str(first), loc_address_str(last));
+
 	const int family1 = loc_address_family(first);
 	const int family2 = loc_address_family(last);
 
@@ -357,16 +356,17 @@ int loc_network_list_summarize(struct loc_ctx* ctx,
 		// Select the smaller one
 		int bits = (bits1 > bits2) ? bits2 : bits1;
 
+		printf("prefix = %d, bits1 = %d, bits2 = %d\n", family_bit_length, bits1, bits2);
+
 		// Create a network
 		r = loc_network_new(ctx, &network, &start, family_bit_length - bits);
 		if (r)
 			return r;
 
 #ifdef ENABLE_DEBUG
-		char* n = loc_network_str(network);
+		const char* n = loc_network_str(network);
 		if (n) {
 			DEBUG(ctx, "Found network %s\n", n);
-			free(n);
 		}
 #endif
 
