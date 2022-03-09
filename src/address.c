@@ -138,11 +138,22 @@ int loc_address_parse(struct in6_addr* address, unsigned int* prefix, const char
 	// Did the user request a prefix?
 	if (prefix) {
 		// Set the prefix to the default value
-		*prefix = loc_address_family_bit_length(family);
+		const unsigned int max_prefix = loc_address_family_bit_length(family);
 
 		// Parse the actual string
-		if (p)
+		if (p) {
 			*prefix = strtol(p, NULL, 10);
+
+			// Check if prefix is within bounds
+			if (*prefix > max_prefix) {
+				errno = EINVAL;
+				return 1;
+			}
+
+		// If the string didn't contain a prefix, we set the maximum
+		} else {
+			*prefix = max_prefix;
+		}
 	}
 
 	return 0;
