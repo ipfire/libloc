@@ -168,3 +168,12 @@ LOC_EXPORT int loc_country_list_contains_code(
 
 	return r;
 }
+
+static int __loc_country_cmp(const void* country1, const void* country2) {
+	return loc_country_cmp(*(struct loc_country**)country1, *(struct loc_country**)country2);
+}
+
+LOC_EXPORT void loc_country_list_sort(struct loc_country_list* list) {
+	// Sort everything
+	qsort(list->elements, list->size, sizeof(*list->elements), __loc_country_cmp);
+}

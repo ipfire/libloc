@@ -53,6 +53,7 @@ global:
 	loc_country_list_new;
 	loc_country_list_ref;
 	loc_country_list_size;
+	loc_country_list_sort;
 	loc_country_list_unref;
 
 	# Database
