@@ -116,6 +116,13 @@ LOC_EXPORT int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer,
 		return r;
 	}
 
+	// Initialize countries list
+	r = loc_country_list_new(ctx, &w->country_list);
+	if (r) {
+		loc_writer_unref(w);
+		return r;
+	}
+
 	// Load the private keys to sign databases
 	if (fkey1) {
 		r = parse_private_key(w, &w->private_key1, fkey1);
