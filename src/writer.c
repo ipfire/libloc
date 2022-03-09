@@ -33,6 +33,7 @@
 
 #include <libloc/libloc.h>
 #include <libloc/as.h>
+#include <libloc/as-list.h>
 #include <libloc/compat.h>
 #include <libloc/country.h>
 #include <libloc/database.h>
@@ -60,13 +61,12 @@ struct loc_writer {
 	char signature2[LOC_SIGNATURE_MAX_LENGTH];
 	size_t signature2_length;
 
-	struct loc_as** as;
-	size_t as_count;
-
 	struct loc_country** countries;
 	size_t countries_count;
 
 	struct loc_network_tree* networks;
+
+	struct loc_as_list* as_list;
 };
 
 static int parse_private_key(struct loc_writer* writer, EVP_PKEY** private_key, FILE* f) {
@@ -110,6 +110,13 @@ LOC_EXPORT int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer,
 		return r;
 	}
 
+	// Initialize AS list
+	r = loc_as_list_new(ctx, &w->as_list);
+	if (r) {
+		loc_writer_unref(w);
+		return r;
+	}
+
 	// Load the private keys to sign databases
 	if (fkey1) {
 		r = parse_private_key(w, &w->private_key1, fkey1);
@@ -147,12 +154,8 @@ static void loc_writer_free(struct loc_writer* writer) {
 		EVP_PKEY_free(writer->private_key2);
 
 	// Unref all AS
-	if (writer->as) {
-		for (unsigned int i = 0; i < writer->as_count; i++) {
-			loc_as_unref(writer->as[i]);
-		}
-		free(writer->as);
-	}
+	if (writer->as_list)
+		loc_as_list_unref(writer->as_list);
 
 	// Unref all countries
 	if (writer->countries) {
@@ -224,30 +227,14 @@ LOC_EXPORT int loc_writer_set_license(struct loc_writer* writer, const char* lic
 	return 0;
 }
 
-static int __loc_as_cmp(const void* as1, const void* as2) {
-	return loc_as_cmp(*(struct loc_as**)as1, *(struct loc_as**)as2);
-}
-
 LOC_EXPORT int loc_writer_add_as(struct loc_writer* writer, struct loc_as** as, uint32_t number) {
+	// Create a new AS object
 	int r = loc_as_new(writer->ctx, as, number);
 	if (r)
 		return r;
 
-	// We have a new AS to add
-	writer->as_count++;
-
-	// Make space
-	writer->as = realloc(writer->as, sizeof(*writer->as) * writer->as_count);
-	if (!writer->as)
-		return -ENOMEM;
-
-	// Add as last element
-	writer->as[writer->as_count - 1] = loc_as_ref(*as);
-
-	// Sort everything
-	qsort(writer->as, writer->as_count, sizeof(*writer->as), __loc_as_cmp);
-
-	return 0;
+	// Append it to the list
+	return loc_as_list_append(writer->as_list, *as);
 }
 
 LOC_EXPORT int loc_writer_add_network(struct loc_writer* writer, struct loc_network** network, const char* string) {
@@ -325,20 +312,32 @@ static int loc_database_write_as_section(struct loc_writer* writer,
 	DEBUG(writer->ctx, "AS section starts at %jd bytes\n", (intmax_t)*offset);
 	header->as_offset = htobe32(*offset);
 
-	size_t as_length = 0;
+	// Sort the AS list first
+	loc_as_list_sort(writer->as_list);
 
-	struct loc_database_as_v1 as;
-	for (unsigned int i = 0; i < writer->as_count; i++) {
+	const size_t as_count = loc_as_list_size(writer->as_list);
+
+	struct loc_database_as_v1 block;
+	size_t block_length = 0;
+
+	for (unsigned int i = 0; i < as_count; i++) {
+		struct loc_as* as = loc_as_list_get(writer->as_list, i);
+		if (!as)
+			return 1;
+
 		// Convert AS into database format
-		loc_as_to_database_v1(writer->as[i], writer->pool, &as);
+		loc_as_to_database_v1(as, writer->pool, &block);
 
 		// Write to disk
-		*offset += fwrite(&as, 1, sizeof(as), f);
-		as_length += sizeof(as);
+		*offset += fwrite(&block, 1, sizeof(block), f);
+		block_length += sizeof(block);
+
+		// Unref AS
+		loc_as_unref(as);
 	}
 
-	DEBUG(writer->ctx, "AS section has a length of %zu bytes\n", as_length);
-	header->as_length = htobe32(as_length);
+	DEBUG(writer->ctx, "AS section has a length of %zu bytes\n", block_length);
+	header->as_length = htobe32(block_length);
 
 	align_page_boundary(offset, f);
 

@@ -163,3 +163,12 @@ LOC_EXPORT int loc_as_list_contains_number(
 
 	return r;
 }
+
+static int __loc_as_cmp(const void* as1, const void* as2) {
+	return loc_as_cmp(*(struct loc_as**)as1, *(struct loc_as**)as2);
+}
+
+LOC_EXPORT void loc_as_list_sort(struct loc_as_list* list) {
+	// Sort everything
+	qsort(list->elements, list->size, sizeof(*list->elements), __loc_as_cmp);
+}

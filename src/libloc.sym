@@ -27,6 +27,7 @@ global:
 	loc_as_list_new;
 	loc_as_list_ref;
 	loc_as_list_size;
+	loc_as_list_sort;
 	loc_as_list_unref;
 
 	# Country
