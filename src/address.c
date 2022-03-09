@@ -17,6 +17,9 @@
 #include <arpa/inet.h>
 #include <netinet/in.h>
 #include <stddef.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 #include <libloc/address.h>
 
@@ -52,4 +55,95 @@ const char* loc_address_str(const struct in6_addr* address) {
 		return __loc_address4_str(address, buffer, LOC_ADDRESS_BUFFER_LENGTH);
 	else
 		return __loc_address6_str(address, buffer, LOC_ADDRESS_BUFFER_LENGTH);
+}
+
+static void loc_address_from_address4(struct in6_addr* address,
+		const struct in_addr* address4) {
+	address->s6_addr32[0] = 0;
+	address->s6_addr32[1] = 0;
+	address->s6_addr32[2] = htonl(0xffff);
+	address->s6_addr32[3] = address4->s_addr;
+}
+
+int loc_address_parse(struct in6_addr* address, unsigned int* prefix, const char* string) {
+	char buffer[INET6_ADDRSTRLEN + 4];
+	int r;
+
+	if (!address || !string) {
+		errno = EINVAL;
+		return 1;
+	}
+
+	// Copy the string into the buffer
+	r = snprintf(buffer, sizeof(buffer) - 1, "%s", string);
+	if (r < 0)
+		return 1;
+
+	// Find /
+	char* p = strchr(buffer, '/');
+	if (p) {
+		// Terminate the IP address
+		*p++ = '\0';
+	}
+
+	int family = AF_UNSPEC;
+
+	// Try parsing as an IPv6 address
+	r = inet_pton(AF_INET6, buffer, address);
+	switch (r) {
+		// This is not a valid IPv6 address
+		case 0:
+			break;
+
+		// This is a valid IPv6 address
+		case 1:
+			family = AF_INET6;
+			break;
+
+		// Unexpected error
+		default:
+			return 1;
+	}
+
+	// Try parsing as an IPv4 address
+	if (!family) {
+		struct in_addr address4;
+
+		r = inet_pton(AF_INET, buffer, &address4);
+		switch (r) {
+			// This was not a valid IPv4 address
+			case 0:
+				break;
+
+			// This was a valid IPv4 address
+			case 1:
+				family = AF_INET;
+
+				// Copy the result
+				loc_address_from_address4(address, &address4);
+				break;
+
+			// Unexpected error
+			default:
+				return 1;
+		}
+	}
+
+	// Invalid input
+	if (family == AF_UNSPEC) {
+		errno = EINVAL;
+		return 1;
+	}
+
+	// Did the user request a prefix?
+	if (prefix) {
+		// Set the prefix to the default value
+		*prefix = loc_address_family_bit_length(family);
+
+		// Parse the actual string
+		if (p)
+			*prefix = strtol(p, NULL, 10);
+	}
+
+	return 0;
 }

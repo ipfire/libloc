@@ -876,7 +876,7 @@ LOC_EXPORT int loc_database_lookup_from_string(struct loc_database* db,
 		const char* string, struct loc_network** network) {
 	struct in6_addr address;
 
-	int r = loc_parse_address(db->ctx, string, &address);
+	int r = loc_address_parse(&address, NULL, string);
 	if (r)
 		return r;
 
