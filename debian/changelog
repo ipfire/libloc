@@ -1,3 +1,55 @@
+libloc (0.9.12-1) unstable; urgency=medium
+
+  [ Michael Tremer ]
+  * importer: Parse aggregated networks
+  * database: Return something when no filter criteria is configured
+  * importer: Correctly hande response codes from Bird
+  * importer: Silently ignore any table headers
+  * importer: Skip empty lines
+  * location: Fix output of list-* commands
+  * network: Move a couple of helper functions into headers
+  * network: Add function that counts the bit length of an addres
+  * network: Drop functions moved in an earlier commit
+  * network-list: Rewrite summarize algorithm
+  * network: Allow creating any valid networks
+  * network: Implement bit length function for IPv4
+  * addresses: Implement subtraction for IPv4
+  * bogons: Refactor algorithms
+  * network-list: Cap prefix length based on family
+  * address: Correctly subtract IPv4 addresses
+  * bogons: Reset after we have reached the end
+  * bogons: Don't consider a network legitimate without a country code
+  * Move all address convenience functions into their own header
+  * address: Rename in6_addr_cmp into loc_address_cmp
+  * address: Rename in6_addr_get_bit/in6_addr_set_bit to loc_address_*
+  * addresses: Use loc_address_family which is now available
+  * address: Rename increment/decrement functions and modify address in
+    place
+  * network: Pass prefix in native length
+  * strings: Statically allocate all address/network strings
+  * address: Initialize all bits of IP addresses
+  * address: Prevent under/overflow when incrementing/decrementing
+  * network-list: Simplify debugging output on summarize
+  * network-list: summarize: Break when we exhausted the network range
+  * network-list: Remove debugging line
+  * address: Simplify functions
+  * address: Fix decrementing IP addresses
+  * address: Fix buffer overwrite
+  * address: Add some simple tests
+  * bogons: Add gaps that are only one address wide
+  * bogons: Skip any subnets of former networks
+  * as-list: Grow faster to avoid too many re-allocations
+  * writer: Use AS list internally
+  * network-list: Grow just like the AS list
+  * country-list: Grow like AS list
+  * writer: Use country list internally
+  * importer: Improve performance of network export query
+  * writer: I forgot to initalize the country list
+  * Refactor parsing IP addresses
+  * address: Set default prefix if none is given
+
+ -- Michael Tremer <michael.tremer@ipfire.org>  Wed, 23 Mar 2022 20:11:29 +0000
+
 libloc (0.9.11-1) unstable; urgency=medium
 
   [ Stefan Schantl ]
