@@ -406,6 +406,9 @@ ERROR:
 	if (subnet2)
 		loc_network_unref(subnet2);
 
+	if (r)
+		DEBUG(network->ctx, "%s has failed with %d\n", __FUNCTION__, r);
+
 	return r;
 }
 

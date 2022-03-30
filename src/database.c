@@ -1370,7 +1370,7 @@ static int __loc_database_enumerator_next_network_flattened(
 	struct loc_network_list* excluded = loc_network_exclude_list(*network, enumerator->subnets);
 	if (!excluded) {
 		loc_network_list_clear(enumerator->subnets);
-		return -1;
+		return 1;
 	}
 
 	// Merge subnets onto the stack
