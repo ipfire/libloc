@@ -320,6 +320,9 @@ TESTS_LDADD = \
 	src/libloc.la \
 	src/libloc-internal.la
 
+TESTS_ENVIRONMENT = \
+	TEST_DATA_DIR="$(abs_top_srcdir)/tests/data"
+
 TESTS = \
 	src/test-libloc \
 	src/test-stringpool \
@@ -328,7 +331,11 @@ TESTS = \
 	src/test-network \
 	src/test-country \
 	src/test-signature \
-	src/test-address
+	src/test-address \
+	tests/python/test-export.py
+
+EXTRA_DIST += \
+	tests/data/location-2022-03-30.db
 
 CLEANFILES += \
 	testdata.db
