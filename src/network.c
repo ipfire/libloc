@@ -315,8 +315,11 @@ LOC_EXPORT int loc_network_subnets(struct loc_network* network,
 	unsigned int prefix = network->prefix + 1;
 
 	// Check if the new prefix is valid
-	if (!loc_address_valid_prefix(&network->first_address, prefix))
-		return -1;
+	if (!loc_address_valid_prefix(&network->first_address, prefix)) {
+		ERROR(network->ctx, "Invalid prefix: %d\n", prefix);
+		errno = EINVAL;
+		return 1;
+	}
 
 	// Create the first half of the network
 	r = loc_network_new(network->ctx, subnet1, &network->first_address, prefix);
