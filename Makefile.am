@@ -324,15 +324,8 @@ TESTS_ENVIRONMENT = \
 	TEST_DATA_DIR="$(abs_top_srcdir)/tests/data"
 
 TESTS = \
-	src/test-libloc \
-	src/test-stringpool \
-	src/test-database \
-	src/test-as \
-	src/test-network \
-	src/test-country \
-	src/test-signature \
-	src/test-address \
-	tests/python/test-export.py
+	$(check_PROGRAMS) \
+	$(dist_check_SCRIPTS)
 
 EXTRA_DIST += \
 	tests/data/location-2022-03-30.db
@@ -344,6 +337,9 @@ testdata.db: examples/python/create-database.py
 	PYTHONPATH=$(abs_builddir)/src/python/.libs \
 	ABS_SRCDIR="$(abs_srcdir)" \
 		$(PYTHON) $< $@
+
+dist_check_SCRIPTS = \
+	tests/python/test-export.py
 
 check_PROGRAMS = \
 	src/test-libloc \
