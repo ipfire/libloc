@@ -312,7 +312,7 @@ LOC_EXPORT int loc_network_subnets(struct loc_network* network,
 	*subnet2 = NULL;
 
 	// New prefix length
-	unsigned int prefix = network->prefix + 1;
+	unsigned int prefix = loc_network_prefix(network) + 1;
 
 	// Check if the new prefix is valid
 	if (!loc_address_valid_prefix(&network->first_address, prefix)) {
