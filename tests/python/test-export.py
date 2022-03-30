@@ -41,7 +41,11 @@ class Test(unittest.TestCase):
 		"""
 			Lists all networks but flattened
 		"""
-		for network in self.db.networks_flattened:
+		for i, network in enumerate(self.db.networks_flattened):
+			# Break after the first 1000 iterations
+			if i >= 1000:
+				break
+
 			print(network)
 
 
