@@ -44,9 +44,6 @@ class OutputWriter(object):
 	suffix = "networks"
 	mode = "w"
 
-	# Enable network flattening (i.e. networks cannot overlap)
-	flatten = False
-
 	def __init__(self, name, family=None, directory=None, f=None):
 		self.name = name
 		self.family = family
@@ -211,7 +208,6 @@ class XTGeoIPOutputWriter(OutputWriter):
 		the xt_geoip kernel module from xtables-addons.
 	"""
 	mode = "wb"
-	flatten = True
 
 	@property
 	def tag(self):
@@ -258,7 +254,7 @@ class Exporter(object):
 
 			# Get all networks that match the family
 			networks = self.db.search_networks(family=family,
-				country_codes=country_codes, asns=asns, flatten=self.writer.flatten)
+				country_codes=country_codes, asns=asns, flatten=True)
 
 			# Walk through all networks
 			for network in networks:
