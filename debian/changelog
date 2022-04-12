@@ -1,3 +1,20 @@
+libloc (0.9.13-1) unstable; urgency=medium
+
+  [ Michael Tremer ]
+  * tests: Add a simple test that lists all networks
+  * database: Allocate subnets list only once
+  * network: Log a more useful message on invalid prefix
+  * network: Add more debugging output when running exclude
+  * network: loc_network_subnets: Use correct prefix
+  * tests: Break after exporting 1000 networks
+  * configure: Require Python >= 3.9
+  * export: Enable flattening for everything
+  * .gitignore: Ignore *.db files only in main directory
+  * tests: Import test database
+  * configure: Bump version to 0.9.13
+
+ -- Michael Tremer <michael.tremer@ipfire.org>  Tue, 12 Apr 2022 12:15:34 +0000
+
 libloc (0.9.12-1) unstable; urgency=medium
 
   [ Michael Tremer ]
