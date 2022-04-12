@@ -1,5 +1,3 @@
-*.db
-*.db.xz
 *.log
 *.mo
 *.o
@@ -13,6 +11,8 @@ Makefile.in
 /build-aux
 /config.*
 /configure
+/*.db
+/*.db.xz
 /libtool
 /stamp-h1
 /src/python/location
