@@ -154,7 +154,7 @@ AM_CONDITIONAL(HAVE_SYSTEMD, [test "x$have_systemd" = "xyes"])
 # ------------------------------------------------------------------------------
 
 # Python
-AM_PATH_PYTHON([3.9])
+AM_PATH_PYTHON([3.4])
 PKG_CHECK_MODULES([PYTHON], [python-${PYTHON_VERSION}])
 
 # Perl

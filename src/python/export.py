@@ -17,7 +17,6 @@
 #                                                                             #
 ###############################################################################
 
-import functools
 import io
 import ipaddress
 import logging
@@ -59,6 +58,9 @@ class OutputWriter(object):
 		else:
 			self.f = io.StringIO()
 
+		# Tag
+		self.tag = self._make_tag()
+
 		# Call any custom initialization
 		self.init()
 
@@ -74,8 +76,7 @@ class OutputWriter(object):
 	def __repr__(self):
 		return "<%s %s f=%s>" % (self.__class__.__name__, self, self.f)
 
-	@functools.cached_property
-	def tag(self):
+	def _make_tag(self):
 		families = {
 			socket.AF_INET6 : "6",
 			socket.AF_INET  : "4",
