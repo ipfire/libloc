@@ -17,8 +17,6 @@
 #                                                                             #
 ###############################################################################
 
-__version__ = "@VERSION@"
-
 # Import everything from the C module
 from _location import *
 
