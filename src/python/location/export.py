@@ -84,7 +84,7 @@ class OutputWriter(object):
 
 		return "%sv%s" % (self.name, families.get(self.family, "?"))
 
-	@functools.cached_property
+	@property
 	def filename(self):
 		if self.directory:
 			return os.path.join(self.directory, "%s.%s" % (self.tag, self.suffix))
