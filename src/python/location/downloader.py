@@ -28,8 +28,7 @@ import urllib.error
 import urllib.parse
 import urllib.request
 
-from . import __version__
-from _location import Database, DATABASE_VERSION_LATEST
+from _location import Database, DATABASE_VERSION_LATEST, __version__
 
 DATABASE_FILENAME = "location.db.xz"
 MIRRORS = (

@@ -117,6 +117,10 @@ PyMODINIT_FUNC PyInit__location(void) {
 	if (!m)
 		return NULL;
 
+	// Version
+	if (PyModule_AddStringConstant(m, "__version__", PACKAGE_VERSION))
+		return NULL;
+
 	// AS
 	if (PyType_Ready(&ASType) < 0)
 		return NULL;
