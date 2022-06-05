@@ -1168,10 +1168,11 @@ class CLI(object):
 
 	def handle_update_overrides(self, ns):
 		with self.db.transaction():
-			# Drop all data that we have
+			# Only drop manually created overrides, as we can be reasonably sure to have them,
+			# and preserve the rest. If appropriate, it is deleted by correspondent functions.
 			self.db.execute("""
-				TRUNCATE TABLE autnum_overrides;
-				TRUNCATE TABLE network_overrides;
+				DELETE FROM autnum_overrides WHERE source = 'manual';
+				DELETE FROM network_overrides WHERE source = 'manual';
 			""")
 
 			# Update overrides for various cloud providers big enough to publish their own IP
@@ -1266,6 +1267,11 @@ class CLI(object):
 		except Exception as e:
 			log.error("unable to preprocess Amazon AWS IP ranges: %s" % e)
 			return
+
+		# At this point, we can assume the downloaded file to be valid
+		self.db.execute("""
+			DELETE FROM network_overrides WHERE source = 'Amazon AWS IP feed';
+		""")
 
 		# XXX: Set up a dictionary for mapping a region name to a country. Unfortunately,
 		# there seems to be no machine-readable version available of this other than
@@ -1386,6 +1392,16 @@ class CLI(object):
 			except Exception as e:
 				log.error("Unable to download Spamhaus DROP URL %s: %s" % (url, e))
 				return
+
+				# Conduct a very basic sanity check to rule out CDN issues causing bogus DROP
+				# downloads.
+				if len(fcontent) > 10:
+					self.db.execute("""
+						DELETE FROM autnum_overrides WHERE source = 'Spamhaus ASN-DROP list';
+						DELETE FROM network_overrides WHERE source = 'Spamhaus DROP lists';
+					""")
+				else:
+					log.error("Spamhaus DROP URL %s returned likely bogus file, ignored" % url)
 
 			# Iterate through every line, filter comments and add remaining networks to
 			# the override table in case they are valid...
