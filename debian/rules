@@ -22,7 +22,7 @@ override_dh_systemd_enable:
 override_dh_install:
 	dh_install
 	# lintian: unknown-file-in-python-module-directory
-	rm debian/location-python/usr/lib/python3*/site-packages/_location.la
+	rm debian/python3-location/usr/lib/python3*/site-packages/_location.la
 	# linitan: binaries-have-file-conflict (d/location-importer.install)
-	rm debian/location-python/usr/lib/python3*/site-packages/location/database.py
-	rm debian/location-python/usr/lib/python3*/site-packages/location/importer.py
+	rm debian/python3-location/usr/lib/python3*/site-packages/location/database.py
+	rm debian/python3-location/usr/lib/python3*/site-packages/location/importer.py
