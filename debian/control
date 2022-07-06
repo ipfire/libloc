@@ -57,21 +57,11 @@ Depends:
  python3-location,
  ${misc:Depends},
  ${python3:Depends}
+Replaces: location-importer (<< 0.9.14-1~)
+Breaks: location-importer (<< 0.9.14-1~)
 Multi-Arch: same
 Description: CLI utilities for libloc
  Commands to determine someone's location on the Internet
-
-Package: location-importer
-Architecture: any
-Pre-Depends:
- ${misc:Pre-Depends}
-Depends:
- python3-location,
- ${misc:Depends},
- ${python3:Depends}
-Multi-Arch: foreign
-Description: Tools to author location databases
- This package contains tools that are required to build location databases
 
 Package: python3-location
 Architecture: any
@@ -81,15 +71,24 @@ Pre-Depends:
 Depends:
  ${misc:Depends},
  ${python3:Depends},
- ${shlibs:Depends}
+ ${shlibs:Depends},
+ python3-psycopg2,
 Replaces: location-python (<< 0.9.14-1~)
-Breaks: location-python (<< 0.9.14-1~)
+Breaks: location-python (<< 0.9.14-1~), location-importer (<< 0.9.14-1~)
 Multi-Arch: foreign
 Description: Python modules for libloc
  This package contains Python bindings for libloc
 
 Package: location-python
 Depends: python3-location, ${misc:Depends}
+Architecture: all
+Priority: optional
+Section: oldlibs
+Description: transitional package
+ This is a transitional package. It can safely be removed.
+
+Package: location-importer
+Depends: location, ${misc:Depends}
 Architecture: all
 Priority: optional
 Section: oldlibs

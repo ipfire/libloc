@@ -1,4 +1,5 @@
 usr/bin/location
+usr/bin/location-importer
 var/lib/location/signing-key.pem
 src/systemd/*.service		/lib/systemd/system/
 src/systemd/*.timer		/lib/systemd/system/
