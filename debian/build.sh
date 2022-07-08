@@ -38,6 +38,9 @@ main() {
     local release
     for release in ${RELEASES[@]}; do
         local chroot="${release}-${host_arch}-sbuild"
+        if [ "${release}" = "buster" ]; then
+            local buster_backport=( --extra-repository "deb http://deb.debian.org/debian buster-backports main" --build-dep-resolver=aspcud )
+        fi
 
         mkdir -p "${release}"
         pushd "${release}"
@@ -62,7 +65,7 @@ main() {
             cp -r "${tmp}/sources" .
 
             # Run the build process
-            if ! sbuild --dist="${release}" --host="${arch}" --source "sources/${package}"; then
+            if ! sbuild --dist="${release}" --host="${arch}" --source "${buster_backport[@]}" "sources/${package}"; then
                 echo "Could not build package for ${release} on ${arch}" >&2
                 rm -rf "${tmp}"
                 return 1
