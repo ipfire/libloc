@@ -1,3 +1,4 @@
 usr/include/libloc
 usr/lib/*/libloc.so
 usr/lib/*/pkgconfig
+usr/share/man/man3

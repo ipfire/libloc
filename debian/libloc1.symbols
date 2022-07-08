@@ -13,6 +13,7 @@ libloc.so.1 libloc1 #MINVER#
  loc_as_list_new@LIBLOC_1 0.9.5
  loc_as_list_ref@LIBLOC_1 0.9.5
  loc_as_list_size@LIBLOC_1 0.9.5
+ loc_as_list_sort@LIBLOC_1 0.9.12
  loc_as_list_unref@LIBLOC_1 0.9.5
  loc_as_new@LIBLOC_1 0.9.4
  loc_as_ref@LIBLOC_1 0.9.4
@@ -32,6 +33,7 @@ libloc.so.1 libloc1 #MINVER#
  loc_country_list_new@LIBLOC_1 0.9.5
  loc_country_list_ref@LIBLOC_1 0.9.5
  loc_country_list_size@LIBLOC_1 0.9.5
+ loc_country_list_sort@LIBLOC_1 0.9.12
  loc_country_list_unref@LIBLOC_1 0.9.5
  loc_country_new@LIBLOC_1 0.9.4
  loc_country_ref@LIBLOC_1 0.9.4

@@ -1,0 +1,14 @@
+#!/bin/sh
+
+set -e
+
+case "$1" in
+  configure)
+    mkdir -p /var/lib/location || true
+    ln -s /usr/share/libloc-location/location.db /var/lib/location/database.db 2>/dev/null || true
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0

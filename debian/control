@@ -1,40 +1,40 @@
 Source: libloc
 Maintainer: Stefan Schantl <stefan.schantl@ipfire.org>
-Section: misc
+Section: net
 Priority: optional
-Standards-Version: 4.3.0
+Standards-Version: 4.6.1
 Build-Depends:
- debhelper (>= 11),
- dh-python <!nopython>,
- asciidoc <!nodoc>,
- intltool (>=0.40.0),
- libpython3-dev <!nopython>,
+ debhelper-compat (= 13),
+ dh-sequence-python3,
+ asciidoc,
+ intltool,
  libssl-dev,
  libsystemd-dev,
- python3-dev:any <!nopython>,
  pkg-config,
+ python3-all-dev,
  systemd,
- xsltproc <!nodoc>,
- docbook-xsl <!nodoc>,
- git,
+ xsltproc,
+ docbook-xsl,
 Rules-Requires-Root: no
 Homepage: https://location.ipfire.org/
-Vcs-Git: https://git.ipfire.org/pub/git/location/libloc.git
-Vcs-Browser: https://git.ipfire.org/pub/git/location/libloc.git
+Vcs-Git: https://salsa.debian.org/debian/libloc.git
+Vcs-Browser: https://salsa.debian.org/debian/libloc
+Description: IP geolocation query library
+ libloc is a lightweight library to query the IPFire Location database and
+ determine the location of someone else on the Internet based on their IP
+ address.
 
 Package: libloc1
 Architecture: any
 Section: libs
-Pre-Depends:
- ${misc:Pre-Depends}
 Depends:
  ${shlibs:Depends},
- ${misc:Depends}
-Recommends:
- location (= ${binary:Version})
+ ${misc:Depends},
 Multi-Arch: same
-Description: Location library
- A library to determine the location of someone on the Internet
+Description: ${source:Synopsis}
+ ${source:Extended-Description}
+ .
+ This package provides the shared library.
 
 Package: libloc-dev
 Architecture: any
@@ -42,42 +42,46 @@ Section: libdevel
 Depends:
  libloc1 (= ${binary:Version}),
  ${misc:Depends},
-Suggests:
- pkg-config
 Multi-Arch: same
-Description: Development files for libloc
- Install this package if you wish to develop your own programs using
- libloc.
+Description: ${source:Synopsis} (development files)
+ ${source:Extended-Description}
+ .
+ This package provides the headers and development files needed to use libloc
+ in your own programs.
 
 Package: location
-Architecture: any
-Pre-Depends:
- ${misc:Pre-Depends}
+Architecture: all
 Depends:
  python3-location,
  ${misc:Depends},
- ${python3:Depends}
+ ${python3:Depends},
+Recommends:
+ libloc-database,
 Replaces: location-importer (<< 0.9.14-1~)
 Breaks: location-importer (<< 0.9.14-1~)
-Multi-Arch: same
-Description: CLI utilities for libloc
- Commands to determine someone's location on the Internet
+Description: ${source:Synopsis} (CLI utilities)
+ ${source:Extended-Description}
+ .
+ This package provides CLI utilities based on libloc.
 
 Package: python3-location
 Architecture: any
 Section: python
-Pre-Depends:
- ${misc:Pre-Depends}
 Depends:
  ${misc:Depends},
  ${python3:Depends},
  ${shlibs:Depends},
  python3-psycopg2,
-Replaces: location-python (<< 0.9.14-1~)
-Breaks: location-python (<< 0.9.14-1~), location-importer (<< 0.9.14-1~)
+Replaces:
+ location-python (<< 0.9.14-1~),
+Breaks:
+ location-python (<< 0.9.14-1~),
+ location-importer (<< 0.9.14-1~),
 Multi-Arch: foreign
-Description: Python modules for libloc
- This package contains Python bindings for libloc
+Description: ${source:Synopsis} (Python 3 bindings)
+ ${source:Extended-Description}
+ .
+ This package provides the Python 3 bindings for libloc.
 
 Package: location-python
 Depends: python3-location, ${misc:Depends}

@@ -1,0 +1,15 @@
+#!/bin/sh
+
+set -e
+
+case "$1" in
+  purge)
+    rm -f /var/lib/location/database.db 2>/dev/null
+    rm -f /var/lib/location/signing-key.pem 2>/dev/null
+    rmdir /var/lib/location || true
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0
