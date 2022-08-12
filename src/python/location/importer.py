@@ -200,6 +200,10 @@ def iterate_over_blocks(f, charsets=("utf-8", "latin1")):
 	block = []
 
 	for line in f:
+		# Skip commented lines
+		if line.startswith(b"#") or line.startswith(b"%"):
+			continue
+
 		# Convert to string
 		for charset in charsets:
 			try:
@@ -209,24 +213,17 @@ def iterate_over_blocks(f, charsets=("utf-8", "latin1")):
 			else:
 				break
 
-		# Skip commented lines
-		if line.startswith("#") or line.startswith("%"):
-			continue
-
-		# Strip line-endings
-		line = line.rstrip()
-
 		# Remove any comments at the end of line
 		line, hash, comment = line.partition("#")
 
-		if comment:
-			# Strip any whitespace before the comment
-			line = line.rstrip()
+		# Strip any whitespace at the end of the line
+		line = line.rstrip()
 
-			# If the line is now empty, we move on
-			if not line:
-				continue
+		# If we cut off some comment and the line is empty, we can skip it
+		if comment and not line:
+			continue
 
+		# If the line has some content, keep collecting it
 		if line:
 			block.append(line)
 			continue
