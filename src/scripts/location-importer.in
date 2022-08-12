@@ -411,7 +411,7 @@ class CLI(object):
 		validcountries = self.countries
 
 		# Iterate over all potential sources
-		for source in location.importer.SOURCES:
+		for source in sorted(location.importer.SOURCES):
 			with self.db.transaction():
 				# Create some temporary tables to store parsed data
 				self.db.execute("""
