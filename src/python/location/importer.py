@@ -96,6 +96,9 @@ EXTENDED_SOURCES = {
 	# ],
 }
 
+# List all sources
+SOURCES = set(WHOIS_SOURCES|EXTENDED_SOURCES)
+
 class Downloader(object):
 	def __init__(self):
 		self.proxy = None
