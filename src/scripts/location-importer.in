@@ -435,9 +435,8 @@ class CLI(object):
 
 			for source_key in location.importer.WHOIS_SOURCES:
 				for single_url in location.importer.WHOIS_SOURCES[source_key]:
-					with downloader.request(single_url, return_blocks=True) as f:
-						for block in f:
-							self._parse_block(block, source_key, validcountries)
+					for block in downloader.request_blocks(single_url):
+						self._parse_block(block, source_key, validcountries)
 
 			# Process all parsed networks from every RIR we happen to have access to,
 			# insert the largest network chunks into the networks table immediately...
@@ -518,9 +517,8 @@ class CLI(object):
 			for single_url in location.importer.EXTENDED_SOURCES[source_key]:
 				with self.db.transaction():
 					# Download data
-					with downloader.request(single_url) as f:
-						for line in f:
-							self._parse_line(line, source_key, validcountries)
+					for line in downloader.request_lines(single_url):
+						self._parse_line(line, source_key, validcountries)
 
 		# Download and import (technical) AS names from ARIN
 		self._import_as_names_from_arin()
@@ -871,50 +869,46 @@ class CLI(object):
 		# technical, not intended for human consumption, as description fields in
 		# organisation handles for other RIRs are - however, this is what we have got,
 		# and in some cases, it might be still better than nothing)
-		with downloader.request("https://ftp.arin.net/info/asn.txt", return_blocks=False) as f:
-			for line in f:
-				# Convert binary line to string...
-				line = str(line)
+		for line in downloader.request_lines("https://ftp.arin.net/info/asn.txt"):
+			# Valid lines start with a space, followed by the number of the Autonomous System ...
+			if not line.startswith(" "):
+				continue
 
-				# ... valid lines start with a space, followed by the number of the Autonomous System ...
-				if not line.startswith(" "):
-					continue
+			# Split line and check if there is a valid ASN in it...
+			asn, name = line.split()[0:2]
 
-				# Split line and check if there is a valid ASN in it...
-				asn, name = line.split()[0:2]
+			try:
+				asn = int(asn)
+			except ValueError:
+				log.debug("Skipping ARIN AS names line not containing an integer for ASN")
+				continue
 
-				try:
-					asn = int(asn)
-				except ValueError:
-					log.debug("Skipping ARIN AS names line not containing an integer for ASN")
-					continue
+			# Filter invalid ASNs...
+			if not self._check_parsed_asn(asn):
+				continue
 
-				# Filter invalid ASNs...
-				if not self._check_parsed_asn(asn):
-					continue
+			# Skip any AS name that appears to be a placeholder for a different RIR or entity...
+			if re.match(r"^(ASN-BLK|)(AFCONC|AFRINIC|APNIC|ASNBLK|LACNIC|RIPE|IANA)(?:\d?$|\-)", name):
+				continue
 
-				# Skip any AS name that appears to be a placeholder for a different RIR or entity...
-				if re.match(r"^(ASN-BLK|)(AFCONC|AFRINIC|APNIC|ASNBLK|LACNIC|RIPE|IANA)(?:\d?$|\-)", name):
-					continue
+			# Bail out in case the AS name contains anything we do not expect here...
+			if re.search(r"[^a-zA-Z0-9-_]", name):
+				log.debug("Skipping ARIN AS name for %s containing invalid characters: %s" % \
+						(asn, name))
 
-				# Bail out in case the AS name contains anything we do not expect here...
-				if re.search(r"[^a-zA-Z0-9-_]", name):
-					log.debug("Skipping ARIN AS name for %s containing invalid characters: %s" % \
-							(asn, name))
-
-				# Things look good here, run INSERT statement and skip this one if we already have
-				# a (better?) name for this Autonomous System...
-				self.db.execute("""
-					INSERT INTO autnums(
-						number,
-						name,
-						source
-					) VALUES (%s, %s, %s)
-					ON CONFLICT (number) DO NOTHING""",
-					asn,
+			# Things look good here, run INSERT statement and skip this one if we already have
+			# a (better?) name for this Autonomous System...
+			self.db.execute("""
+				INSERT INTO autnums(
+					number,
 					name,
-					"ARIN",
-				)
+					source
+				) VALUES (%s, %s, %s)
+				ON CONFLICT (number) DO NOTHING""",
+				asn,
+				name,
+				"ARIN",
+			)
 
 	def handle_update_announcements(self, ns):
 		server = ns.server[0]
@@ -1262,8 +1256,11 @@ class CLI(object):
 		downloader = location.importer.Downloader()
 
 		try:
-			with downloader.request("https://ip-ranges.amazonaws.com/ip-ranges.json", return_blocks=False) as f:
-				aws_ip_dump = json.load(f.body)
+			# Fetch IP ranges
+			f = downloader.retrieve("https://ip-ranges.amazonaws.com/ip-ranges.json")
+
+			# Parse downloaded file
+			aws_ip_dump = json.load(f)
 		except Exception as e:
 			log.error("unable to preprocess Amazon AWS IP ranges: %s" % e)
 			return
@@ -1386,12 +1383,11 @@ class CLI(object):
 				]
 
 		for url in ip_urls:
-			try:
-				with downloader.request(url, return_blocks=False) as f:
-					fcontent = f.body.readlines()
-			except Exception as e:
-				log.error("Unable to download Spamhaus DROP URL %s: %s" % (url, e))
-				return
+			# Fetch IP list
+			f = downloader.retrieve(url)
+
+			# Split into lines
+			fcontent = f.readlines()
 
 			# Conduct a very basic sanity check to rule out CDN issues causing bogus DROP
 			# downloads.
@@ -1408,7 +1404,6 @@ class CLI(object):
 			# the override table in case they are valid...
 			with self.db.transaction():
 				for sline in fcontent:
-
 					# The response is assumed to be encoded in UTF-8...
 					sline = sline.decode("utf-8")
 
@@ -1443,18 +1438,13 @@ class CLI(object):
 					)
 
 		for url in asn_urls:
-			try:
-				with downloader.request(url, return_blocks=False) as f:
-					fcontent = f.body.readlines()
-			except Exception as e:
-				log.error("Unable to download Spamhaus DROP URL %s: %s" % (url, e))
-				return
+			# Fetch URL
+			f = downloader.retrieve(url)
 
 			# Iterate through every line, filter comments and add remaining ASNs to
 			# the override table in case they are valid...
 			with self.db.transaction():
-				for sline in fcontent:
-
+				for sline in t.readlines():
 					# The response is assumed to be encoded in UTF-8...
 					sline = sline.decode("utf-8")
 
