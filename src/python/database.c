@@ -103,18 +103,24 @@ static PyObject* Database_verify(DatabaseObject* self, PyObject* args) {
 
 static PyObject* Database_get_description(DatabaseObject* self) {
 	const char* description = loc_database_get_description(self->db);
+	if (!description)
+		Py_RETURN_NONE;
 
 	return PyUnicode_FromString(description);
 }
 
 static PyObject* Database_get_vendor(DatabaseObject* self) {
 	const char* vendor = loc_database_get_vendor(self->db);
+	if (!vendor)
+		Py_RETURN_NONE;
 
 	return PyUnicode_FromString(vendor);
 }
 
 static PyObject* Database_get_license(DatabaseObject* self) {
 	const char* license = loc_database_get_license(self->db);
+	if (!license)
+		Py_RETURN_NONE;
 
 	return PyUnicode_FromString(license);
 }
