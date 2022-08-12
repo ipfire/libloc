@@ -457,16 +457,59 @@ class CLI(object):
 					ORDER BY family(network)")
 
 				for family in (row.family for row in families):
-					smallest = self.db.get("SELECT MIN(masklen(network)) AS prefix FROM _rirdata \
-						WHERE family(network) = %s", family)
+					# Fetch the smallest mask length in our data set
+					smallest = self.db.get("""
+						SELECT
+							MIN(
+								masklen(network)
+							) AS prefix
+						FROM
+							_rirdata
+						WHERE
+							family(network) = %s""",
+						family,
+					)
 
-					self.db.execute("INSERT INTO networks(network, country, original_countries, source) \
-						SELECT network, country, original_countries, source FROM _rirdata \
-							WHERE masklen(network) = %s AND family(network) = %s", smallest.prefix, family)
+					# Copy all networks
+					self.db.execute("""
+						INSERT INTO
+							networks
+						(
+							network,
+							country,
+							original_countries,
+							source
+						)
+						SELECT
+							network,
+							country,
+							original_countries,
+							source
+						FROM
+							_rirdata
+						WHERE
+							masklen(network) = %s
+						AND
+							family(network) = %s
+						ON CONFLICT DO
+							NOTHING""",
+						smallest.prefix,
+						family,
+					)
 
 					# ... determine any other prefixes for this network family, ...
-					prefixes = self.db.query("SELECT DISTINCT masklen(network) AS prefix FROM _rirdata \
-						WHERE family(network) = %s ORDER BY masklen(network) ASC OFFSET 1", family)
+					prefixes = self.db.query("""
+						SELECT
+							DISTINCT masklen(network) AS prefix
+						FROM
+							_rirdata
+						WHERE
+							family(network) = %s
+						ORDER BY
+							masklen(network) ASC
+						OFFSET 1""",
+						family,
+					)
 
 					# ... and insert networks with this prefix in case they provide additional
 					# information (i. e. subnet of a larger chunk with a different country)
