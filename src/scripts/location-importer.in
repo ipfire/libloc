@@ -445,7 +445,7 @@ class CLI(object):
 						for line in downloader.request_lines(url):
 							self._parse_line(line, source, validcountries)
 				except urllib.error.URLError as e:
-					log.error("Could not retrieve data from %s: %s" % (source, e)
+					log.error("Could not retrieve data from %s: %s" % (source, e))
 					error = True
 
 					# Continue with the next source
