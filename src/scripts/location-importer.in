@@ -1393,15 +1393,16 @@ class CLI(object):
 				log.error("Unable to download Spamhaus DROP URL %s: %s" % (url, e))
 				return
 
-				# Conduct a very basic sanity check to rule out CDN issues causing bogus DROP
-				# downloads.
-				if len(fcontent) > 10:
-					self.db.execute("""
-						DELETE FROM autnum_overrides WHERE source = 'Spamhaus ASN-DROP list';
-						DELETE FROM network_overrides WHERE source = 'Spamhaus DROP lists';
-					""")
-				else:
-					log.error("Spamhaus DROP URL %s returned likely bogus file, ignored" % url)
+			# Conduct a very basic sanity check to rule out CDN issues causing bogus DROP
+			# downloads.
+			if len(fcontent) > 10:
+				self.db.execute("""
+					DELETE FROM autnum_overrides WHERE source = 'Spamhaus ASN-DROP list';
+					DELETE FROM network_overrides WHERE source = 'Spamhaus DROP lists';
+				""")
+			else:
+				log.error("Spamhaus DROP URL %s returned likely bogus file, ignored" % url)
+				continue
 
 			# Iterate through every line, filter comments and add remaining networks to
 			# the override table in case they are valid...
