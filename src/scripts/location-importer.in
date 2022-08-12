@@ -512,16 +512,15 @@ class CLI(object):
 				ON CONFLICT (number) DO UPDATE SET name = excluded.name;
 			""")
 
-		# Download all extended sources
-		for source_key in location.importer.EXTENDED_SOURCES:
-			for single_url in location.importer.EXTENDED_SOURCES[source_key]:
-				with self.db.transaction():
+			# Download all extended sources
+			for source_key in location.importer.EXTENDED_SOURCES:
+				for single_url in location.importer.EXTENDED_SOURCES[source_key]:
 					# Download data
 					for line in downloader.request_lines(single_url):
 						self._parse_line(line, source_key, validcountries)
 
-		# Download and import (technical) AS names from ARIN
-		self._import_as_names_from_arin()
+			# Download and import (technical) AS names from ARIN
+			self._import_as_names_from_arin()
 
 	def _check_parsed_network(self, network):
 		"""
