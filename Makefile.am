@@ -514,16 +514,21 @@ upload-man: $(MANPAGES_HTML)
 EXTRA_DIST += \
 	debian/build.sh \
 	debian/changelog \
-	debian/compat \
 	debian/control \
 	debian/copyright \
-	debian/location.install \
-	debian/location.manpages \
-	debian/location-python.install \
+	debian/genchangelog.sh \
+	debian/gensymbols.sh \
 	debian/libloc1.install \
+	debian/libloc1.symbols \
 	debian/libloc-dev.install \
+	debian/location.install \
+	debian/location.postinst \
+	debian/location.postrm \
+	debian/python3-location.examples \
+	debian/python3-location.install \
 	debian/rules \
-	debian/source/format
+	debian/source/format \
+	debian/watch
 
 .PHONY: debian
 debian: dist
