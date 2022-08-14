@@ -1499,7 +1499,7 @@ class CLI(object):
 			# Iterate through every line, filter comments and add remaining ASNs to
 			# the override table in case they are valid...
 			with self.db.transaction():
-				for sline in t.readlines():
+				for sline in f.readlines():
 					# The response is assumed to be encoded in UTF-8...
 					sline = sline.decode("utf-8")
 
