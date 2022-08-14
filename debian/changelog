@@ -1,3 +1,29 @@
+libloc (0.9.14-1) unstable; urgency=medium
+
+  [ Michael Tremer ]
+  * Revert "configure: Require Python >= 3.9"
+  * Make sources around that we can run tests without location installed
+  * downloader: Fetch __version__ from C module
+  * export: Drop using functools
+  * verify: Show message on success
+  * export: Don't fail when output stream isn't seekable
+  * importer: Actually perform the Spamhaus sanity check
+  * importer: Change download behaviour
+  * importer: Move importing extended sources/ARIN into transaction
+  * python: database: Return None if no description/vendor/license set
+  * importer: Try to make parsing blocks faster
+  * importer: Import each source individually
+  * python: Fix missing bracket
+  * importer: Tolerate that data might exist from other RIRs
+  * importer: Import all sources in alphabetical order
+
+  [ Peter Müller ]
+  * location-importer: Only delete override data if we are sure to have
+    a valid replacement
+  * location-importer: AS names starting with "DNIC" actually are valid
+
+ -- Michael Tremer <michael.tremer@ipfire.org>  Sun, 14 Aug 2022 12:24:16 +0000
+
 libloc (0.9.13-1) unstable; urgency=medium
 
   [ Michael Tremer ]
