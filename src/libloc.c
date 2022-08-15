@@ -21,7 +21,6 @@
 #include <stddef.h>
 #include <stdarg.h>
 #include <unistd.h>
-#include <errno.h>
 #include <string.h>
 #include <ctype.h>
 
@@ -77,7 +76,7 @@ static int log_priority(const char* priority) {
 LOC_EXPORT int loc_new(struct loc_ctx** ctx) {
 	struct loc_ctx* c = calloc(1, sizeof(*c));
 	if (!c)
-		return -ENOMEM;
+		return 1;
 
 	c->refcount = 1;
 	c->log_fn = log_stderr;

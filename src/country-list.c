@@ -42,7 +42,7 @@ static int loc_country_list_grow(struct loc_country_list* list) {
 	struct loc_country** elements = reallocarray(list->elements,
 			list->elements_size + size, sizeof(*list->elements));
 	if (!elements)
-		return -errno;
+		return 1;
 
 	list->elements = elements;
 	list->elements_size += size;
@@ -159,8 +159,8 @@ LOC_EXPORT int loc_country_list_contains_code(
 		// Ignore invalid country codes which would never match
 		if (errno == EINVAL)
 			return 0;
-		else
-			return r;
+
+		return r;
 	}
 
 	r = loc_country_list_contains(list, country);

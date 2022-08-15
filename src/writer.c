@@ -91,7 +91,7 @@ LOC_EXPORT int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer,
 		FILE* fkey1, FILE* fkey2) {
 	struct loc_writer* w = calloc(1, sizeof(*w));
 	if (!w)
-		return -ENOMEM;
+		return 1;
 
 	w->ctx = loc_ref(ctx);
 	w->refcount = 1;
@@ -584,7 +584,7 @@ static int loc_writer_create_signature(struct loc_writer* writer,
 
 		if (ferror(f)) {
 			ERROR(writer->ctx, "Error reading from file: %m\n");
-			r = errno;
+			r = 1;
 			goto END;
 		}
 

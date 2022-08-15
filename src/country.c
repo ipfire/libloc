@@ -54,7 +54,7 @@ LOC_EXPORT int loc_country_new(struct loc_ctx* ctx, struct loc_country** country
 
 	struct loc_country* c = calloc(1, sizeof(*c));
 	if (!c)
-		return -ENOMEM;
+		return 1;
 
 	c->ctx = loc_ref(ctx);
 	c->refcount = 1;

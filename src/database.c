@@ -173,7 +173,7 @@ static int loc_database_read_as_section_v1(struct loc_database* db,
 			MAP_SHARED, fileno(db->f), as_offset);
 
 		if (db->as_v1 == MAP_FAILED)
-			return -errno;
+			return 1;
 	}
 
 	db->as_count = as_length / sizeof(*db->as_v1);
@@ -196,7 +196,7 @@ static int loc_database_read_network_nodes_section_v1(struct loc_database* db,
 			MAP_SHARED, fileno(db->f), network_nodes_offset);
 
 		if (db->network_nodes_v1 == MAP_FAILED)
-			return -errno;
+			return 1;
 	}
 
 	db->network_nodes_count = network_nodes_length / sizeof(*db->network_nodes_v1);
@@ -219,7 +219,7 @@ static int loc_database_read_networks_section_v1(struct loc_database* db,
 			MAP_SHARED, fileno(db->f), networks_offset);
 
 		if (db->networks_v1 == MAP_FAILED)
-			return -errno;
+			return 1;
 	}
 
 	db->networks_count = networks_length / sizeof(*db->networks_v1);
@@ -242,7 +242,7 @@ static int loc_database_read_countries_section_v1(struct loc_database* db,
 			MAP_SHARED, fileno(db->f), countries_offset);
 
 		if (db->countries_v1 == MAP_FAILED)
-			return -errno;
+			return 1;
 	}
 
 	db->countries_count = countries_length / sizeof(*db->countries_v1);

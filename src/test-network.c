@@ -266,7 +266,7 @@ int main(int argc, char** argv) {
 
 	err = loc_writer_write(writer, f, LOC_DATABASE_VERSION_UNSET);
 	if (err) {
-		fprintf(stderr, "Could not write database: %s\n", strerror(-err));
+		fprintf(stderr, "Could not write database: %m\n");
 		exit(EXIT_FAILURE);
 	}
 	loc_writer_unref(writer);
@@ -284,7 +284,7 @@ int main(int argc, char** argv) {
 	struct loc_database* db;
 	err = loc_database_new(ctx, &db, f);
 	if (err) {
-		fprintf(stderr, "Could not open database: %s\n", strerror(-err));
+		fprintf(stderr, "Could not open database: %m\n");
 		exit(EXIT_FAILURE);
 	}
 

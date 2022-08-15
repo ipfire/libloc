@@ -353,7 +353,7 @@ static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, 
 		struct loc_as_list* asns;
 		r = loc_as_list_new(loc_ctx, &asns);
 		if (r) {
-			PyErr_SetString(PyExc_SystemError, "Could not create AS list");
+			PyErr_SetFromErrno(PyExc_OSError);
 			return NULL;
 		}
 
@@ -372,7 +372,7 @@ static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, 
 			struct loc_as* as;
 			r = loc_as_new(loc_ctx, &as, number);
 			if (r) {
-				PyErr_SetString(PyExc_SystemError, "Could not create AS");
+				PyErr_SetFromErrno(PyExc_OSError);
 
 				loc_as_list_unref(asns);
 				loc_as_unref(as);
@@ -381,7 +381,7 @@ static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, 
 
 			r = loc_as_list_append(asns, as);
 			if (r) {
-				PyErr_SetString(PyExc_SystemError, "Could not append AS to the list");
+				PyErr_SetFromErrno(PyExc_OSError);
 
 				loc_as_list_unref(asns);
 				loc_as_unref(as);
@@ -393,7 +393,7 @@ static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, 
 
 		r = loc_database_enumerator_set_asns(enumerator, asns);
 		if (r) {
-			PyErr_SetFromErrno(PyExc_SystemError);
+			PyErr_SetFromErrno(PyExc_OSError);
 
 			loc_as_list_unref(asns);
 			return NULL;
@@ -407,7 +407,7 @@ static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, 
 		r = loc_database_enumerator_set_flag(enumerator, flags);
 
 		if (r) {
-			PyErr_SetFromErrno(PyExc_SystemError);
+			PyErr_SetFromErrno(PyExc_OSError);
 			return NULL;
 		}
 	}
@@ -417,7 +417,7 @@ static PyObject* Database_search_networks(DatabaseObject* self, PyObject* args, 
 		r = loc_database_enumerator_set_family(enumerator, family);
 
 		if (r) {
-			PyErr_SetFromErrno(PyExc_SystemError);
+			PyErr_SetFromErrno(PyExc_OSError);
 			return NULL;
 		}
 	}

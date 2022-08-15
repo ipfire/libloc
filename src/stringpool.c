@@ -45,11 +45,15 @@ struct loc_stringpool {
 };
 
 static off_t loc_stringpool_get_offset(struct loc_stringpool* pool, const char* pos) {
-	if (pos < pool->data)
-		return -EFAULT;
+	if (pos < pool->data) {
+		errno = EFAULT;
+		return -1;
+	}
 
-	if (pos > (pool->data + pool->length))
-		return -EFAULT;
+	if (pos > (pool->data + pool->length)) {
+		errno = EFAULT;
+		return -1;
+	}
 
 	return pos - pool->data;
 }
@@ -70,7 +74,7 @@ static int loc_stringpool_grow(struct loc_stringpool* pool, size_t length) {
 	// Reallocate data section
 	pool->data = realloc(pool->data, length);
 	if (!pool->data)
-		return -ENOMEM;
+		return 1;
 
 	pool->length = length;
 
@@ -81,17 +85,17 @@ static int loc_stringpool_grow(struct loc_stringpool* pool, size_t length) {
 }
 
 static off_t loc_stringpool_append(struct loc_stringpool* pool, const char* string) {
-	if (!string)
-		return -EINVAL;
+	if (!string) {
+		errno = EINVAL;
+		return -1;
+	}
 
 	DEBUG(pool->ctx, "Appending '%s' to string pool at %p\n", string, pool);
 
 	// Make sure we have enough space
 	int r = loc_stringpool_grow(pool, pool->length + strlen(string) + 1);
-	if (r) {
-		errno = r;
+	if (r)
 		return -1;
-	}
 
 	off_t offset = loc_stringpool_get_offset(pool, pool->pos);
 
@@ -146,8 +150,10 @@ int loc_stringpool_new(struct loc_ctx* ctx, struct loc_stringpool** pool) {
 }
 
 static int loc_stringpool_mmap(struct loc_stringpool* pool, FILE* f, size_t length, off_t offset) {
-	if (pool->mode != STRINGPOOL_MMAP)
-		return -EINVAL;
+	if (pool->mode != STRINGPOOL_MMAP) {
+		errno = EINVAL;
+		return 1;
+	}
 
 	DEBUG(pool->ctx, "Reading string pool starting from %jd (%zu bytes)\n", (intmax_t)offset, length);
 
@@ -221,8 +227,10 @@ size_t loc_stringpool_get_size(struct loc_stringpool* pool) {
 }
 
 static off_t loc_stringpool_find(struct loc_stringpool* pool, const char* s) {
-	if (!s || !*s)
-		return -EINVAL;
+	if (!s || !*s) {
+		errno = EINVAL;
+		return -1;
+	}
 
 	off_t offset = 0;
 	while (offset < pool->length) {
@@ -237,7 +245,9 @@ static off_t loc_stringpool_find(struct loc_stringpool* pool, const char* s) {
 		offset = loc_stringpool_get_next_offset(pool, offset);
 	}
 
-	return -ENOENT;
+	// Nothing found
+	errno = ENOENT;
+	return -1;
 }
 
 off_t loc_stringpool_add(struct loc_stringpool* pool, const char* string) {
