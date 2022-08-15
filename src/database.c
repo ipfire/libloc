@@ -436,28 +436,28 @@ static void loc_database_free(struct loc_database* db) {
 	if (db->as_v1) {
 		r = munmap(db->as_v1, db->as_count * sizeof(*db->as_v1));
 		if (r)
-			ERROR(db->ctx, "Could not unmap AS section: %s\n", strerror(errno));
+			ERROR(db->ctx, "Could not unmap AS section: %m\n");
 	}
 
 	// Remove mapped network sections
 	if (db->networks_v1) {
 		r = munmap(db->networks_v1, db->networks_count * sizeof(*db->networks_v1));
 		if (r)
-			ERROR(db->ctx, "Could not unmap networks section: %s\n", strerror(errno));
+			ERROR(db->ctx, "Could not unmap networks section: %m\n");
 	}
 
 	// Remove mapped network nodes section
 	if (db->network_nodes_v1) {
 		r = munmap(db->network_nodes_v1, db->network_nodes_count * sizeof(*db->network_nodes_v1));
 		if (r)
-			ERROR(db->ctx, "Could not unmap network nodes section: %s\n", strerror(errno));
+			ERROR(db->ctx, "Could not unmap network nodes section: %m\n");
 	}
 
 	// Remove mapped countries section
 	if (db->countries_v1) {
 		r = munmap(db->countries_v1, db->countries_count * sizeof(*db->countries_v1));
 		if (r)
-			ERROR(db->ctx, "Could not unmap countries section: %s\n", strerror(errno));
+			ERROR(db->ctx, "Could not unmap countries section: %m\n");
 	}
 
 	if (db->pool)
@@ -498,8 +498,8 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 	// Load public key
 	EVP_PKEY* pkey = PEM_read_PUBKEY(f, NULL, NULL, NULL);
 	if (!pkey) {
-		char* error = ERR_error_string(ERR_get_error(), NULL);
-		ERROR(db->ctx, "Could not parse public key: %s\n", error);
+		ERROR(db->ctx, "Could not parse public key: %s\n",
+			ERR_error_string(ERR_get_error(), NULL));
 
 		return -1;
 	}

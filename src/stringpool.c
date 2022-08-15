@@ -119,8 +119,8 @@ static void loc_stringpool_free(struct loc_stringpool* pool) {
 			if (pool->data) {
 				r = munmap(pool->data, pool->length);
 				if (r)
-					ERROR(pool->ctx, "Could not unmap data at %p: %s\n",
-						pool->data, strerror(errno));
+					ERROR(pool->ctx, "Could not unmap data at %p: %m\n",
+						pool->data);
 			}
 			break;
 	}

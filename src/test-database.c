@@ -167,7 +167,7 @@ int main(int argc, char** argv) {
 
 	FILE* f = tmpfile();
 	if (!f) {
-		fprintf(stderr, "Could not open file for writing: %s\n", strerror(errno));
+		fprintf(stderr, "Could not open file for writing: %m\n");
 		exit(EXIT_FAILURE);
 	}
 

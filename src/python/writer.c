@@ -227,7 +227,7 @@ static PyObject* Writer_write(WriterObject* self, PyObject* args) {
 
 	FILE* f = fopen(path, "w+");
 	if (!f) {
-		PyErr_Format(PyExc_IOError, strerror(errno));
+		PyErr_SetFromErrno(PyExc_OSError);
 		return NULL;
 	}
 
@@ -236,7 +236,7 @@ static PyObject* Writer_write(WriterObject* self, PyObject* args) {
 
 	// Raise any errors
 	if (r) {
-		PyErr_Format(PyExc_IOError, strerror(errno));
+		PyErr_SetFromErrno(PyExc_OSError);
 		return NULL;
 	}
 

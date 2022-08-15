@@ -583,7 +583,7 @@ static int loc_writer_create_signature(struct loc_writer* writer,
 		size_t bytes_read = fread(buffer, 1, sizeof(buffer), f);
 
 		if (ferror(f)) {
-			ERROR(writer->ctx, "Error reading from file: %s\n", strerror(errno));
+			ERROR(writer->ctx, "Error reading from file: %m\n");
 			r = errno;
 			goto END;
 		}

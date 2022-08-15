@@ -34,20 +34,20 @@ int main(int argc, char** argv) {
 	// Open public key
 	FILE* public_key = fopen(ABS_SRCDIR "/examples/public-key.pem", "r");
 	if (!public_key) {
-		fprintf(stderr, "Could not open public key file: %s\n", strerror(errno));
+		fprintf(stderr, "Could not open public key file: %m\n");
 		exit(EXIT_FAILURE);
 	}
 
 	// Open private key
 	FILE* private_key1 = fopen(ABS_SRCDIR "/examples/private-key.pem", "r");
 	if (!private_key1) {
-		fprintf(stderr, "Could not open private key file: %s\n", strerror(errno));
+		fprintf(stderr, "Could not open private key file: %m\n");
 		exit(EXIT_FAILURE);
 	}
 
 	FILE* private_key2 = fopen(ABS_SRCDIR "/examples/private-key.pem", "r");
 	if (!private_key2) {
-		fprintf(stderr, "Could not open private key file: %s\n", strerror(errno));
+		fprintf(stderr, "Could not open private key file: %m\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -67,7 +67,7 @@ int main(int argc, char** argv) {
 
 	FILE* f = tmpfile();
 	if (!f) {
-		fprintf(stderr, "Could not open file for writing: %s\n", strerror(errno));
+		fprintf(stderr, "Could not open file for writing: %m\n");
 		exit(EXIT_FAILURE);
 	}
 
@@ -96,7 +96,7 @@ int main(int argc, char** argv) {
 	// Open another public key
 	public_key = freopen(ABS_SRCDIR "/src/signing-key.pem", "r", public_key);
 	if (!public_key) {
-		fprintf(stderr, "Could not open public key file: %s\n", strerror(errno));
+		fprintf(stderr, "Could not open public key file: %m\n");
 		exit(EXIT_FAILURE);
 	}
 
