@@ -116,9 +116,6 @@ static void loc_network_free(struct loc_network* network) {
 }
 
 LOC_EXPORT struct loc_network* loc_network_unref(struct loc_network* network) {
-	if (!network)
-		return NULL;
-
 	if (--network->refcount > 0)
 		return network;
 
@@ -856,9 +853,6 @@ static void loc_network_tree_node_free(struct loc_network_tree_node* node) {
 }
 
 struct loc_network_tree_node* loc_network_tree_node_unref(struct loc_network_tree_node* node) {
-	if (!node)
-		return NULL;
-
 	if (--node->refcount > 0)
 		return node;
 

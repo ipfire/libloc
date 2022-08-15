@@ -81,9 +81,6 @@ static void loc_country_list_free(struct loc_country_list* list) {
 }
 
 LOC_EXPORT struct loc_country_list* loc_country_list_unref(struct loc_country_list* list) {
-	if (!list)
-		return NULL;
-
 	if (--list->refcount > 0)
 		return list;
 
