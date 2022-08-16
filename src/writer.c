@@ -172,7 +172,8 @@ static void loc_writer_free(struct loc_writer* writer) {
 		loc_network_tree_unref(writer->networks);
 
 	// Unref the string pool
-	loc_stringpool_unref(writer->pool);
+	if (writer->pool)
+		loc_stringpool_unref(writer->pool);
 
 	loc_unref(writer->ctx);
 	free(writer);
