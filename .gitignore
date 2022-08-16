@@ -15,6 +15,7 @@ Makefile.in
 /*.db.xz
 /libtool
 /stamp-h1
+/src/cron/location-update
 /src/scripts/location
 /src/scripts/location-importer
 /src/systemd/location-update.service

@@ -51,6 +51,7 @@ SED_PROCESS = \
 	-e 's,@databasedir\@,$(databasedir),g' \
 	< $< > $@ || rm $@
 
+cron_dailydir = $(sysconfdir)/cron.daily
 databasedir = $(localstatedir)/lib/location
 pkgconfigdir = $(libdir)/pkgconfig
 
@@ -281,6 +282,7 @@ CLEANFILES += \
 
 # ------------------------------------------------------------------------------
 
+# Use systemd timers if available
 if HAVE_SYSTEMD
 systemdsystemunit_DATA = \
 	src/systemd/location-update.service \
@@ -291,9 +293,18 @@ CLEANFILES += \
 
 INSTALL_DIRS += \
 	$(systemdsystemunitdir)
+
+# Otherwise fall back to cron
+else
+cron_daily_SCRIPTS = \
+	src/cron/location-update
+
+CLEANFILES += \
+	$(cron_daily_DATA)
 endif
 
 EXTRA_DIST += \
+	src/cron/location-update.in \
 	src/systemd/location-update.service.in \
 	src/systemd/location-update.timer.in
 
