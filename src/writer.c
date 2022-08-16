@@ -537,6 +537,8 @@ static int loc_database_write_countries(struct loc_writer* writer,
 static int loc_writer_create_signature(struct loc_writer* writer,
 		struct loc_database_header_v1* header, FILE* f, EVP_PKEY* private_key,
 		char* signature, size_t* length) {
+	size_t bytes_read = 0;
+
 	DEBUG(writer->ctx, "Creating signature...\n");
 
 	// Read file from the beginning
@@ -554,7 +556,12 @@ static int loc_writer_create_signature(struct loc_writer* writer,
 
 	// Read magic
 	struct loc_database_magic magic;
-	fread(&magic, 1, sizeof(magic), f);
+	bytes_read = fread(&magic, 1, sizeof(magic), f);
+	if (bytes_read < sizeof(magic)) {
+		ERROR(writer->ctx, "Could not read header: %m\n");
+		r = 1;
+		goto END;
+	}
 
 	hexdump(writer->ctx, &magic, sizeof(magic));
 
@@ -580,7 +587,7 @@ static int loc_writer_create_signature(struct loc_writer* writer,
 	// Walk through the file in chunks of 64kB
 	char buffer[64 * 1024];
 	while (!feof(f)) {
-		size_t bytes_read = fread(buffer, 1, sizeof(buffer), f);
+		bytes_read = fread(buffer, 1, sizeof(buffer), f);
 
 		if (ferror(f)) {
 			ERROR(writer->ctx, "Error reading from file: %m\n");

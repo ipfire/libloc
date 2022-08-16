@@ -486,6 +486,8 @@ LOC_EXPORT struct loc_database* loc_database_unref(struct loc_database* db) {
 }
 
 LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
+	size_t bytes_read = 0;
+
 	// Cannot do this when no signature is available
 	if (!db->signature1 && !db->signature2) {
 		DEBUG(db->ctx, "No signature available to verify\n");
@@ -523,7 +525,12 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 
 	// Read magic
 	struct loc_database_magic magic;
-	fread(&magic, 1, sizeof(magic), db->f);
+	bytes_read = fread(&magic, 1, sizeof(magic), db->f);
+	if (bytes_read < sizeof(magic)) {
+		ERROR(db->ctx, "Could not read header: %m\n");
+		r = 1;
+		goto CLEANUP;
+	}
 
 	hexdump(db->ctx, &magic, sizeof(magic));
 
@@ -538,7 +545,6 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 
 	// Read the header
 	struct loc_database_header_v1 header_v1;
-	size_t bytes_read;
 
 	switch (db->version) {
 		case LOC_DATABASE_VERSION_1:
