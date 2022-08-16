@@ -170,7 +170,7 @@ static int loc_database_read_as_section_v1(struct loc_database* db,
 
 	if (as_length > 0) {
 		db->as_v1 = mmap(NULL, as_length, PROT_READ,
-			MAP_SHARED, fileno(db->f), as_offset);
+			MAP_PRIVATE, fileno(db->f), as_offset);
 
 		if (db->as_v1 == MAP_FAILED)
 			return 1;
@@ -193,7 +193,7 @@ static int loc_database_read_network_nodes_section_v1(struct loc_database* db,
 
 	if (network_nodes_length > 0) {
 		db->network_nodes_v1 = mmap(NULL, network_nodes_length, PROT_READ,
-			MAP_SHARED, fileno(db->f), network_nodes_offset);
+			MAP_PRIVATE, fileno(db->f), network_nodes_offset);
 
 		if (db->network_nodes_v1 == MAP_FAILED)
 			return 1;
@@ -216,7 +216,7 @@ static int loc_database_read_networks_section_v1(struct loc_database* db,
 
 	if (networks_length > 0) {
 		db->networks_v1 = mmap(NULL, networks_length, PROT_READ,
-			MAP_SHARED, fileno(db->f), networks_offset);
+			MAP_PRIVATE, fileno(db->f), networks_offset);
 
 		if (db->networks_v1 == MAP_FAILED)
 			return 1;
@@ -239,7 +239,7 @@ static int loc_database_read_countries_section_v1(struct loc_database* db,
 
 	if (countries_length > 0) {
 		db->countries_v1 = mmap(NULL, countries_length, PROT_READ,
-			MAP_SHARED, fileno(db->f), countries_offset);
+			MAP_PRIVATE, fileno(db->f), countries_offset);
 
 		if (db->countries_v1 == MAP_FAILED)
 			return 1;
