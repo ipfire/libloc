@@ -433,28 +433,28 @@ static void loc_database_free(struct loc_database* db) {
 	DEBUG(db->ctx, "Releasing database %p\n", db);
 
 	// Removing all ASes
-	if (db->as_v1) {
+	if (db->as_v1 && db->as_v1 != MAP_FAILED) {
 		r = munmap(db->as_v1, db->as_count * sizeof(*db->as_v1));
 		if (r)
 			ERROR(db->ctx, "Could not unmap AS section: %m\n");
 	}
 
 	// Remove mapped network sections
-	if (db->networks_v1) {
+	if (db->networks_v1 && db->networks_v1 != MAP_FAILED) {
 		r = munmap(db->networks_v1, db->networks_count * sizeof(*db->networks_v1));
 		if (r)
 			ERROR(db->ctx, "Could not unmap networks section: %m\n");
 	}
 
 	// Remove mapped network nodes section
-	if (db->network_nodes_v1) {
+	if (db->network_nodes_v1 && db->network_nodes_v1 != MAP_FAILED) {
 		r = munmap(db->network_nodes_v1, db->network_nodes_count * sizeof(*db->network_nodes_v1));
 		if (r)
 			ERROR(db->ctx, "Could not unmap network nodes section: %m\n");
 	}
 
 	// Remove mapped countries section
-	if (db->countries_v1) {
+	if (db->countries_v1 && db->countries_v1 != MAP_FAILED) {
 		r = munmap(db->countries_v1, db->countries_count * sizeof(*db->countries_v1));
 		if (r)
 			ERROR(db->ctx, "Could not unmap countries section: %m\n");
