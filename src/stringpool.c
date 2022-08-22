@@ -27,21 +27,23 @@
 #include <libloc/private.h>
 #include <libloc/stringpool.h>
 
-enum loc_stringpool_mode {
-	STRINGPOOL_DEFAULT,
-	STRINGPOOL_MMAP,
-};
-
 struct loc_stringpool {
 	struct loc_ctx* ctx;
 	int refcount;
 
-	enum loc_stringpool_mode mode;
+	// A file descriptor when we open an existing stringpool
+	int fd;
 
-	char* data;
+	off_t offset;
 	ssize_t length;
 
+	// Mapped data (from mmap())
+	char* mmapped_data;
+
+	char* data;
 	char* pos;
+
+	char buffer[LOC_DATABASE_PAGE_SIZE];
 };
 
 static off_t loc_stringpool_get_offset(struct loc_stringpool* pool, const char* pos) {
@@ -59,10 +61,38 @@ static off_t loc_stringpool_get_offset(struct loc_stringpool* pool, const char* 
 }
 
 static char* __loc_stringpool_get(struct loc_stringpool* pool, off_t offset) {
-	if (offset < 0 || offset >= pool->length)
+	ssize_t bytes_read;
+
+	// Check boundaries
+	if (offset < 0 || offset >= pool->length) {
+		errno = ERANGE;
+		return NULL;
+	}
+
+	// Return any data that we have in memory
+	if (pool->data)
+		return pool->data + offset;
+
+	// Otherwise read a block from file
+	bytes_read = pread(pool->fd, pool->buffer, sizeof(pool->buffer),
+		pool->offset + offset);
+
+	// Break on error
+	if (bytes_read < 0) {
+		ERROR(pool->ctx, "Could not read from string pool: %m\n");
+		return NULL;
+	}
+
+	// It is okay, if we did not read as much as we wanted, since we might be reading
+	// the last block which might be of an unknown size.
+
+	// Search for a complete string. If there is no NULL byte, the block is garbage.
+	char* end = memchr(pool->buffer, bytes_read, '\0');
+	if (!end)
 		return NULL;
 
-	return pool->data + offset;
+	// Return what's in the buffer
+	return pool->buffer;
 }
 
 static int loc_stringpool_grow(struct loc_stringpool* pool, size_t length) {
@@ -113,21 +143,23 @@ static void loc_stringpool_free(struct loc_stringpool* pool) {
 	DEBUG(pool->ctx, "Releasing string pool %p\n", pool);
 	int r;
 
-	switch (pool->mode) {
-		case STRINGPOOL_DEFAULT:
-			if (pool->data)
-				free(pool->data);
-			break;
+	// Close file
+	if (pool->fd > 0)
+		close(pool->fd);
 
-		case STRINGPOOL_MMAP:
-			if (pool->data) {
-				r = munmap(pool->data, pool->length);
-				if (r)
-					ERROR(pool->ctx, "Could not unmap data at %p: %m\n",
-						pool->data);
-			}
-			break;
+	// Unmap any mapped memory
+	if (pool->mmapped_data) {
+		r = munmap(pool->mmapped_data, pool->length);
+		if (r)
+			ERROR(pool->ctx, "Error unmapping string pool: %m\n");
+
+		if (pool->mmapped_data == pool->data)
+			pool->data = NULL;
 	}
+
+	// Free any data
+	if (pool->data)
+		free(pool->data);
 
 	loc_unref(pool->ctx);
 	free(pool);
@@ -141,31 +173,26 @@ int loc_stringpool_new(struct loc_ctx* ctx, struct loc_stringpool** pool) {
 	p->ctx = loc_ref(ctx);
 	p->refcount = 1;
 
-	// Save mode
-	p->mode = STRINGPOOL_DEFAULT;
-
 	*pool = p;
 
 	return 0;
 }
 
-static int loc_stringpool_mmap(struct loc_stringpool* pool, FILE* f, size_t length, off_t offset) {
-	if (pool->mode != STRINGPOOL_MMAP) {
-		errno = EINVAL;
+static int loc_stringpool_mmap(struct loc_stringpool* pool) {
+	// Try mmap()
+	char* p = mmap(NULL, pool->length, PROT_READ, MAP_PRIVATE, pool->fd, pool->offset);
+
+	if (p == MAP_FAILED) {
+		// Ignore if data hasn't been aligned correctly
+		if (errno == EINVAL)
+			return 0;
+
+		ERROR(pool->ctx, "Could not mmap stringpool: %m\n");
 		return 1;
 	}
 
-	DEBUG(pool->ctx, "Reading string pool starting from %jd (%zu bytes)\n", (intmax_t)offset, length);
-
-	// Map file content into memory
-	pool->data = pool->pos = mmap(NULL, length, PROT_READ,
-		MAP_PRIVATE, fileno(f), offset);
-
-	// Store size of section
-	pool->length = length;
-
-	if (pool->data == MAP_FAILED)
-		return 1;
+	// Store mapped memory area
+	pool->data = pool->mmapped_data = pool->pos = p;
 
 	return 0;
 }
@@ -177,22 +204,40 @@ int loc_stringpool_open(struct loc_ctx* ctx, struct loc_stringpool** pool,
 	// Allocate a new stringpool
 	int r = loc_stringpool_new(ctx, &p);
 	if (r)
-		return r;
+		goto ERROR;
 
-	// Change mode to mmap
-	p->mode = STRINGPOOL_MMAP;
+	// Store offset and length
+	p->offset = offset;
+	p->length = length;
+
+	DEBUG(p->ctx, "Reading string pool starting from %jd (%zu bytes)\n",
+		(intmax_t)p->offset, p->length);
+
+	int fd = fileno(f);
+
+	// Copy the file descriptor
+	p->fd = dup(fd);
+	if (p->fd < 0) {
+		ERROR(ctx, "Could not duplicate file the file descriptor: %m\n");
+		r = 1;
+		goto ERROR;
+	}
 
 	// Map data into memory
-	if (length > 0) {
-		r = loc_stringpool_mmap(p, f, length, offset);
-		if (r) {
-			loc_stringpool_free(p);
-			return r;
-		}
+	if (p->length > 0) {
+		r = loc_stringpool_mmap(p);
+		if (r)
+			goto ERROR;
 	}
 
 	*pool = p;
 	return 0;
+
+ERROR:
+	if (p)
+		loc_stringpool_free(p);
+
+	return r;
 }
 
 struct loc_stringpool* loc_stringpool_ref(struct loc_stringpool* pool) {
