@@ -142,7 +142,7 @@ static int loc_database_read_magic(struct loc_database* db) {
 	if (bytes_read < sizeof(magic)) {
 		ERROR(db->ctx, "Could not read enough data to validate magic bytes\n");
 		DEBUG(db->ctx, "Read %zu bytes, but needed %zu\n", bytes_read, sizeof(magic));
-		return -ENOMSG;
+		goto ERROR;
 	}
 
 	// Compare magic bytes
@@ -155,7 +155,9 @@ static int loc_database_read_magic(struct loc_database* db) {
 		return 0;
 	}
 
+ERROR:
 	ERROR(db->ctx, "Unrecognized file type\n");
+	errno = ENOMSG;
 
 	// Return an error
 	return 1;
