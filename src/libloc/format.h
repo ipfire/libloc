@@ -32,8 +32,8 @@ enum loc_database_version {
 
 #define LOC_DATABASE_DOMAIN "_v%u._db.location.ipfire.org"
 
-#define LOC_DATABASE_PAGE_SIZE		4096
-#define LOC_SIGNATURE_MAX_LENGTH	(LOC_DATABASE_PAGE_SIZE / 2)
+#define LOC_DATABASE_PAGE_SIZE		65536
+#define LOC_SIGNATURE_MAX_LENGTH	2048
 
 struct loc_database_magic {
 	char magic[7];
