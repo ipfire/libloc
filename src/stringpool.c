@@ -255,14 +255,6 @@ struct loc_stringpool* loc_stringpool_unref(struct loc_stringpool* pool) {
 	return NULL;
 }
 
-static off_t loc_stringpool_get_next_offset(struct loc_stringpool* pool, off_t offset) {
-	const char* string = loc_stringpool_get(pool, offset);
-	if (!string)
-		return offset;
-
-	return offset + strlen(string) + 1;
-}
-
 const char* loc_stringpool_get(struct loc_stringpool* pool, off_t offset) {
 	return __loc_stringpool_get(pool, offset);
 }
@@ -280,14 +272,17 @@ static off_t loc_stringpool_find(struct loc_stringpool* pool, const char* s) {
 	off_t offset = 0;
 	while (offset < pool->length) {
 		const char* string = loc_stringpool_get(pool, offset);
-		if (!string)
-			break;
 
-		int r = strcmp(s, string);
-		if (r == 0)
+		// Error!
+		if (!string)
+			return 1;
+
+		// Is this a match?
+		if (strcmp(s, string) == 0)
 			return offset;
 
-		offset = loc_stringpool_get_next_offset(pool, offset);
+		// Shift offset
+		offset += strlen(string) + 1;
 	}
 
 	// Nothing found
@@ -311,11 +306,12 @@ void loc_stringpool_dump(struct loc_stringpool* pool) {
 	while (offset < pool->length) {
 		const char* string = loc_stringpool_get(pool, offset);
 		if (!string)
-			break;
+			return;
 
 		printf("%jd (%zu): %s\n", (intmax_t)offset, strlen(string), string);
 
-		offset = loc_stringpool_get_next_offset(pool, offset);
+		// Shift offset
+		offset += strlen(string) + 1;
 	}
 }
 
