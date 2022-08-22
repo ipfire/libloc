@@ -45,28 +45,36 @@ static void Database_dealloc(DatabaseObject* self) {
 
 static int Database_init(DatabaseObject* self, PyObject* args, PyObject* kwargs) {
 	const char* path = NULL;
+	FILE* f = NULL;
 
+	// Parse arguments
 	if (!PyArg_ParseTuple(args, "s", &path))
 		return -1;
 
+	// Copy path
 	self->path = strdup(path);
+	if (!self->path)
+		goto ERROR;
 
 	// Open the file for reading
-	FILE* f = fopen(self->path, "r");
-	if (!f) {
-		PyErr_SetFromErrno(PyExc_IOError);
-		return -1;
-	}
+	f = fopen(self->path, "r");
+	if (!f)
+		goto ERROR;
 
 	// Load the database
 	int r = loc_database_new(loc_ctx, &self->db, f);
-	fclose(f);
-
-	// Return on any errors
 	if (r)
-		return -1;
+		goto ERROR;
 
+	fclose(f);
 	return 0;
+
+ERROR:
+	if (f)
+		fclose(f);
+
+	PyErr_SetFromErrno(PyExc_OSError);
+	return -1;
 }
 
 static PyObject* Database_repr(DatabaseObject* self) {
