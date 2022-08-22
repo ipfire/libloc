@@ -172,8 +172,10 @@ static int loc_database_read_as_section_v1(struct loc_database* db,
 		db->as_v1 = mmap(NULL, as_length, PROT_READ,
 			MAP_PRIVATE, fileno(db->f), as_offset);
 
-		if (db->as_v1 == MAP_FAILED)
+		if (db->as_v1 == MAP_FAILED) {
+			ERROR(db->ctx, "Could not mmap() AS section: %m\n");
 			return 1;
+		}
 	}
 
 	db->as_count = as_length / sizeof(*db->as_v1);
@@ -195,8 +197,10 @@ static int loc_database_read_network_nodes_section_v1(struct loc_database* db,
 		db->network_nodes_v1 = mmap(NULL, network_nodes_length, PROT_READ,
 			MAP_PRIVATE, fileno(db->f), network_nodes_offset);
 
-		if (db->network_nodes_v1 == MAP_FAILED)
+		if (db->network_nodes_v1 == MAP_FAILED) {
+			ERROR(db->ctx, "Could not mmap() network nodes section: %m\n");
 			return 1;
+		}
 	}
 
 	db->network_nodes_count = network_nodes_length / sizeof(*db->network_nodes_v1);
@@ -218,8 +222,10 @@ static int loc_database_read_networks_section_v1(struct loc_database* db,
 		db->networks_v1 = mmap(NULL, networks_length, PROT_READ,
 			MAP_PRIVATE, fileno(db->f), networks_offset);
 
-		if (db->networks_v1 == MAP_FAILED)
+		if (db->networks_v1 == MAP_FAILED) {
+			ERROR(db->ctx, "Could not mmap() networks section: %m\n");
 			return 1;
+		}
 	}
 
 	db->networks_count = networks_length / sizeof(*db->networks_v1);
@@ -241,8 +247,10 @@ static int loc_database_read_countries_section_v1(struct loc_database* db,
 		db->countries_v1 = mmap(NULL, countries_length, PROT_READ,
 			MAP_PRIVATE, fileno(db->f), countries_offset);
 
-		if (db->countries_v1 == MAP_FAILED)
+		if (db->countries_v1 == MAP_FAILED) {
+			ERROR(db->ctx, "Could not mmap() countries section: %m\n");
 			return 1;
+		}
 	}
 
 	db->countries_count = countries_length / sizeof(*db->countries_v1);
