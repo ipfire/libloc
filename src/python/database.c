@@ -199,18 +199,21 @@ static PyObject* Database_lookup(DatabaseObject* self, PyObject* args) {
 		loc_network_unref(network);
 
 		return obj;
-
-	// Nothing found
-	} else if (r == 1) {
-		Py_RETURN_NONE;
-
-	// Invalid input
-	} else if (r == -EINVAL) {
-		PyErr_Format(PyExc_ValueError, "Invalid IP address: %s", address);
-		return NULL;
 	}
 
-	// Unexpected error
+	// Nothing found
+	if (!errno)
+		Py_RETURN_NONE;
+
+	// Handle any errors
+	switch (errno) {
+		case EINVAL:
+			PyErr_Format(PyExc_ValueError, "Invalid IP address: %s", address);
+
+		default:
+			PyErr_SetFromErrno(PyExc_OSError);
+	}
+
 	return NULL;
 }
 
