@@ -1104,7 +1104,6 @@ LOC_EXPORT int loc_database_enumerator_new(struct loc_database_enumerator** enum
 	// Initialise graph search
 	e->network_stack_depth = 1;
 	e->networks_visited = calloc(db->network_node_objects.count, sizeof(*e->networks_visited));
-	printf("COUNT = %zu, P = %p\n", db->network_node_objects.count, e->networks_visited);
 	if (!e->networks_visited) {
 		ERROR(db->ctx, "Could not allocated visited networks: %m\n");
 		r = 1;
