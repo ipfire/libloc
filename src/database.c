@@ -75,6 +75,10 @@ struct loc_database {
 	char* signature2;
 	size_t signature2_length;
 
+	// Data mapped into memory
+	char* data;
+	off_t length;
+
 	struct loc_stringpool* pool;
 
 	// ASes in the database
@@ -215,6 +219,34 @@ ERROR:
 }
 
 /*
+	Maps the entire database into memory
+*/
+static int loc_database_mmap(struct loc_database* db) {
+	int fd = fileno(db->f);
+
+	// Determine the length of the database
+	db->length = lseek(fd, 0, SEEK_END);
+	if (db->length < 0) {
+		ERROR(db->ctx, "Could not determine the length of the database: %m\n");
+		return 1;
+	}
+
+	rewind(db->f);
+
+	// Map all data
+	db->data = mmap(NULL, db->length, PROT_READ, MAP_SHARED, fd, 0);
+	if (db->data == MAP_FAILED) {
+		ERROR(db->ctx, "Could not map the database: %m\n");
+		db->data = NULL;
+		return 1;
+	}
+
+	DEBUG(db->ctx, "Mapped database of %zu byte(s) at %p\n", db->length, db->data);
+
+	return 0;
+}
+
+/*
 	Maps arbitrary objects from the database into memory.
 */
 static int loc_database_map_objects(struct loc_database* db,
@@ -300,7 +332,7 @@ static int loc_database_read_header_v1(struct loc_database* db) {
 	int r;
 
 	// Read from file
-	size_t size = fread(&header, 1, sizeof(header), db->f);
+	size_t size = pread(fileno(db->f), &header, sizeof(header), sizeof(struct loc_database_magic));
 
 	if (size < sizeof(header)) {
 		ERROR(db->ctx, "Could not read enough data for header\n");
@@ -425,6 +457,11 @@ static int loc_database_open(struct loc_database* db, FILE* f) {
 	if (r)
 		return r;
 
+	// Map the database into memory
+	r = loc_database_mmap(db);
+	if (r)
+		return r;
+
 	// Read the header
 	r = loc_database_read_header(db);
 	if (r)
@@ -439,7 +476,16 @@ static int loc_database_open(struct loc_database* db, FILE* f) {
 }
 
 static void loc_database_free(struct loc_database* db) {
+	int r;
+
 	DEBUG(db->ctx, "Releasing database %p\n", db);
+
+	// Unmap the entire database
+	if (db->data) {
+		r = munmap(db->data, db->length);
+		if (r)
+			ERROR(db->ctx, "Could not unmap the database: %m\n");
+	}
 
 	// Removing all ASes
 	loc_database_unmap_objects(db, &db->as_objects);
