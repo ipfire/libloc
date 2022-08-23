@@ -409,38 +409,6 @@ static int loc_database_read(struct loc_database* db, FILE* f) {
 	return 0;
 }
 
-LOC_EXPORT int loc_database_new(struct loc_ctx* ctx, struct loc_database** database, FILE* f) {
-	// Fail on invalid file handle
-	if (!f)
-		return -EINVAL;
-
-	struct loc_database* db = calloc(1, sizeof(*db));
-	if (!db)
-		return -ENOMEM;
-
-	// Reference context
-	db->ctx = loc_ref(ctx);
-	db->refcount = 1;
-
-	DEBUG(db->ctx, "Database object allocated at %p\n", db);
-
-	int r = loc_database_read(db, f);
-	if (r) {
-		loc_database_unref(db);
-		return r;
-	}
-
-	*database = db;
-
-	return 0;
-}
-
-LOC_EXPORT struct loc_database* loc_database_ref(struct loc_database* db) {
-	db->refcount++;
-
-	return db;
-}
-
 static void loc_database_free(struct loc_database* db) {
 	DEBUG(db->ctx, "Releasing database %p\n", db);
 
@@ -472,6 +440,48 @@ static void loc_database_free(struct loc_database* db) {
 
 	loc_unref(db->ctx);
 	free(db);
+}
+
+LOC_EXPORT int loc_database_new(struct loc_ctx* ctx, struct loc_database** database, FILE* f) {
+	struct loc_database* db = NULL;
+	int r;
+
+	// Fail on invalid file handle
+	if (!f) {
+		errno = EINVAL;
+		return 1;
+	}
+
+	// Allocate the database object
+	db = calloc(1, sizeof(*db));
+	if (!db)
+		goto ERROR;
+
+	// Reference context
+	db->ctx = loc_ref(ctx);
+	db->refcount = 1;
+
+	DEBUG(db->ctx, "Database object allocated at %p\n", db);
+
+	// Try to open the database
+	r = loc_database_read(db, f);
+	if (r)
+		goto ERROR;
+
+	*database = db;
+	return 0;
+
+ERROR:
+	if (db)
+		loc_database_free(db);
+
+	return r;
+}
+
+LOC_EXPORT struct loc_database* loc_database_ref(struct loc_database* db) {
+	db->refcount++;
+
+	return db;
 }
 
 LOC_EXPORT struct loc_database* loc_database_unref(struct loc_database* db) {
