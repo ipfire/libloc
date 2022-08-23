@@ -20,6 +20,7 @@
 #include <stdint.h>
 
 #define LOC_DATABASE_MAGIC      "LOCDBXX"
+#define LOC_DATABASE_MAGIC_SIZE sizeof(struct loc_database_magic)
 
 enum loc_database_version {
 	LOC_DATABASE_VERSION_UNSET = 0,

@@ -51,10 +51,15 @@
 #include <libloc/stringpool.h>
 
 struct loc_database_objects {
-	void* p;
+	char* data;
 	off_t offset;
 	size_t length;
 	size_t count;
+};
+
+struct loc_database_signature {
+	const char* data;
+	size_t length;
 };
 
 struct loc_database {
@@ -70,10 +75,8 @@ struct loc_database {
 	off_t license;
 
 	// Signatures
-	char* signature1;
-	size_t signature1_length;
-	char* signature2;
-	size_t signature2_length;
+	struct loc_database_signature signature1;
+	struct loc_database_signature signature2;
 
 	// Data mapped into memory
 	char* data;
@@ -151,8 +154,8 @@ static void* __loc_database_read_object(struct loc_database* db, void* buffer,
 	const off_t offset = pos * length;
 
 	// Map the object first if possible
-	if (objects->p)
-		return (uint8_t*)objects->p + offset;
+	if (objects->data)
+		return objects->data + offset;
 
 	// Otherwise fall back and read the object into the buffer
 	const int fd = fileno(db->f);
@@ -252,153 +255,123 @@ static int loc_database_mmap(struct loc_database* db) {
 static int loc_database_map_objects(struct loc_database* db,
 		struct loc_database_objects* objects, const size_t size,
 		off_t offset, size_t length) {
-	int r = 0;
-
 	// Store parameters
+	objects->data   = db->data + offset;
 	objects->offset = offset;
 	objects->length = length;
 	objects->count  = objects->length / size;
-
-	// End if there is nothing to map
-	if (!objects->length)
-		return 0;
-
-	DEBUG(db->ctx, "Mapping %zu object(s) from %jd (%zu bytes)\n",
-		objects->count, (intmax_t)objects->offset, objects->length);
-
-	// mmap() objects into memory
-	void* p = mmap(NULL, objects->length, PROT_READ, MAP_PRIVATE,
-		fileno(db->f), objects->offset);
-
-	if (p == MAP_FAILED) {
-		// Ignore if the database wasn't page aligned for this architecture
-		// and fall back to use pread().
-		if (errno == EINVAL) {
-			DEBUG(db->ctx, "Falling back to pread()\n");
-			return 0;
-		}
-
-		ERROR(db->ctx, "mmap() failed: %m\n");
-		return 1;
-	}
-
-	// Store pointer
-	objects->p = p;
-
-	return r;
-}
-
-static int loc_database_unmap_objects(struct loc_database* db,
-		struct loc_database_objects* objects) {
-	int r;
-
-	// Nothing to do if nothing was mapped
-	if (!objects->p)
-		return 0;
-
-	// Call munmap() to free everything
-	r = munmap(objects->p, objects->length);
-	if (r) {
-		ERROR(db->ctx, "Could not unmap objects: %m\n");
-		return r;
-	}
 
 	return 0;
 }
 
 static int loc_database_read_signature(struct loc_database* db,
-		char** dst, char* src, size_t length) {
+		struct loc_database_signature* signature, const char* data, const size_t length) {
 	// Check for a plausible signature length
 	if (length > LOC_SIGNATURE_MAX_LENGTH) {
 		ERROR(db->ctx, "Signature too long: %zu\n", length);
-		return -EINVAL;
+		errno = EINVAL;
+		return 1;
 	}
 
-	DEBUG(db->ctx, "Reading signature of %zu bytes\n", length);
+	// Store data & length
+	signature->data = data;
+	signature->length = length;
 
-	// Allocate space
-	*dst = malloc(length);
-	if (!*dst)
-		return -ENOMEM;
+	DEBUG(db->ctx, "Read signature of %zu byte(s) at %p\n",
+		signature->length, signature->data);
 
-	// Copy payload
-	memcpy(*dst, src, length);
+	hexdump(db->ctx, signature->data, signature->length);
 
 	return 0;
 }
 
+/*
+	Checks if it is safe to read the buffer of size length starting at p.
+*/
+#define loc_database_check_boundaries(db, p) \
+	__loc_database_check_boundaries(db, (const char*)p, sizeof(*p))
+
+static int __loc_database_check_boundaries(struct loc_database* db,
+		const char* p, const size_t length) {
+	size_t offset = p - db->data;
+
+	// Return if everything is within the boundary
+	if (offset < db->length - length)
+		return 1;
+
+	// Otherwise raise EFAULT
+	errno = EFAULT;
+	return 0;
+}
+
 static int loc_database_read_header_v1(struct loc_database* db) {
-	struct loc_database_header_v1 header;
+	const struct loc_database_header_v1* header =
+		(const struct loc_database_header_v1*)(db->data + LOC_DATABASE_MAGIC_SIZE);
 	int r;
 
-	// Read from file
-	size_t size = pread(fileno(db->f), &header, sizeof(header), sizeof(struct loc_database_magic));
+	DEBUG(db->ctx, "Reading header at %p\n", header);
 
-	if (size < sizeof(header)) {
+	// Check if we can read the header
+	if (!loc_database_check_boundaries(db, header)) {
 		ERROR(db->ctx, "Could not read enough data for header\n");
-		errno = ENOMSG;
 		return 1;
 	}
 
-	// Copy over data
-	db->created_at  = be64toh(header.created_at);
-	db->vendor      = be32toh(header.vendor);
-	db->description = be32toh(header.description);
-	db->license     = be32toh(header.license);
+	// Dump the entire header
+	hexdump(db->ctx, header, sizeof(*header));
 
-	db->signature1_length = be16toh(header.signature1_length);
-	db->signature2_length = be16toh(header.signature2_length);
+	// Copy over data
+	db->created_at  = be64toh(header->created_at);
+	db->vendor      = be32toh(header->vendor);
+	db->description = be32toh(header->description);
+	db->license     = be32toh(header->license);
 
 	// Read signatures
-	if (db->signature1_length) {
-		r = loc_database_read_signature(db, &db->signature1,
-			header.signature1, db->signature1_length);
-		if (r)
-			return r;
-	}
+	r = loc_database_read_signature(db, &db->signature1,
+		header->signature1, be16toh(header->signature1_length));
+	if (r)
+		return r;
 
-	if (db->signature2_length) {
-		r = loc_database_read_signature(db, &db->signature2,
-			header.signature2, db->signature2_length);
-		if (r)
-			return r;
-	}
+	r = loc_database_read_signature(db, &db->signature2,
+		header->signature2, be16toh(header->signature2_length));
+	if (r)
+		return r;
 
 	// Open the stringpool
 	r = loc_stringpool_open(db->ctx, &db->pool, db->f,
-		be32toh(header.pool_length), be32toh(header.pool_offset));
+		be32toh(header->pool_length), be32toh(header->pool_offset));
 	if (r)
 		return r;
 
 	// Map AS objects
 	r = loc_database_map_objects(db, &db->as_objects,
 		sizeof(struct loc_database_as_v1),
-		be32toh(header.as_offset),
-		be32toh(header.as_length));
+		be32toh(header->as_offset),
+		be32toh(header->as_length));
 	if (r)
 		return r;
 
 	// Map Network Nodes
 	r = loc_database_map_objects(db, &db->network_node_objects,
 		sizeof(struct loc_database_network_node_v1),
-		be32toh(header.network_tree_offset),
-		be32toh(header.network_tree_length));
+		be32toh(header->network_tree_offset),
+		be32toh(header->network_tree_length));
 	if (r)
 		return r;
 
 	// Map Networks
 	r = loc_database_map_objects(db, &db->network_objects,
 		sizeof(struct loc_database_network_v1),
-		be32toh(header.network_data_offset),
-		be32toh(header.network_data_length));
+		be32toh(header->network_data_offset),
+		be32toh(header->network_data_length));
 	if (r)
 		return r;
 
 	// Map countries
 	r = loc_database_map_objects(db, &db->country_objects,
 		sizeof(struct loc_database_country_v1),
-		be32toh(header.countries_offset),
-		be32toh(header.countries_length));
+		be32toh(header->countries_offset),
+		be32toh(header->countries_length));
 	if (r)
 		return r;
 
@@ -487,27 +460,9 @@ static void loc_database_free(struct loc_database* db) {
 			ERROR(db->ctx, "Could not unmap the database: %m\n");
 	}
 
-	// Removing all ASes
-	loc_database_unmap_objects(db, &db->as_objects);
-
-	// Remove mapped network sections
-	loc_database_unmap_objects(db, &db->network_objects);
-
-	// Remove mapped network nodes section
-	loc_database_unmap_objects(db, &db->network_node_objects);
-
-	// Remove mapped countries section
-	loc_database_unmap_objects(db, &db->country_objects);
-
 	// Free the stringpool
 	if (db->pool)
 		loc_stringpool_unref(db->pool);
-
-	// Free signature
-	if (db->signature1)
-		free(db->signature1);
-	if (db->signature2)
-		free(db->signature2);
 
 	// Close database file
 	if (db->f)
@@ -571,7 +526,7 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 	size_t bytes_read = 0;
 
 	// Cannot do this when no signature is available
-	if (!db->signature1 && !db->signature2) {
+	if (!db->signature1.data && !db->signature2.data) {
 		DEBUG(db->ctx, "No signature available to verify\n");
 		return 1;
 	}
@@ -681,11 +636,11 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 	}
 
 	// Check first signature
-	if (db->signature1) {
-		hexdump(db->ctx, db->signature1, db->signature1_length);
+	if (db->signature1.data) {
+		hexdump(db->ctx, db->signature1.data, db->signature1.length);
 
 		r = EVP_DigestVerifyFinal(mdctx,
-			(unsigned char*)db->signature1, db->signature1_length);
+			(unsigned char*)db->signature1.data, db->signature1.length);
 
 		if (r == 0) {
 			DEBUG(db->ctx, "The first signature is invalid\n");
@@ -701,11 +656,11 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 	}
 
 	// Check second signature only when the first one was invalid
-	if (r && db->signature2) {
-		hexdump(db->ctx, db->signature2, db->signature2_length);
+	if (r && db->signature2.data) {
+		hexdump(db->ctx, db->signature2.data, db->signature2.length);
 
 		r = EVP_DigestVerifyFinal(mdctx,
-			(unsigned char*)db->signature2, db->signature2_length);
+			(unsigned char*)db->signature2.data, db->signature2.length);
 
 		if (r == 0) {
 			DEBUG(db->ctx, "The second signature is invalid\n");
