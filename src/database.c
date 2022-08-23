@@ -369,30 +369,42 @@ static int loc_database_read_header(struct loc_database* db) {
 	}
 }
 
-static int loc_database_read(struct loc_database* db, FILE* f) {
-	clock_t start = clock();
-
+static int loc_database_clone_handle(struct loc_database* db, FILE* f) {
+	// Fetch the FD of the original handle
 	int fd = fileno(f);
 
 	// Clone file descriptor
 	fd = dup(fd);
 	if (!fd) {
 		ERROR(db->ctx, "Could not duplicate file descriptor\n");
-		return -1;
+		return 1;
 	}
 
 	// Reopen the file so that we can keep our own file handle
 	db->f = fdopen(fd, "r");
 	if (!db->f) {
 		ERROR(db->ctx, "Could not re-open database file\n");
-		return -1;
+		return 1;
 	}
 
 	// Rewind to the start of the file
 	rewind(db->f);
 
+	return 0;
+}
+
+static int loc_database_open(struct loc_database* db, FILE* f) {
+	int r;
+
+	clock_t start = clock();
+
+	// Clone the file handle
+	r = loc_database_clone_handle(db, f);
+	if (r)
+		return r;
+
 	// Read magic bytes
-	int r = loc_database_read_magic(db);
+	r = loc_database_read_magic(db);
 	if (r)
 		return r;
 
@@ -464,7 +476,7 @@ LOC_EXPORT int loc_database_new(struct loc_ctx* ctx, struct loc_database** datab
 	DEBUG(db->ctx, "Database object allocated at %p\n", db);
 
 	// Try to open the database
-	r = loc_database_read(db, f);
+	r = loc_database_open(db, f);
 	if (r)
 		goto ERROR;
 
