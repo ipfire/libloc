@@ -954,6 +954,12 @@ LOC_EXPORT int loc_database_get_country(struct loc_database* db,
 	off_t lo = 0;
 	off_t hi = db->country_objects.count - 1;
 
+	// Check if the country code is valid
+	if (!loc_country_code_is_valid(code)) {
+		errno = EINVAL;
+		return 1;
+	}
+
 #ifdef ENABLE_DEBUG
 	// Save start time
 	clock_t start = clock();
@@ -996,7 +1002,7 @@ LOC_EXPORT int loc_database_get_country(struct loc_database* db,
 	// Nothing found
 	*country = NULL;
 
-	return 1;
+	return 0;
 }
 
 // Enumerator

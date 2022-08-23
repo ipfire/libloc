@@ -166,16 +166,31 @@ static PyObject* Database_get_as(DatabaseObject* self, PyObject* args) {
 }
 
 static PyObject* Database_get_country(DatabaseObject* self, PyObject* args) {
+	struct loc_country* country = NULL;
 	const char* country_code = NULL;
 
 	if (!PyArg_ParseTuple(args, "s", &country_code))
 		return NULL;
 
-	struct loc_country* country;
+	// Fetch the country
 	int r = loc_database_get_country(self->db, &country, country_code);
 	if (r) {
-		Py_RETURN_NONE;
+		switch (errno) {
+			case EINVAL:
+				PyErr_SetString(PyExc_ValueError, "Invalid country code");
+				break;
+
+			default:
+				PyErr_SetFromErrno(PyExc_OSError);
+				break;
+		}
+
+		return NULL;
 	}
+
+	// No result
+	if (!country)
+		Py_RETURN_NONE;
 
 	PyObject* obj = new_country(&CountryType, country);
 	loc_country_unref(country);
