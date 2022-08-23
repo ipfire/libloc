@@ -333,7 +333,8 @@ TESTS = \
 	$(dist_check_SCRIPTS)
 
 EXTRA_DIST += \
-	tests/data/location-2022-03-30.db
+	tests/data/location-2022-03-30.db \
+	tests/data/signing-key.pem
 
 CLEANFILES += \
 	testdata.db
