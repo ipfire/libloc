@@ -81,6 +81,7 @@ AC_CHECK_FUNCS([ \
     htobe16 \
     htobe32 \
     htobe64 \
+    madvise \
     mmap \
     munmap \
     res_query \
