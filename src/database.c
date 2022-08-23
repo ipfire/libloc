@@ -243,6 +243,9 @@ ERROR:
 	Maps the entire database into memory
 */
 static int loc_database_mmap(struct loc_database* db) {
+	int r;
+
+	// Get file descriptor
 	int fd = fileno(db->f);
 
 	// Determine the length of the database
@@ -263,6 +266,13 @@ static int loc_database_mmap(struct loc_database* db) {
 	}
 
 	DEBUG(db->ctx, "Mapped database of %zu byte(s) at %p\n", db->length, db->data);
+
+	// Tell the system that we expect to read data randomly
+	r = madvise(db->data, db->length, MADV_RANDOM);
+	if (r) {
+		ERROR(db->ctx, "madvise() failed: %m\n");
+		return r;
+	}
 
 	return 0;
 }
