@@ -148,7 +148,7 @@ struct loc_database_enumerator {
 #define loc_database_check_boundaries(db, p) \
 	__loc_database_check_boundaries(db, (const char*)p, sizeof(*p))
 
-static int __loc_database_check_boundaries(struct loc_database* db,
+static inline int __loc_database_check_boundaries(struct loc_database* db,
 		const char* p, const size_t length) {
 	size_t offset = p - db->data;
 
@@ -170,14 +170,8 @@ static int __loc_database_check_boundaries(struct loc_database* db,
 /*
 	Returns a pointer to the n-th object
 */
-static char* loc_database_object(struct loc_database* db,
+static inline char* loc_database_object(struct loc_database* db,
 		const struct loc_database_objects* objects, const size_t length, const off_t n) {
-	// Return NULL if objects were not initialized
-	if (!objects->data) {
-		errno = EFAULT;
-		return NULL;
-	}
-
 	// Calculate offset
 	const off_t offset = n * length;
 
