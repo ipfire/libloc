@@ -52,7 +52,6 @@
 
 struct loc_database_objects {
 	char* data;
-	off_t offset;
 	size_t length;
 	size_t count;
 };
@@ -274,12 +273,10 @@ static int loc_database_mmap(struct loc_database* db) {
 /*
 	Maps arbitrary objects from the database into memory.
 */
-static int loc_database_map_objects(struct loc_database* db,
-		struct loc_database_objects* objects, const size_t size,
-		off_t offset, size_t length) {
+static int loc_database_map_objects(struct loc_database* db, struct loc_database_objects* objects,
+		const size_t size, const off_t offset, const size_t length) {
 	// Store parameters
 	objects->data   = db->data + offset;
-	objects->offset = offset;
 	objects->length = length;
 	objects->count  = objects->length / size;
 
