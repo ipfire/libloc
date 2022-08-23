@@ -17,6 +17,7 @@
 #include <errno.h>
 #include <stdlib.h>
 
+#include <libloc/compat.h>
 #include <libloc/country.h>
 #include <libloc/country-list.h>
 #include <libloc/private.h>

@@ -22,6 +22,7 @@
 #include <string.h>
 
 #include <libloc/address.h>
+#include <libloc/compat.h>
 
 #define LOC_ADDRESS_BUFFERS				6
 #define LOC_ADDRESS_BUFFER_LENGTH		INET6_ADDRSTRLEN

@@ -22,6 +22,8 @@
 #include <errno.h>
 #include <netinet/in.h>
 
+#include <libloc/compat.h>
+
 /*
 	All of these functions are private and for internal use only
 */

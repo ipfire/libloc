@@ -18,6 +18,7 @@
 
 #include <libloc/as.h>
 #include <libloc/as-list.h>
+#include <libloc/compat.h>
 #include <libloc/private.h>
 
 struct loc_as_list {

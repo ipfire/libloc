@@ -35,6 +35,10 @@
 #  define s6_addr32 __u6_addr.__u6_addr32
 #endif
 
+#ifndef reallocarray
+#  define reallocarray(ptr, nmemb, size) realloc(ptr, nmemb * size)
+#endif
+
 #endif
 
 #endif

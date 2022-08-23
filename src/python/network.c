@@ -19,6 +19,7 @@
 #include <errno.h>
 #include <limits.h>
 
+#include <libloc/compat.h>
 #include <libloc/libloc.h>
 #include <libloc/network.h>
 #include <libloc/network-list.h>
