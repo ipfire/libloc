@@ -480,7 +480,7 @@ static void loc_database_free(struct loc_database* db) {
 
 LOC_EXPORT int loc_database_new(struct loc_ctx* ctx, struct loc_database** database, FILE* f) {
 	struct loc_database* db = NULL;
-	int r;
+	int r = 1;
 
 	// Fail on invalid file handle
 	if (!f) {
