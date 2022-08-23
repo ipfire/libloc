@@ -166,7 +166,7 @@ static void* __loc_database_read_object(struct loc_database* db, void* buffer,
 	return buffer;
 }
 
-static int loc_database_read_magic(struct loc_database* db) {
+static int loc_database_check_magic(struct loc_database* db) {
 	struct loc_database_magic magic;
 
 	// Read from file
@@ -180,7 +180,7 @@ static int loc_database_read_magic(struct loc_database* db) {
 	}
 
 	// Compare magic bytes
-	if (memcmp(LOC_DATABASE_MAGIC, magic.magic, strlen(LOC_DATABASE_MAGIC)) == 0) {
+	if (memcmp(magic.magic, LOC_DATABASE_MAGIC, sizeof(magic.magic)) == 0) {
 		DEBUG(db->ctx, "Magic value matches\n");
 
 		// Parse version
@@ -404,7 +404,7 @@ static int loc_database_open(struct loc_database* db, FILE* f) {
 		return r;
 
 	// Read magic bytes
-	r = loc_database_read_magic(db);
+	r = loc_database_check_magic(db);
 	if (r)
 		return r;
 
