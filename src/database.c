@@ -166,6 +166,19 @@ static void* __loc_database_read_object(struct loc_database* db, void* buffer,
 	return buffer;
 }
 
+static int loc_database_version_supported(struct loc_database* db, uint8_t version) {
+	switch (version) {
+		// Supported versions
+		case LOC_DATABASE_VERSION_1:
+			return 1;
+
+		default:
+			ERROR(db->ctx, "Database version %d is not supported\n", version);
+			errno = ENOTSUP;
+			return 0;
+	}
+}
+
 static int loc_database_check_magic(struct loc_database* db) {
 	struct loc_database_magic magic;
 
@@ -182,6 +195,10 @@ static int loc_database_check_magic(struct loc_database* db) {
 	// Compare magic bytes
 	if (memcmp(magic.magic, LOC_DATABASE_MAGIC, sizeof(magic.magic)) == 0) {
 		DEBUG(db->ctx, "Magic value matches\n");
+
+		// Do we support this version?
+		if (!loc_database_version_supported(db, magic.version))
+			return 1;
 
 		// Parse version
 		db->version = magic.version;
