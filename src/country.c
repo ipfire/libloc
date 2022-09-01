@@ -35,8 +35,6 @@ static const struct loc_special_country {
 	{ "", 0 },
 };
 
-#define CC_LEN 3
-
 struct loc_country {
 	struct loc_ctx* ctx;
 	int refcount;
