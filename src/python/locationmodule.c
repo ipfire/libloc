@@ -121,6 +121,10 @@ PyMODINIT_FUNC PyInit__location(void) {
 	if (PyModule_AddStringConstant(m, "__version__", PACKAGE_VERSION))
 		return NULL;
 
+	// Default Database Path
+	if (PyModule_AddStringConstant(m, "DATABASE_PATH", LIBLOC_DEFAULT_DATABASE_PATH))
+		return NULL;
+
 	// AS
 	if (PyType_Ready(&ASType) < 0)
 		return NULL;
