@@ -1,3 +1,59 @@
+libloc (0.9.15-1) unstable; urgency=medium
+
+  [ Peter Müller ]
+  * Non-maintainer upload.
+  * location-importer.in: Fix dangling variable
+
+  [ Michael Tremer ]
+  * Replace strerror(errno) with %m in format string throughout
+  * Don't abuse errno as return code
+  * country: Refactor storing country code and continent code
+  * *_unref: Always expect a valid pointer
+  * cron: Add a cronjob if systemd is not available
+  * Check return value of fread() when reading header
+  * configure: Replace obsolete AC_PROG_CC_STDC macro
+  * writer: Check if stringpool has been initialized before free
+  * database: Use MAP_PRIVATE with mmap()
+  * database: Do not try to unmap failed mappings
+  * database: Log any errors when mmap() fails
+  * database: Increase page size to 64k
+  * python: Correctly raise any errors when opening the database
+  * database: Improve error reporting when the magic cannot be read
+  * python: Fix errors for Database.lookup()
+  * stringpool: Implement mmap as optional
+  * database: Fall back when mmap() isn't available
+  * tests: Add some simple database tests
+  * stringpool: Drop function to find next offset
+  * database: country: Return better error codes
+  * python: Export DatabaseEnumerator type
+  * tests: database: Expand test coverage
+  * database: Refactor error handling on create
+  * database: Break opening procedure into smaller parts
+  * database: Refactor checking magic
+  * database: Check if this version of libloc supports the database
+    format
+  * database: Map the entire database into memory as a whole
+  * database: Read header from mapped data
+  * hexdump: Don't try to dump any empty memory
+  * database: Read all data from the large mmap()
+  * database: Call madvise() to tell the kernel that we will randomly
+    access the data
+  * database: Encourage the compiler to inline some functions
+  * database: Drop unused offset variable in objects
+  * database: Drop debug line
+  * database: Initialize r on create
+  * tests: Add signing key to verify signatures
+  * configure: Check for madvise
+  * Fix compilation on MacOS X
+  * country: Drop unused CC_LEN
+  * tests: country: Don't crash when a country could not be found
+  * Revert "database: Increase page size to 64k"
+  * writer: Flush everything to disk after writing finishes
+  * configure: Make the default database path configurable
+  * python: Add new open() interface to easily open a database
+
+ -- Michael Tremer <michael.tremer@ipfire.org>  Mon, 26 Sep 2022 15:36:44 +0000
+
 libloc (0.9.14-1) unstable; urgency=medium
 
   [ Michael Tremer ]
