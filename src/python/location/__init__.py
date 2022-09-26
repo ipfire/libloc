@@ -19,6 +19,7 @@
 
 # Import everything from the C module
 from _location import *
+from _location import __version__
 
 # Initialise logging
 from . import logger
