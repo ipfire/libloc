@@ -182,6 +182,11 @@ class CLI(object):
 				CREATE INDEX IF NOT EXISTS networks_family ON networks USING BTREE(family(network));
 				CREATE INDEX IF NOT EXISTS networks_search ON networks USING GIST(network inet_ops);
 
+				-- geofeeds
+				CREATE TABLE IF NOT EXISTS network_geofeeds(network inet, url text);
+				CREATE UNIQUE INDEX IF NOT EXISTS network_geofeeds_unique
+					ON network_geofeeds(network);
+
 				-- overrides
 				CREATE TABLE IF NOT EXISTS autnum_overrides(
 					number bigint NOT NULL,
@@ -799,6 +804,16 @@ class CLI(object):
 
 				inetnum[key].append(val)
 
+			# Parse the geofeed attribute
+			elif key == "geofeed":
+				inetnum["geofeed"] = val
+
+			# Parse geofeed when used as a remark
+			elif key == "remark":
+				m = re.match(r"^(?:geofeed|Geofeed)\s+(https://.*)", val)
+				if m:
+					inetnum["geofeed"] = m.group(1)
+
 		# Skip empty objects
 		if not inetnum or not "country" in inetnum:
 			return
@@ -810,7 +825,6 @@ class CLI(object):
 		# them into the database, if _check_parsed_network() succeeded
 		for single_network in inetnum.get("inet6num") or inetnum.get("inetnum"):
 			if self._check_parsed_network(single_network):
-
 				# Skip objects with unknown country codes if they are valid to avoid log spam...
 				if validcountries and invalidcountries:
 					log.warning("Skipping network with bogus countr(y|ies) %s (original countries: %s): %s" % \
@@ -822,6 +836,30 @@ class CLI(object):
 					VALUES(%s, %s, %s, %s) ON CONFLICT (network) DO UPDATE SET country = excluded.country",
 					"%s" % single_network, inetnum.get("country")[0], inetnum.get("country"), source_key,
 				)
+
+				# Update any geofeed information
+				geofeed = inetnum.get("geofeed", None)
+
+				# Store/update any geofeeds
+				if geofeed:
+					self.db.execute("""
+						INSERT INTO
+							network_geofeeds(
+								network,
+								url
+							)
+						VALUES(
+							%s, %s
+						)
+						ON CONFLICT (network) DO
+							UPDATE SET url = excluded.url""",
+						"%s" % single_network, geofeed,
+					)
+
+				# Delete any previous geofeeds
+				else:
+					self.db.execute("DELETE FROM network_geofeeds WHERE network = %s",
+						"%s" % single_network)
 
 	def _parse_org_block(self, block, source_key):
 		org = {}
