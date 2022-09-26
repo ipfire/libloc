@@ -1341,8 +1341,10 @@ class CLI(object):
 				"ap-southeast-2": "AU",
 				"ap-southeast-3": "MY",
 				"ap-southeast-4": "AU",
+				"ap-southeast-6": "AP", # XXX: Precise location not documented anywhere
 				"ap-northeast-1": "JP",
 				"ca-central-1": "CA",
+				"ca-west-1": "CA",
 				"eu-central-1": "DE",
 				"eu-central-2": "CH",
 				"eu-west-1": "IE",
