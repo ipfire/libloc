@@ -1450,10 +1450,7 @@ class CLI(object):
 				# Conduct a very basic sanity check to rule out CDN issues causing bogus DROP
 				# downloads.
 				if len(fcontent) > 10:
-					self.db.execute("""
-						DELETE FROM network_overrides WHERE source = '%s';
-					""" % name,
-					)
+					self.db.execute("DELETE FROM network_overrides WHERE source = %s", name)
 				else:
 					log.error("%s (%s) returned likely bogus file, ignored" % (name, url))
 					continue
@@ -1505,10 +1502,7 @@ class CLI(object):
 				# Conduct a very basic sanity check to rule out CDN issues causing bogus DROP
 				# downloads.
 				if len(fcontent) > 10:
-					self.db.execute("""
-						DELETE FROM autnum_overrides WHERE source = '%s';
-					""" % name,
-					)
+					self.db.execute("DELETE FROM autnum_overrides WHERE source = %s", name)
 				else:
 					log.error("%s (%s) returned likely bogus file, ignored" % (name, url))
 					continue
