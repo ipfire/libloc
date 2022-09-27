@@ -1297,8 +1297,9 @@ class CLI(object):
 		with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
 			results = executor.map(self._fetch_geofeed, geofeeds)
 
+			# Fetch all results to raise any exceptions
 			for result in results:
-				print(result)
+				pass
 
 	def _fetch_geofeed(self, geofeed):
 		log.debug("Fetching Geofeed %s" % geofeed.url)
