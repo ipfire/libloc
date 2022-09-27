@@ -122,7 +122,7 @@ CC_CHECK_FLAGS_APPEND([my_LDFLAGS], [LDFLAGS], [-fno-semantic-interposition])
 
 AC_ARG_WITH([database-path],
 	AS_HELP_STRING([--with-database-path], [The default database path]),
-	[], [with_database_path=/var/lib/${PACKAGE_NAME}/database.db]
+	[], [with_database_path=/var/lib/location/database.db]
 )
 
 if test -z "${with_database_path}"; then
