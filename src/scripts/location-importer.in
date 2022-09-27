@@ -291,6 +291,8 @@ class CLI(object):
 				SELECT network FROM networks
 				UNION
 				SELECT network FROM network_overrides
+				UNION
+				SELECT network FROM geofeed_networks
 			),
 
 			ordered_networks AS (
@@ -332,6 +334,29 @@ class CLI(object):
 					(
 						SELECT country FROM autnum_overrides overrides
 							WHERE networks.autnum = overrides.number
+					),
+					(
+						SELECT
+							geofeed_networks.country AS country
+						FROM
+							network_geofeeds
+
+						-- Join the data from the geofeeds
+						LEFT JOIN
+							geofeeds ON network_geofeeds.url = geofeeds.url
+						LEFT JOIN
+							geofeed_networks ON geofeeds.id = geofeed_networks.geofeed_id
+
+						-- Check whether we have a geofeed for this network
+						WHERE
+							networks.network <<= network_geofeeds.network
+						AND
+							networks.network <<= geofeed_networks.network
+
+						-- Filter for the best result
+						ORDER BY
+							masklen(geofeed_networks.network) DESC
+						LIMIT 1
 					),
 					networks.country
 				) AS country,
