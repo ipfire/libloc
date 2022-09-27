@@ -211,6 +211,10 @@ class CLI(object):
 				CREATE TABLE IF NOT EXISTS network_geofeeds(network inet, url text);
 				CREATE UNIQUE INDEX IF NOT EXISTS network_geofeeds_unique
 					ON network_geofeeds(network);
+				CREATE INDEX IF NOT EXISTS network_geofeeds_search
+					ON network_geofeeds USING GIST(network inet_ops);
+				CREATE INDEX IF NOT EXISTS network_geofeeds_url
+					ON network_geofeeds(url);
 
 				-- overrides
 				CREATE TABLE IF NOT EXISTS autnum_overrides(
