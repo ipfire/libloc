@@ -207,7 +207,7 @@ class CLI(object):
 				CREATE INDEX IF NOT EXISTS geofeed_networks_geofeed_id
 					ON geofeed_networks(geofeed_id);
 				CREATE INDEX IF NOT EXISTS geofeed_networks_search
-					ON geofeed_networks(network);
+					ON geofeed_networks USING GIST(network inet_ops);
 				CREATE TABLE IF NOT EXISTS network_geofeeds(network inet, url text);
 				CREATE UNIQUE INDEX IF NOT EXISTS network_geofeeds_unique
 					ON network_geofeeds(network);
