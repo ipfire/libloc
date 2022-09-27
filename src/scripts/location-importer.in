@@ -1279,6 +1279,38 @@ class CLI(object):
 				yield line
 
 	def handle_update_geofeeds(self, ns):
+		# Sync geofeeds
+		with self.db.transaction():
+			# Delete all geofeeds which are no longer linked
+			self.db.execute("""
+				DELETE FROM
+					geofeeds
+				WHERE
+					NOT EXISTS (
+						SELECT
+							1
+						FROM
+							network_geofeeds
+						WHERE
+							geofeeds.url = network_geofeeds.url
+					)""",
+			)
+
+			# Copy all geofeeds
+			self.db.execute("""
+				INSERT INTO
+					geofeeds(
+						url
+					)
+				SELECT
+					url
+				FROM
+					network_geofeeds
+				ON CONFLICT (url)
+					DO NOTHING
+				""",
+			)
+
 		# Fetch all Geofeeds that require an update
 		geofeeds = self.db.query("""
 			SELECT
