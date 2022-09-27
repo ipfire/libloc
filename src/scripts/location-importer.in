@@ -894,6 +894,11 @@ class CLI(object):
 				# Update any geofeed information
 				geofeed = inetnum.get("geofeed", None)
 
+				# Make sure that this is a HTTPS URL
+				if geofeed and not geofeed.startswith("https://"):
+					log.warning("Geofeed URL is not using HTTPS: %s" % geofeed)
+					geofeed = None
+
 				# Store/update any geofeeds
 				if geofeed:
 					self.db.execute("""
