@@ -102,6 +102,13 @@ LOC_EXPORT int loc_writer_new(struct loc_ctx* ctx, struct loc_writer** writer,
 		return r;
 	}
 
+	// Add an empty string to the stringpool
+	r = loc_stringpool_add(w->pool, "");
+	if (r) {
+		loc_writer_unref(w);
+		return r;
+	}
+
 	// Initialize the network tree
 	r = loc_network_tree_new(ctx, &w->networks);
 	if (r) {
