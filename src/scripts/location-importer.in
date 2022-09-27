@@ -863,8 +863,8 @@ class CLI(object):
 				inetnum["geofeed"] = val
 
 			# Parse geofeed when used as a remark
-			elif key == "remark":
-				m = re.match(r"^(?:geofeed|Geofeed)\s+(https://.*)", val)
+			elif key == "remarks":
+				m = re.match(r"^(?:Geofeed)\s+(https://.*)", val)
 				if m:
 					inetnum["geofeed"] = m.group(1)
 
