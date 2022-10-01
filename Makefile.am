@@ -56,8 +56,7 @@ databasedir = $(localstatedir)/lib/location
 pkgconfigdir = $(libdir)/pkgconfig
 
 # Overwrite Python path
-#pkgpythondir = $(pythondir)/location
-pkgpythondir = /usr/lib/python3/dist-packages/location
+pkgpythondir = $(pythondir)/location
 
 %: %.in Makefile
 	$(SED_PROCESS)
