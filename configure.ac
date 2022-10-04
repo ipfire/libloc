@@ -175,10 +175,18 @@ PKG_CHECK_MODULES([PYTHON], [python-${PYTHON_VERSION}])
 AC_PATH_PROG(PERL, perl, no)
 AC_SUBST(PERL)
 
-AX_PROG_PERL_MODULES(ExtUtils::MakeMaker,, AC_MSG_WARN(Need some Perl modules))
+AX_PROG_PERL_MODULES(Config ExtUtils::MakeMaker,, AC_MSG_WARN(Need some Perl modules))
 
 AC_ARG_ENABLE(perl, AS_HELP_STRING([--disable-perl], [do not build the perl modules]), [],[enable_perl=yes])
 AM_CONDITIONAL(ENABLE_PERL, test "$enable_perl" = "yes")
+AS_IF([test "$enable_perl" = "yes"],
+      [
+       PERL_MODPATH=$($PERL -MConfig -e 'print $Config{installvendorarch}')
+       PERL_MANPATH=$($PERL -MConfig -e 'print $Config{installvendorman3dir}')
+       AC_SUBST(PERL_MODPATH)
+       AC_SUBST(PERL_MANPATH)
+       ],
+)
 
 dnl Checking for libresolv
 case "${host}" in
@@ -223,5 +231,8 @@ AC_MSG_RESULT([
         systemd support:        ${have_systemd}
 
 	Bindings:
-	  perl:			${enable_perl}
+	  Perl:			${enable_perl}
+	  Perl module path:     ${PERL_MODPATH}
+	  Perl manual path:     ${PERL_MANPATH}
+      }
 ])

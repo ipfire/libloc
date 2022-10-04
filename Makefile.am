@@ -241,7 +241,8 @@ build-perl: src/libloc.la
 	@test -e $(builddir)/src/perl/t/Location.t || ln -s --relative $(srcdir)/src/perl/t/Location.t $(builddir)/src/perl/t/
 	@test -e $(builddir)/src/perl/typemap || ln -s --relative $(srcdir)/src/perl/typemap $(builddir)/src/perl/
 
-	cd $(builddir)/src/perl && $(PERL) Makefile.PL PREFIX="$(prefix)" \
+	cd $(builddir)/src/perl && $(PERL) Makefile.PL NO_PACKLIST=1 NO_PERLLOCAL=1 \
+		INSTALLDIRS=vendor \
 		INC="-I$(abs_srcdir)/src" LIBS="-L$(abs_builddir)/src/.libs -lloc"
 	cd $(builddir)/src/perl && $(MAKE)
 	touch build-perl
@@ -253,20 +254,20 @@ check-perl: testdata.db build-perl
 
 .PHONY: install-perl
 install-perl: build-perl
-	cd $(builddir)/src/perl && $(MAKE) install DESTIDR=$(DESTDIR)
+	cd $(builddir)/src/perl && $(MAKE) install DESTDIR=$(DESTDIR)
 
 .PHONY: clean-perl
 clean-perl:
 	cd $(builddir)/src/perl && $(MAKE) distclean
-	rm build-perl
+	rm -f build-perl
 
 .PHONY: uninstall-perl
 uninstall-perl:
-	rm -rvf \
-		$(DESTDIR)/$(prefix)/lib/*/perl/*/Location.pm \
-		$(DESTDIR)/$(prefix)/lib/*/perl/*/auto/Location \
-		$(DESTDIR)/$(prefix)/lib/*/perl/*/perllocal.pod \
-		$(DESTDIR)/$(prefix)/man/man3/Location.3pm
+	rm -vf \
+		$(DESTDIR)/@PERL_MODPATH@/Location.pm \
+		$(DESTDIR)/@PERL_MODPATH@/auto/Location/Location.so \
+		$(DESTDIR)/@PERL_MANPATH@/Location.3pm
+	-rmdir $(DESTDIR)/@PERL_MODPATH@/auto/Location
 
 bin_SCRIPTS = \
 	src/scripts/location \
