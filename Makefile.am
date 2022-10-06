@@ -445,7 +445,7 @@ src_test_address_LDADD = \
 
 MANPAGES = \
 	$(MANPAGES_3) \
-	$(MANPAGES_8)
+	$(MANPAGES_1)
 
 MANPAGES_3 = \
 	man/libloc.3 \
@@ -459,12 +459,12 @@ MANPAGES_3 = \
 	man/loc_set_log_fn.3 \
 	man/loc_set_log_priority.3
 
-MANPAGES_8 = \
-	man/location.8
+MANPAGES_1 = \
+	man/location.1
 
-MANPAGES_TXT   = $(MANPAGES_TXT_3) $(MANPAGES_TXT_8)
+MANPAGES_TXT   = $(MANPAGES_TXT_3) $(MANPAGES_TXT_1)
 MANPAGES_TXT_3 = $(patsubst %.3,%.txt,$(MANPAGES_3))
-MANPAGES_TXT_8 = $(patsubst %.8,%.txt,$(MANPAGES_8))
+MANPAGES_TXT_1 = $(patsubst %.1,%.txt,$(MANPAGES_1))
 MANPAGES_HTML  = $(patsubst %.txt,%.html,$(MANPAGES_TXT))
 MANPAGES_XML   = $(patsubst %.txt,%.xml,$(MANPAGES_TXT))
 
@@ -512,7 +512,7 @@ man/%.xml: man/%.txt man/asciidoc.conf
 man/%.3: man/%.xml
 	$(XSLTPROC_COMMAND_MAN)
 
-man/%.8: man/%.xml
+man/%.1: man/%.xml
 	$(XSLTPROC_COMMAND_MAN)
 
 man/%.html: man/%.txt man/asciidoc.conf

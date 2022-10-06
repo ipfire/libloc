@@ -1,4 +1,4 @@
-= location(8)
+= location(1)
 
 == NAME
 location - Query the location database
