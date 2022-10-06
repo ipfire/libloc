@@ -1,6 +1,6 @@
 [Unit]
 Description=Automatic Location Database Updater
-Documentation=man:location(8) https://man-pages.ipfire.org/libloc/location.html
+Documentation=man:location(1) https://man-pages.ipfire.org/libloc/location.html
 Requires=network.target
 
 [Service]
