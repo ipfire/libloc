@@ -244,7 +244,7 @@ build-perl:
 
 	cd $(builddir)/src/perl && $(PERL) Makefile.PL PREFIX="$(prefix)" \
 		INC="-I$(abs_srcdir)/src" LIBS="-L$(abs_builddir)/src/.libs -lloc"
-	cd $(builddir)/src/perl && $(MAKE) LD_RUN_PATH=
+	cd $(builddir)/src/perl && $(MAKE)
 
 .PHONY: check-perl
 check-perl: testdata.db
