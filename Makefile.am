@@ -232,8 +232,7 @@ EXTRA_DIST += \
 	src/perl/t/Location.t \
 	src/perl/typemap
 
-.PHONY: build-perl
-build-perl:
+build-perl: src/libloc.la
 	@mkdir -p $(builddir)/src/perl/{lib,t}
 	@test -e $(builddir)/src/perl/Location.xs || ln -s --relative $(srcdir)/src/perl/Location.xs $(builddir)/src/perl/
 	@test -e $(builddir)/src/perl/MANIFEST || ln -s --relative $(srcdir)/src/perl/MANIFEST $(builddir)/src/perl/
@@ -245,19 +244,21 @@ build-perl:
 	cd $(builddir)/src/perl && $(PERL) Makefile.PL PREFIX="$(prefix)" \
 		INC="-I$(abs_srcdir)/src" LIBS="-L$(abs_builddir)/src/.libs -lloc"
 	cd $(builddir)/src/perl && $(MAKE)
+	touch build-perl
 
 .PHONY: check-perl
-check-perl: testdata.db
+check-perl: testdata.db build-perl
 	cd $(builddir)/src/perl && $(MAKE) LD_LIBRARY_PATH="$(abs_builddir)/src/.libs" test \
 		database="../../$<" keyfile="$(abs_srcdir)/examples/public-key.pem"
 
 .PHONY: install-perl
-install-perl:
+install-perl: build-perl
 	cd $(builddir)/src/perl && $(MAKE) install DESTIDR=$(DESTDIR)
 
 .PHONY: clean-perl
 clean-perl:
 	cd $(builddir)/src/perl && $(MAKE) distclean
+	rm build-perl
 
 .PHONY: uninstall-perl
 uninstall-perl:
