@@ -331,15 +331,11 @@ TESTS_LDADD = \
 
 TESTS_ENVIRONMENT = \
 	PYTHONPATH=$(abs_srcdir)/src/python:$(abs_builddir)/src/python/.libs \
-	TEST_DATA_DIR="$(abs_top_srcdir)/tests/data"
+	TEST_DATA_DIR="$(abs_top_srcdir)/data"
 
 TESTS = \
 	$(check_PROGRAMS) \
 	$(dist_check_SCRIPTS)
-
-EXTRA_DIST += \
-	tests/data/location-2022-03-30.db \
-	tests/data/signing-key.pem
 
 CLEANFILES += \
 	testdata.db
