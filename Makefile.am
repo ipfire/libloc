@@ -311,7 +311,12 @@ EXTRA_DIST += \
 # ------------------------------------------------------------------------------
 
 dist_database_DATA = \
-	src/signing-key.pem
+	data/database.db \
+	data/signing-key.pem
+
+.PHONY: update-database
+update-database:
+	curl https://location.ipfire.org/databases/1/location.db.xz | xz -d > data/database.db
 
 # ------------------------------------------------------------------------------
 
