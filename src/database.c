@@ -641,6 +641,9 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 		}
 	}
 
+	int sig1_valid = 0;
+	int sig2_valid = 0;
+
 	// Check first signature
 	if (db->signature1.data) {
 		hexdump(db->ctx, db->signature1.data, db->signature1.length);
@@ -650,14 +653,14 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 
 		if (r == 0) {
 			DEBUG(db->ctx, "The first signature is invalid\n");
-			r = 1;
 		} else if (r == 1) {
 			DEBUG(db->ctx, "The first signature is valid\n");
-			r = 0;
+			sig1_valid = 1;
 		} else {
 			ERROR(db->ctx, "Error verifying the first signature: %s\n",
 				ERR_error_string(ERR_get_error(), NULL));
 			r = -1;
+			goto CLEANUP;
 		}
 	}
 
@@ -670,20 +673,26 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 
 		if (r == 0) {
 			DEBUG(db->ctx, "The second signature is invalid\n");
-			r = 1;
 		} else if (r == 1) {
 			DEBUG(db->ctx, "The second signature is valid\n");
-			r = 0;
+			sig2_valid = 1;
 		} else {
 			ERROR(db->ctx, "Error verifying the second signature: %s\n",
 				ERR_error_string(ERR_get_error(), NULL));
 			r = -1;
+			goto CLEANUP;
 		}
 	}
 
 	clock_t end = clock();
 	INFO(db->ctx, "Signature checked in %.4fms\n",
 		(double)(end - start) / CLOCKS_PER_SEC * 1000);
+
+	// Check if at least one signature as okay
+	if (sig1_valid || sig2_valid)
+		r = 0;
+	else
+		r = 1;
 
 CLEANUP:
 	// Cleanup
