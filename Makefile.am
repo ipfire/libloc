@@ -314,6 +314,9 @@ dist_database_DATA = \
 	data/database.db \
 	data/signing-key.pem
 
+install-data-hook:
+	chmod 444 $(DESTDIR)$(databasedir)/database.db
+
 .PHONY: update-database
 update-database:
 	curl https://location.ipfire.org/databases/1/location.db.xz | xz -d > data/database.db
