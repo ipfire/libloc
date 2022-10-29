@@ -747,7 +747,7 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f, enum loc_dat
 
 	if (writer->signature2_length) {
 		DEBUG(writer->ctx, "Copying second signature of %zu byte(s)\n",
-			writer->signature1_length);
+			writer->signature2_length);
 
 		memcpy(header.signature2, writer->signature2, writer->signature2_length);
 		header.signature2_length = htobe16(writer->signature2_length);
