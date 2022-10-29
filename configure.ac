@@ -234,5 +234,4 @@ AC_MSG_RESULT([
 	  Perl:			${enable_perl}
 	  Perl module path:     ${PERL_MODPATH}
 	  Perl manual path:     ${PERL_MANPATH}
-      }
 ])
