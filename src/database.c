@@ -645,7 +645,7 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 	int sig2_valid = 0;
 
 	// Check first signature
-	if (db->signature1.data) {
+	if (db->signature1.length) {
 		hexdump(db->ctx, db->signature1.data, db->signature1.length);
 
 		r = EVP_DigestVerifyFinal(mdctx,
@@ -665,7 +665,7 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 	}
 
 	// Check second signature only when the first one was invalid
-	if (r && db->signature2.data) {
+	if (db->signature2.length) {
 		hexdump(db->ctx, db->signature2.data, db->signature2.length);
 
 		r = EVP_DigestVerifyFinal(mdctx,
