@@ -1,0 +1,268 @@
+# Georgian translation for libloc.
+# Copyright (C) 2023 libloc's authors.
+# This file is distributed under the same license as the libloc package.
+# Temuri Doghonadze <temuri.doghonadze@gmail.com>, 2023.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: libloc\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2022-10-29 12:46+0000\n"
+"PO-Revision-Date: 2023-02-22 08:57+0100\n"
+"Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
+"Language-Team: Georgian <(nothing)>\n"
+"Language: ka\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+"X-Generator: Poedit 3.2.2\n"
+
+msgid "Won't write binary output to stdout"
+msgstr "ბინარული მონაცემები stdout-ზე გამოტანილი არ იქნება"
+
+msgid "Location Importer Command Line Interface"
+msgstr "მდებარეობის შემოტანის ბრძანების სტრიქონის ინტერფეისი"
+
+msgid "Enable debug output"
+msgstr "გამართვის გამოტანის ჩართვა"
+
+msgid "Enable quiet mode"
+msgstr "ჩუმი რეჟიმის ჩართვა"
+
+msgid "Database Hostname"
+msgstr "ბაზის ჰოსტის სახელი"
+
+msgid "HOST"
+msgstr "ჰოსტი"
+
+msgid "Database Name"
+msgstr "ბაზის სახელი"
+
+msgid "NAME"
+msgstr "სახელი"
+
+msgid "Database Username"
+msgstr "ბაზის მომხმარებლის სახელი"
+
+msgid "USERNAME"
+msgstr "მომხმარებლის სახელი"
+
+msgid "Database Password"
+msgstr "მონაცემთა ბაზის პაროლი"
+
+msgid "PASSWORD"
+msgstr "პაროლი"
+
+#. Write Database
+msgid "Write database to file"
+msgstr "მონაცემთა ბაზის ფაილში ჩაწრა"
+
+msgid "Database File"
+msgstr "ბაზის ფაილი"
+
+msgid "Signing Key"
+msgstr "ხელმოწერის გასაღები"
+
+msgid "Backup Signing Key"
+msgstr "სარეზერვო ხელმოწერის გასაღები"
+
+msgid "Sets the vendor"
+msgstr "მომწოდებლის დაყენება"
+
+msgid "Sets a description"
+msgstr "აღწერის დაყენება"
+
+msgid "Sets the license"
+msgstr "ლიცენზიის დაყენება"
+
+msgid "Database Format Version"
+msgstr "ბაზის ფორმატის ვერსია"
+
+#. Update WHOIS
+msgid "Update WHOIS Information"
+msgstr "WHOIS-ის ინფორმაციის განახლება"
+
+msgid "Update BGP Annoucements"
+msgstr "BGP-ის ანონსების განახლება"
+
+msgid "Route Server to connect to"
+msgstr "რომელ რაუტის სერვერს დავუკავშირდე"
+
+msgid "SERVER"
+msgstr "სერვერი"
+
+msgid "Update overrides"
+msgstr "განახლება გადაფარავს"
+
+msgid "Files to import"
+msgstr "შემოსატანი ფაილები"
+
+msgid "Import countries"
+msgstr "ქვეყნების შემოტანა"
+
+msgid "File to import"
+msgstr "შემოსატანი ფაილი"
+
+msgid "Location Database Command Line Interface"
+msgstr "მდებარეობის ბაზის ბრძანების სტრიქონის ინტერფეისი"
+
+msgid "Path to database"
+msgstr "ბილიკი ბაზამდე"
+
+msgid "Public Signing Key"
+msgstr "საჯარო ხელმოწერის გასაღები"
+
+msgid "Show database version"
+msgstr "ბაზის ვერსიის ჩვენება"
+
+msgid "Lookup one or multiple IP addresses"
+msgstr "ერთი ან რამდენიმე IP მისამართის მოზებნა"
+
+msgid "Dump the entire database"
+msgstr "მთელი ბაზის დამპი"
+
+#. Update
+msgid "Update database"
+msgstr "ბაზის განახლება"
+
+msgid "Update the library only once per interval"
+msgstr "ბიბლიოთეკის მხოლოდ მითითებულ ინტერვალში განახლება"
+
+msgid "Verify the downloaded database"
+msgstr "გადმოწერილი ბაზის შემოწმება"
+
+msgid "Get information about one or multiple Autonomous Systems"
+msgstr "ერთ ან მეტ ავტონომიურ სისტემაზე ინფორმაციის მიღება"
+
+msgid "Search for Autonomous Systems that match the string"
+msgstr "ავტონომიური სისტემების ძებნა, რომლებიც სტრიქონს ემთხვევა"
+
+msgid "Lists all networks in an AS"
+msgstr "AS-ში ყველა ქსელის სია"
+
+msgid "Lists all networks in a country"
+msgstr "ქვეყნის ყველა ქსელის სია"
+
+msgid "Lists all networks with flags"
+msgstr "ქსელების ალმებით ჩვენება"
+
+msgid "Anonymous Proxies"
+msgstr "ანონიმური პროქსები"
+
+msgid "Satellite Providers"
+msgstr "სატელიტური პროვაიდერები"
+
+msgid "Anycasts"
+msgstr "Anycasts"
+
+msgid "Hostile Networks safe to drop"
+msgstr "უსაფრთხოდ დაბლოკვადი მტრული ქსელები"
+
+msgid "Lists all bogons"
+msgstr "ყველა ჭაობის სია"
+
+msgid "Lists all countries"
+msgstr "ყველა ქვეყნის სია"
+
+msgid "Show the name of the country"
+msgstr "ქვეყნის სახელის ჩვენება"
+
+msgid "Show the continent"
+msgstr "კონტინენტის ჩვენება"
+
+msgid "Exports data in many formats to load it into packet filters"
+msgstr "მონაცემების ბევრ ფორმატში გატანა მათი პაკეტის ფილტრებში ჩასატვირთად"
+
+msgid "Output format"
+msgstr "გამოტანის ფორმატი"
+
+msgid "Output directory"
+msgstr "გამოტანის საქაღალდე"
+
+msgid "Specify address family"
+msgstr "მიუთითეთ მისამართის ოჯახი"
+
+msgid "List country codes or ASNs to export"
+msgstr "ქვეყნის კოდების ან ASN-ების სია გასატანად"
+
+#, python-format
+msgid "Invalid IP address: %s"
+msgstr "არასწორი IP მისამართი: %s"
+
+#, python-format
+msgid "Nothing found for %(address)s"
+msgstr "%(address)s-სთვის ვერაფერი ვიპოვე"
+
+msgid "Network"
+msgstr "ქსელი"
+
+msgid "Country"
+msgstr "ქვეყანა"
+
+msgid "Autonomous System"
+msgstr "ავტონომიური სისტემა"
+
+msgid "Anonymous Proxy"
+msgstr "ანონიმური პროქსი"
+
+msgid "yes"
+msgstr "დიახ"
+
+msgid "Satellite Provider"
+msgstr "სატელიტური პროვაიდერი"
+
+msgid "Anycast"
+msgstr "Anycast"
+
+msgid "Hostile Network safe to drop"
+msgstr "უსაფრთხოდ დაბლოკვადი მტრული ქსელი"
+
+#, python-format
+msgid "Invalid ASN: %s"
+msgstr "არასწორი ASN: %s"
+
+#, python-format
+msgid "Could not find AS%s"
+msgstr "ვერ ვიპოვნე AS%s"
+
+#, python-format
+msgid "AS%(asn)s belongs to %(name)s"
+msgstr "AS%(asn)s ეკუთვნის %(name)s"
+
+msgid "The database has been updated recently"
+msgstr "ბაზა ახლახანს განახლდა"
+
+msgid "You must at least pass one flag"
+msgstr "აუცილებელია, ერთი ალამი მაინც გადასცეთ"
+
+#, python-format
+msgid "One Day"
+msgid_plural "%(days)s Days"
+msgstr[0] "1 დღე"
+msgstr[1] "%(days)s დღე"
+
+#, python-format
+msgid "One Hour"
+msgid_plural "%(hours)s Hours"
+msgstr[0] "1 საათი"
+msgstr[1] "%(hours)s საათი"
+
+#, python-format
+msgid "One Minute"
+msgid_plural "%(minutes)s Minutes"
+msgstr[0] "1 წუთი"
+msgstr[1] "%(minutes)s წუთი"
+
+#, python-format
+msgid "One Second"
+msgid_plural "%(seconds)s Seconds"
+msgstr[0] "1 წამი"
+msgstr[1] "%(seconds)s წამი"
+
+msgid "Now"
+msgstr "ახლა"
+
+#, python-format
+msgid "%s ago"
+msgstr "%s-ის წინ"
