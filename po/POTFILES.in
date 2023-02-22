@@ -1,3 +1,4 @@
+src/cron/location-update.in
 src/libloc.pc.in
 src/python/location/__init__.py
 src/python/location/database.py
