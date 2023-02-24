@@ -1,0 +1,151 @@
+# location(1) completion                                   -*- shell-script -*-
+#
+# bash-completion - part of libloc
+#
+# Copyright (C) 2020,2023 Hans-Christoph Steiner <hans@eds.org>
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 2.1 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+__location_init() {
+    if type -t _init_completion >/dev/null; then
+        _init_completion -n : || return
+    else
+	# manual initialization for older bash completion versions
+	COMPREPLY=()
+	cur="${COMP_WORDS[COMP_CWORD]}"
+	prev="${COMP_WORDS[COMP_CWORD-1]}"
+    fi
+
+    (( $# >= 1 )) && __complete_${1}
+    __ltrim_colon_completions "$cur"
+}
+
+__complete_options() {
+    case "${prev}" in
+        --directory)
+            _filedir -d
+            return 0;;
+        --cron)
+	    COMPREPLY=( $( compgen -W "daily weekly monthly" -- $cur ) )
+            return 0;;
+	--family)
+	    COMPREPLY=( $( compgen -W "ipv6 ipv4" -- $cur ) )
+            return 0;;
+        --format)
+	    COMPREPLY=( $( compgen -W "ipset list nftables xt_geoip" -- $cur ) )
+            return 0;;
+    esac
+
+    case "$cur" in
+	-*)
+	    COMPREPLY=( $( compgen -W "--help ${lopts}" -- $cur ) )
+	    return 0;;
+    esac
+}
+
+__complete_dump() {
+    __complete_options
+}
+
+__complete_get_as() {
+    __complete_options
+}
+
+__complete_export() {
+    lopts="--directory --family --format"
+    __complete_options
+}
+
+__complete_list_networks_by_as() {
+    lopts="--family --format"
+    __complete_options
+}
+
+__complete_list_networks_by_cc() {
+    lopts="--family --format"
+    __complete_options
+}
+
+__complete_list_networks_by_flags() {
+    lopts="--anonymous-proxy --satellite-provider --anycast --drop --family --format"
+    __complete_options
+}
+
+__complete_list_bogons() {
+    lopts="--family --format"
+    __complete_options
+}
+
+__complete_list_countries() {
+    lopts="--show-name --show-continent"
+    __complete_options
+}
+
+__complete_lookup() {
+    __complete_options
+}
+
+__complete_search_as() {
+    __complete_options
+}
+
+__complete_update() {
+    lopts="--cron"
+    __complete_options
+}
+
+__complete_version() {
+    __complete_options
+}
+
+__complete_verify() {
+    __complete_options
+}
+
+# for f in `location|grep -Eo '[a-z,-]+,[a-z,-]+'| sed 's/,/ /g'`; do printf '%s \\\n' $f; done|sort -u
+__cmds=" \
+dump \
+export \
+get-as \
+list-bogons \
+list-countries \
+list-networks-by-as \
+list-networks-by-cc \
+list-networks-by-flags \
+lookup \
+search-as \
+update \
+verify \
+version \
+"
+
+for c in $__cmds; do
+    eval "_location_${c} () {
+                local cur prev lopts
+                __location_init ${c//-/_}
+        }"
+done
+
+_location() {
+    local cmd
+    cmd=${COMP_WORDS[1]}
+
+    [[ $__cmds == *\ $cmd\ * ]] && _location_${cmd} || {
+            (($COMP_CWORD == 1)) && COMPREPLY=( $( compgen -W "${__cmds}" -- $cmd ) )
+        }
+}
+
+complete -F _location location
+
+return 0
