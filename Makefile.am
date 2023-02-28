@@ -177,12 +177,13 @@ EXTRA_DIST += \
 CLEANFILES += \
 	src/libloc.pc
 
-#dist_bashcompletion_DATA =
-
 if BUILD_BASH_COMPLETION
-dist_bashcompletion_DATA = \
+bashcompletion_DATA = \
 	bash-completion/location
 endif
+
+EXTRA_DIST += \
+	bash-completion/location
 
 dist_pkgpython_PYTHON = \
 	src/python/location/__init__.py \
