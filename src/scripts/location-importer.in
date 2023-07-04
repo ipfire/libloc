@@ -1404,6 +1404,11 @@ class CLI(object):
 				self.db.execute("UPDATE geofeeds SET status = %s, error = %s \
 					WHERE id = %s", e.code, "%s" % e, geofeed.id)
 
+				# Remove any previous data when the feed has been deleted
+				if e.code == 404:
+					self.db.execute("DELETE FROM geofeed_networks \
+						WHERE geofeed_id = %s", geofeed.id)
+
 			# Catch any other errors and connection timeouts
 			except (urllib.request.URLError, TimeoutError) as e:
 				log.debug("Could not fetch URL %s: %s" % (geofeed.url, e))
