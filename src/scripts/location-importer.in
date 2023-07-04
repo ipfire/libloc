@@ -1357,8 +1357,10 @@ class CLI(object):
 							continue
 
 						# Strip any excess whitespace from country codes
-						if country:
-							country = country.strip()
+						country = country.strip()
+
+						# Make the country code uppercase
+						country = country.upper()
 
 						# Check the country code
 						if not country:
