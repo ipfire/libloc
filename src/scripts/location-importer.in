@@ -1319,8 +1319,12 @@ class CLI(object):
 					self.db.execute("DELETE FROM geofeed_networks \
 						WHERE geofeed_id = %s", geofeed.id)
 
+					lineno = 0
+
 					# Read the output line by line
 					for line in f:
+						lineno += 1
+
 						line = line.decode()
 
 						# Strip any newline
@@ -1357,7 +1361,12 @@ class CLI(object):
 							country = country.strip()
 
 						# Check the country code
-						if not location.country_code_is_valid(country):
+						if not country:
+							log.debug("Empty country code in Geofeed %s line %s" \
+								% (geofeed.url, lineno))
+							continue
+
+						elif not location.country_code_is_valid(country):
 							log.warning("Invalid country code in Geofeed %s: %s" \
 								% (geofeed.url, country))
 							continue
