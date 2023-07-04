@@ -1325,7 +1325,14 @@ class CLI(object):
 					for line in f:
 						lineno += 1
 
-						line = line.decode()
+						try:
+							line = line.decode()
+
+						# Ignore any lines we cannot decode
+						except UnicodeDecodeError:
+							log.debug("Could not decode line %s in %s" \
+								% (lineno, geofeed.url))
+							continue
 
 						# Strip any newline
 						line = line.rstrip()
