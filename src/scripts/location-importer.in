@@ -26,7 +26,6 @@ import math
 import re
 import socket
 import sys
-import telnetlib
 import urllib.error
 
 # Load our location module
@@ -1068,8 +1067,6 @@ class CLI(object):
 		with self.db.transaction():
 			if server.startswith("/"):
 				self._handle_update_announcements_from_bird(server)
-			else:
-				self._handle_update_announcements_from_telnet(server)
 
 			# Purge anything we never want here
 			self.db.execute("""
@@ -1197,72 +1194,6 @@ class CLI(object):
 
 					# We don't need to process any more
 					break
-
-	def _handle_update_announcements_from_telnet(self, server):
-		# Pre-compile regular expression for routes
-		route = re.compile(b"^\*[\s\>]i([^\s]+).+?(\d+)\si\r\n", re.MULTILINE|re.DOTALL)
-
-		with telnetlib.Telnet(server) as t:
-			# Enable debug mode
-			#if ns.debug:
-			#	t.set_debuglevel(10)
-
-			# Wait for console greeting
-			greeting = t.read_until(b"> ", timeout=30)
-			if not greeting:
-				log.error("Could not get a console prompt")
-				return 1
-
-			# Disable pagination
-			t.write(b"terminal length 0\n")
-
-			# Wait for the prompt to return
-			t.read_until(b"> ")
-
-			# Fetch the routing tables
-			for protocol in ("ipv6", "ipv4"):
-				log.info("Requesting %s routing table" % protocol)
-
-				# Request the full unicast routing table
-				t.write(b"show bgp %s unicast\n" % protocol.encode())
-
-				# Read entire header which ends with "Path"
-				t.read_until(b"Path\r\n")
-
-				while True:
-					# Try reading a full entry
-					# Those might be broken across multiple lines but ends with i
-					line = t.read_until(b"i\r\n", timeout=5)
-					if not line:
-						break
-
-					# Show line for debugging
-					#log.debug(repr(line))
-
-					# Try finding a route in here
-					m = route.match(line)
-					if m:
-						network, autnum = m.groups()
-
-						# Convert network to string
-						network = network.decode()
-
-						# Append /24 for IPv4 addresses
-						if not "/" in network and not ":" in network:
-							network = "%s/24" % network
-
-						# Convert AS number to integer
-						autnum = int(autnum)
-
-						log.info("Found announcement for %s by %s" % (network, autnum))
-
-						self.db.execute("INSERT INTO announcements(network, autnum) \
-							VALUES(%s, %s) ON CONFLICT (network) DO \
-							UPDATE SET autnum = excluded.autnum, last_seen_at = CURRENT_TIMESTAMP",
-							network, autnum,
-						)
-
-				log.info("Finished reading the %s routing table" % protocol)
 
 	def _bird_cmd(self, socket_path, command):
 		# Connect to the socket
