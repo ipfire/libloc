@@ -1299,6 +1299,24 @@ class CLI(object):
 			for result in results:
 				pass
 
+		# Delete data from any feeds that did not update in the last two weeks
+		with self.db.transaction():
+			self.db.execute("""
+				DELETE FROM
+					geofeed_networks
+				WHERE
+					geofeed_networks.geofeed_id IN (
+						SELECT
+							geofeeds.id
+						FROM
+							geofeeds
+						WHERE
+							updated_at IS NULL
+						OR
+							updated_at <= CURRENT_TIMESTAMP - INTERVAL '2 weeks'
+					)
+			""")
+
 	def _fetch_geofeed(self, geofeed):
 		log.debug("Fetching Geofeed %s" % geofeed.url)
 
