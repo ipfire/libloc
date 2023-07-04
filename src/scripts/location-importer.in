@@ -1407,6 +1407,11 @@ class CLI(object):
 			except urllib.request.URLError as e:
 				log.error("Could not fetch URL %s: %s" % (geofeed.url, e))
 
+			# Catch connection timeouts
+			except TimeoutError as e:
+				self.db.execute("UPDATE geofeeds SET status = %s \
+					WHERE id = %s", 599, geofeed.id)
+
 			# Mark the geofeed as updated
 			else:
 				self.db.execute("""
