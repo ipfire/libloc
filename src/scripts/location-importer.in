@@ -194,6 +194,7 @@ class CLI(object):
 					status integer default null,
 					updated_at timestamp without time zone default null
 				);
+				ALTER TABLE geofeeds ADD COLUMN IF NOT EXISTS error text;
 				CREATE UNIQUE INDEX IF NOT EXISTS geofeeds_unique
 					ON geofeeds(url);
 				CREATE TABLE IF NOT EXISTS geofeed_networks(
@@ -1400,17 +1401,15 @@ class CLI(object):
 
 			# Catch any HTTP errors
 			except urllib.request.HTTPError as e:
-				self.db.execute("UPDATE geofeeds SET status = %s \
-					WHERE id = %s", e.code, geofeed.id)
+				self.db.execute("UPDATE geofeeds SET status = %s, error = %s \
+					WHERE id = %s", e.code, "%s" % e, geofeed.id)
 
-			# Catch any other errors
-			except urllib.request.URLError as e:
-				log.error("Could not fetch URL %s: %s" % (geofeed.url, e))
+			# Catch any other errors and connection timeouts
+			except (urllib.request.URLError, TimeoutError) as e:
+				log.debug("Could not fetch URL %s: %s" % (geofeed.url, e))
 
-			# Catch connection timeouts
-			except TimeoutError as e:
-				self.db.execute("UPDATE geofeeds SET status = %s \
-					WHERE id = %s", 599, geofeed.id)
+				self.db.execute("UPDATE geofeeds SET status = %s, error = %s \
+					WHERE id = %s", 599, "%s" % e, geofeed.id)
 
 			# Mark the geofeed as updated
 			else:
@@ -1419,7 +1418,8 @@ class CLI(object):
 						geofeeds
 					SET
 						updated_at = CURRENT_TIMESTAMP,
-						status = NULL
+						status = NULL,
+						error = NULL
 					WHERE
 						id = %s""",
 					geofeed.id,
