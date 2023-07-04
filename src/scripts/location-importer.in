@@ -1376,8 +1376,8 @@ class CLI(object):
 							continue
 
 						elif not location.country_code_is_valid(country):
-							log.warning("Invalid country code in Geofeed %s: %s" \
-								% (geofeed.url, country))
+							log.debug("Invalid country code in Geofeed %s:%s: %s" \
+								% (geofeed.url, lineno, country))
 							continue
 
 						# Write this into the database
