@@ -897,32 +897,40 @@ class CLI(object):
 
 				# Update any geofeed information
 				geofeed = inetnum.get("geofeed", None)
-
-				# Make sure that this is a HTTPS URL
-				if geofeed and not geofeed.startswith("https://"):
-					log.warning("Geofeed URL is not using HTTPS: %s" % geofeed)
-					geofeed = None
-
-				# Store/update any geofeeds
 				if geofeed:
-					self.db.execute("""
-						INSERT INTO
-							network_geofeeds(
-								network,
-								url
-							)
-						VALUES(
-							%s, %s
-						)
-						ON CONFLICT (network) DO
-							UPDATE SET url = excluded.url""",
-						"%s" % single_network, geofeed,
-					)
+					self._parse_geofeed(geofeed, single_network)
 
 				# Delete any previous geofeeds
 				else:
 					self.db.execute("DELETE FROM network_geofeeds WHERE network = %s",
 						"%s" % single_network)
+
+	def _parse_geofeed(self, url, single_network):
+		# Parse the URL
+		url = urllib.parse.urlparse(url)
+
+		# Make sure that this is a HTTPS URL
+		if not url.scheme == "https":
+			log.debug("Geofeed URL is not using HTTPS: %s" % geofeed)
+			return
+
+		# Put the URL back together normalized
+		url = url.geturl()
+
+		# Store/update any geofeeds
+		self.db.execute("""
+			INSERT INTO
+				network_geofeeds(
+					network,
+					url
+				)
+			VALUES(
+				%s, %s
+			)
+			ON CONFLICT (network) DO
+				UPDATE SET url = excluded.url""",
+			"%s" % single_network, url,
+		)
 
 	def _parse_org_block(self, block, source_key):
 		org = {}
