@@ -273,13 +273,16 @@ class CLI(object):
 			SELECT
 				autnums.number AS number,
 				COALESCE(
-					(SELECT overrides.name FROM autnum_overrides overrides
-						WHERE overrides.number = autnums.number),
+					overrides.name,
 					autnums.name
 				) AS name
-				FROM autnums
-				WHERE name <> %s ORDER BY number
-			""", "")
+			FROM
+				autnums
+			LEFT JOIN
+				autnum_overrides overrides ON autnums.number = overrides.number
+			ORDER BY
+				autnums.number
+			""")
 
 		for row in rows:
 			a = writer.add_as(row.number)
