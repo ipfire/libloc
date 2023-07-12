@@ -1,3 +1,33 @@
+libloc (0.9.16-1) unstable; urgency=medium
+
+  [ Peter Müller ]
+  * location-importer.in: Conduct sanity checks per DROP list
+  * location-importer.in: Add new Amazon region codes
+
+  [ Michael Tremer ]
+  * importer: Fix potential SQL command injection
+  * configure: Fix incorrect database path
+  * python: Export __version__ in location module
+  * writer: Add an empty string to the stringpool
+  * export: Fix generating file names for ipset output
+  * database: Ship a recent default database
+  * tests: Drop the test database and use the distributed one
+  * database: Correct error code on verification
+  * writer: Fix typo in signature variable
+  * writer: Assign correct file descriptor for private keys
+  * database: Fix check if a signature is set
+  * configure: Drop superfluous bracket
+  * configure: Bump version to 0.9.16
+
+  [ Petr Písař ]
+  * Move location manual from section 8 to section 1
+  * Remove shebangs from Python modules
+  * Move location manual from section 8 to section 1 in location-
+    update.service
+  * Install Perl files to Perl vendor directory
+
+ -- Michael Tremer <michael.tremer@ipfire.org>  Sat, 29 Oct 2022 13:25:36 +0000
+
 libloc (0.9.15-1) unstable; urgency=medium
 
   [ Peter Müller ]
