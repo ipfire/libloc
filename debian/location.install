@@ -1,4 +1,5 @@
 usr/bin
+usr/share/bash-completion/completions/location
 var/lib/location/database.db
 var/lib/location/signing-key.pem
 lib/systemd/system
