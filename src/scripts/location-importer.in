@@ -1702,7 +1702,7 @@ class CLI(object):
 				if len(fcontent) > 10:
 					self.db.execute("DELETE FROM network_overrides WHERE source = %s", name)
 				else:
-					log.error("%s (%s) returned likely bogus file, ignored" % (name, url))
+					log.warning("%s (%s) returned likely bogus file, ignored" % (name, url))
 					continue
 
 				# Iterate through every line, filter comments and add remaining networks to
@@ -1754,7 +1754,7 @@ class CLI(object):
 				if len(fcontent) > 10:
 					self.db.execute("DELETE FROM autnum_overrides WHERE source = %s", name)
 				else:
-					log.error("%s (%s) returned likely bogus file, ignored" % (name, url))
+					log.warning("%s (%s) returned likely bogus file, ignored" % (name, url))
 					continue
 
 				# Iterate through every line, filter comments and add remaining ASNs to
