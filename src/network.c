@@ -1002,7 +1002,7 @@ static int loc_network_tree_delete_node(struct loc_network_tree_node** node) {
 
 	// Return for nodes that have already been deleted
 	if (n->deleted)
-		return 1;
+		goto DELETE;
 
 	// Delete zero
 	if (n->zero) {
@@ -1026,8 +1026,10 @@ static int loc_network_tree_delete_node(struct loc_network_tree_node** node) {
 	if (!r0 || !r1)
 		return 0;
 
-	// If is safe to delete this node
-	n->deleted = 1;
+DELETE:
+	// It is now safe to delete the node
+	loc_network_tree_node_unref(n);
+	*node = NULL;
 
 	return 1;
 }
