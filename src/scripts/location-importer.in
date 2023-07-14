@@ -285,6 +285,10 @@ class CLI(object):
 			""")
 
 		for row in rows:
+			# Skip AS without names
+			if not row.name:
+				continue
+
 			a = writer.add_as(row.number)
 			a.name = row.name
 
