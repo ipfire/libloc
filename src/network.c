@@ -622,6 +622,9 @@ struct loc_network_tree_node {
 	struct loc_network_tree_node* one;
 
 	struct loc_network* network;
+
+	// Set if deleted
+	int deleted:1;
 };
 
 int loc_network_tree_new(struct loc_ctx* ctx, struct loc_network_tree** tree) {
@@ -649,16 +652,30 @@ struct loc_network_tree_node* loc_network_tree_get_root(struct loc_network_tree*
 }
 
 static struct loc_network_tree_node* loc_network_tree_get_node(struct loc_network_tree_node* node, int path) {
-	struct loc_network_tree_node** n;
+	struct loc_network_tree_node** n = NULL;
+	int r;
 
-	if (path == 0)
-		n = &node->zero;
-	else
-		n = &node->one;
+	switch (path) {
+		case 0:
+			n = &node->zero;
+			break;
+
+		case 1:
+			n = &node->one;
+			break;
+
+		default:
+			errno = EINVAL;
+			return NULL;
+	}
+
+	// If the node existed, but has been deleted, we undelete it
+	if (*n && (*n)->deleted) {
+		(*n)->deleted = 0;
 
 	// If the desired node doesn't exist, yet, we will create it
-	if (*n == NULL) {
-		int r = loc_network_tree_node_new(node->ctx, n);
+	} else if (!*n) {
+		r = loc_network_tree_node_new(node->ctx, n);
 		if (r)
 			return NULL;
 	}
@@ -681,6 +698,10 @@ static int __loc_network_tree_walk(struct loc_ctx* ctx, struct loc_network_tree_
 		int(*filter_callback)(struct loc_network* network, void* data),
 		int(*callback)(struct loc_network* network, void* data), void* data) {
 	int r;
+
+	// If the node has been deleted, don't process it
+	if (node->deleted)
+		return 0;
 
 	// Finding a network ends the walk here
 	if (node->network) {
