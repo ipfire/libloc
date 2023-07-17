@@ -886,9 +886,11 @@ static int loc_network_tree_delete_network(
 		struct loc_network_tree* tree, struct loc_network* network) {
 	struct loc_network_tree_node* node = NULL;
 
+	ERROR(tree->ctx, "Deleting network %s from tree...\n", loc_network_str(network));
+
 	node = loc_network_tree_get_path(tree, &network->first_address, network->prefix);
 	if (!node) {
-		DEBUG(tree->ctx, "Network was not found in tree\n");
+		ERROR(tree->ctx, "Network was not found in tree %s\n", loc_network_str(network));
 		return 1;
 	}
 
@@ -1043,10 +1045,14 @@ static int loc_network_tree_merge_step(struct loc_network* network, void* data) 
 					goto ERROR;
 			}
 
-			// It would be nice if we could remove the networks that we just merged,
-			// but removing objects from the tree while walking through it is something
-			// we currently don't support. The deduplication check will however find
-			// and remove these networks.
+			// Remove the merge networks
+			r = loc_network_tree_delete_network(ctx->tree, network);
+			if (r)
+				goto ERROR;
+
+			r = loc_network_tree_delete_network(ctx->tree, n);
+			if (r)
+				goto ERROR;
 
 			// Add the new network to the stack
 			r = loc_network_list_push(ctx->networks, m);
@@ -1242,7 +1248,7 @@ static int loc_network_tree_delete_nodes(struct loc_network_tree* tree) {
 int loc_network_tree_cleanup(struct loc_network_tree* tree) {
 	int r;
 
-	// Deduplicate the tree so finding merges is quicker
+	// Deduplicate the tree
 	r = loc_network_tree_dedup(tree);
 	if (r)
 		return r;
@@ -1253,11 +1259,6 @@ int loc_network_tree_cleanup(struct loc_network_tree* tree) {
 		ERROR(tree->ctx, "Could not merge networks: %m\n");
 		return r;
 	}
-
-	// Remove duplicates once again
-	r = loc_network_tree_dedup(tree);
-	if (r)
-		return r;
 
 	// Delete any unneeded nodes
 	r = loc_network_tree_delete_nodes(tree);
