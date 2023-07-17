@@ -1193,7 +1193,8 @@ ERROR:
 	return r;
 }
 
-static int loc_network_tree_delete_node(struct loc_network_tree_node** node) {
+static int loc_network_tree_delete_node(struct loc_network_tree* tree,
+		struct loc_network_tree_node** node) {
 	struct loc_network_tree_node* n = *node;
 	int r0 = 1;
 	int r1 = 1;
@@ -1204,14 +1205,14 @@ static int loc_network_tree_delete_node(struct loc_network_tree_node** node) {
 
 	// Delete zero
 	if (n->zero) {
-		r0 = loc_network_tree_delete_node(&n->zero);
+		r0 = loc_network_tree_delete_node(tree, &n->zero);
 		if (r0 < 0)
 			return r0;
 	}
 
 	// Delete one
 	if (n->one) {
-		r1 = loc_network_tree_delete_node(&n->one);
+		r1 = loc_network_tree_delete_node(tree, &n->one);
 		if (r1 < 0)
 			return r1;
 	}
@@ -1222,6 +1223,10 @@ static int loc_network_tree_delete_node(struct loc_network_tree_node** node) {
 
 	// Don't delete this node if has child nodes that we need
 	if (!r0 || !r1)
+		return 0;
+
+	// Don't delete root
+	if (tree->root == n)
 		return 0;
 
 DELETE:
@@ -1235,12 +1240,9 @@ DELETE:
 static int loc_network_tree_delete_nodes(struct loc_network_tree* tree) {
 	int r;
 
-	r = loc_network_tree_delete_node(&tree->root);
+	r = loc_network_tree_delete_node(tree, &tree->root);
 	if (r < 0)
 		return r;
-
-	// Undelete the root node in case the entire tree got deleted
-	tree->root->deleted = 0;
 
 	return 0;
 }
