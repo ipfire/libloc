@@ -1,3 +1,63 @@
+libloc (0.9.17-1) unstable; urgency=medium
+
+  [ Michael Tremer ]
+  * importer: Store geofeed URLs from RIR data
+  * importer: Add command to import geofeeds into the database
+  * importer: Just fetch any exception from the executor
+  * importer: Sync geofeeds
+  * importer: Use geofeeds for country assignment
+  * importer: Use a GIST index for networks from geofeeds
+  * importer: Add a search index match geofeed networks quicker
+  * importer: Fix reading Geofeeds from remarks
+  * importer: Ensure that we only use HTTPS URLs for Geofeeds
+  * importer: Validate country codes from Geofeeds
+  * importer: Fix parsing gzipped content on invalid Content-Type header
+  * po: Update translations
+  * network: Drop an unused function to count all networks
+  * location: Fix correct set name when family is selected
+  * export: Raise an error when trying to export ipset for both families
+  * Merge remote-tracking branch 'origin/geofeed'
+  * importer: Drop method to import routing information from route
+    servers
+  * importer: Silently ignore any empty country codes in Geofeeds
+  * importer: Convert country codes to uppercase from Geofeeds
+  * importer: Skip lines we cannot decode
+  * importer: Silence invalid country code warning
+  * importer: Catch TimeoutError when loading Geofeeds
+  * importer: Log any errors to the database
+  * geofeeds: Delete any data on 404
+  * geofeeds: Delete any data that did not update within two weeks
+  * geofeeds: Catch any invalid URLs
+  * database: Log query execution time in debug mode
+  * importer: Improve performance of AS name export query
+  * geofeed: Parse and normalize any URLs
+  * importer: AWS: Add country code of NZ for ap-southeast-5
+  * importer: Don't write AS without names into the database
+  * importer: Decrease the log level if Spamhaus' files are empty
+  * tree: Add flag to delete nodes
+  * writer: Cleanup networks before writing
+  * tree: Actually delete any deleted nodes
+  * Merge networks before writing the database
+  * networks: Delete networks from the tree on merge
+  * tree: More elegantly prevent deleting the root node
+  * network: Decreate log level when deleting networks
+  * data: Update database to 2023-07-31
+  * configure: Bump version to 0.9.17
+
+  [ Temuri Doghonadze ]
+  * po: Add Georgian translation
+
+  [ Hans-Christoph Steiner ]
+  * Add bash-completion file for the location command.
+
+  [ Stefan Schantl ]
+  * Install bash-completion files.
+
+  [ Petr Písař ]
+  * Fix string escaping in location tool
+
+ -- Michael Tremer <michael.tremer@ipfire.org>  Mon, 31 Jul 2023 16:59:38 +0000
+
 libloc (0.9.16-1) unstable; urgency=medium
 
   [ Peter Müller ]
