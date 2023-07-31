@@ -886,7 +886,7 @@ static int loc_network_tree_delete_network(
 		struct loc_network_tree* tree, struct loc_network* network) {
 	struct loc_network_tree_node* node = NULL;
 
-	ERROR(tree->ctx, "Deleting network %s from tree...\n", loc_network_str(network));
+	DEBUG(tree->ctx, "Deleting network %s from tree...\n", loc_network_str(network));
 
 	node = loc_network_tree_get_path(tree, &network->first_address, network->prefix);
 	if (!node) {
