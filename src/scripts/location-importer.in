@@ -19,6 +19,7 @@
 
 import argparse
 import concurrent.futures
+import csv
 import http.client
 import ipaddress
 import json
@@ -1033,36 +1034,42 @@ class CLI(object):
 	def _import_as_names_from_arin(self):
 		downloader = location.importer.Downloader()
 
-		# XXX: Download AS names file from ARIN (note that these names appear to be quite
-		# technical, not intended for human consumption, as description fields in
-		# organisation handles for other RIRs are - however, this is what we have got,
-		# and in some cases, it might be still better than nothing)
-		for line in downloader.request_lines("https://ftp.arin.net/info/asn.txt"):
-			# Valid lines start with a space, followed by the number of the Autonomous System ...
-			if not line.startswith(" "):
+		# Download AS names file from ARIN and load it into CSV parser
+		for line in downloader.request_lines("https://ftp.arin.net/pub/resource_registry_service/asns.csv"):
+
+			# Valid lines start with a " ...
+			if not line.startswith("\""):
 				continue
 
 			# Split line and check if there is a valid ASN in it...
-			asn, name = line.split()[0:2]
+			for row in csv.reader([line]):
+				orgname = row[0]
+				orghandle = row[1]
+				firstasn = row[3]
+				lastasn = row[4]
 
 			try:
-				asn = int(asn)
+				firstasn = int(firstasn.strip("\""))
+				lastasn = int(lastasn.strip("\""))
 			except ValueError:
-				log.debug("Skipping ARIN AS names line not containing an integer for ASN")
+				log.debug("Skipping ARIN AS names line not containing valid integers for ASN")
 				continue
 
 			# Filter invalid ASNs...
-			if not self._check_parsed_asn(asn):
+			if not self._check_parsed_asn(firstasn):
+				continue
+
+			if firstasn > lastasn:
+				continue
+
+			# Filter any bulk AS assignments, since these are present for other RIRs where
+			# we get better data from elsewhere.
+			if not firstasn == lastasn:
 				continue
 
 			# Skip any AS name that appears to be a placeholder for a different RIR or entity...
-			if re.match(r"^(ASN-BLK|)(AFCONC|AFRINIC|APNIC|ASNBLK|LACNIC|RIPE|IANA)(?:\d?$|\-)", name):
+			if re.match(r"^(AFRINIC|APNIC|LACNIC|RIPE)$", orghandle.strip("\"")):
 				continue
-
-			# Bail out in case the AS name contains anything we do not expect here...
-			if re.search(r"[^a-zA-Z0-9-_]", name):
-				log.debug("Skipping ARIN AS name for %s containing invalid characters: %s" % \
-						(asn, name))
 
 			# Things look good here, run INSERT statement and skip this one if we already have
 			# a (better?) name for this Autonomous System...
@@ -1073,8 +1080,8 @@ class CLI(object):
 					source
 				) VALUES (%s, %s, %s)
 				ON CONFLICT (number) DO NOTHING""",
-				asn,
-				name,
+				firstasn,
+				orgname.strip("\""),
 				"ARIN",
 			)
 
