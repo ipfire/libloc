@@ -602,7 +602,7 @@ static int loc_network_merge(struct loc_network** n,
 	const size_t bitlength = loc_address_bit_length(&n1->first_address) - 1;
 
 	// We cannot shorten this any more
-	if (bitlength == prefix)
+	if (bitlength < prefix)
 		return 0;
 
 	// Increment the last address of the first network
