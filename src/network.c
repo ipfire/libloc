@@ -1136,48 +1136,70 @@ ERROR:
 
 struct loc_network_tree_dedup_ctx {
 	struct loc_network_tree* tree;
-	struct loc_network* network;
+	struct loc_network_list* stack;
 	unsigned int removed;
 };
 
 static int loc_network_tree_dedup_step(struct loc_network* network, void* data) {
 	struct loc_network_tree_dedup_ctx* ctx = (struct loc_network_tree_dedup_ctx*)data;
+	struct loc_network* n = NULL;
+	int r;
 
 	// First call when we have not seen any networks, yet
-	if (!ctx->network) {
-		ctx->network = loc_network_ref(network);
-		return 0;
-	}
+	if (loc_network_list_empty(ctx->stack))
+		return loc_network_list_push(ctx->stack, network);
 
-	// If network is a subnet of ctx->network, and all properties match,
-	// we can drop the network.
-	if (loc_network_is_subnet(ctx->network, network)) {
-		if (loc_network_properties_cmp(ctx->network, network) == 0) {
-			// Increment counter
-			ctx->removed++;
+	const unsigned int prefix = loc_network_prefix(network);
 
-			// Remove the network
-			return loc_network_tree_delete_network(ctx->tree, network);
+	// Remove any networks that are not interesting
+	loc_network_list_remove_with_prefix_smaller_than(ctx->stack, prefix);
+
+	for (int i = loc_network_list_size(ctx->stack) - 1; i >= 0; i--) {
+		n = loc_network_list_get(ctx->stack, i);
+
+		// Is network a subnet?
+		if (loc_network_is_subnet(n, network)) {
+			// Do all properties match?
+			if (loc_network_properties_cmp(n, network) == 0) {
+				r = loc_network_tree_delete_network(ctx->tree, network);
+				if (r)
+					return r;
+
+				// Count
+				ctx->removed++;
+
+				// Once we removed the subnet, we are done
+				goto END;
+			}
+
+			// Once we found a subnet, we are done
+			break;
 		}
-
-		return 0;
 	}
 
-	// Drop the reference to the previous network
-	if (ctx->network)
-		loc_network_unref(ctx->network);
-	ctx->network = loc_network_ref(network);
+	// If network did not get removed, we push it into the stack
+	r = loc_network_list_push(ctx->stack, network);
+	if (r)
+		return r;
 
-	return 0;
+END:
+	if (n)
+		loc_network_unref(n);
+
+	return r;
 }
 
 static int loc_network_tree_dedup(struct loc_network_tree* tree) {
 	struct loc_network_tree_dedup_ctx ctx = {
 		.tree    = tree,
-		.network = NULL,
+		.stack   = NULL,
 		.removed = 0,
 	};
 	int r;
+
+	r = loc_network_list_new(tree->ctx, &ctx.stack);
+	if (r)
+		return r;
 
 	// Walk through the entire tree
 	r = loc_network_tree_walk(tree, NULL, loc_network_tree_dedup_step, &ctx);
@@ -1187,8 +1209,8 @@ static int loc_network_tree_dedup(struct loc_network_tree* tree) {
 	DEBUG(tree->ctx, "%u network(s) have been removed\n", ctx.removed);
 
 ERROR:
-	if (ctx.network)
-		loc_network_unref(ctx.network);
+	if (ctx.stack)
+		loc_network_list_unref(ctx.stack);
 
 	return r;
 }
