@@ -3,7 +3,7 @@
 #                                                                             #
 # libloc - A library to determine the location of someone on the Internet     #
 #                                                                             #
-# Copyright (C) 2020-2022 IPFire Development Team <info@ipfire.org>           #
+# Copyright (C) 2020-2024 IPFire Development Team <info@ipfire.org>           #
 #                                                                             #
 # This library is free software; you can redistribute it and/or               #
 # modify it under the terms of the GNU Lesser General Public                  #
@@ -1687,7 +1687,7 @@ class CLI(object):
 				]
 
 		asn_lists = [
-					("SPAMHAUS-ASNDROP", "https://www.spamhaus.org/drop/asndrop.txt")
+					("SPAMHAUS-ASNDROP", "https://www.spamhaus.org/drop/asndrop.json")
 				]
 
 		for name, url in ip_lists:
@@ -1760,22 +1760,32 @@ class CLI(object):
 
 				# Iterate through every line, filter comments and add remaining ASNs to
 				# the override table in case they are valid...
-				for sline in f.readlines():
+				for sline in fcontent:
 					# The response is assumed to be encoded in UTF-8...
 					sline = sline.decode("utf-8")
 
-					# Comments start with a semicolon...
-					if sline.startswith(";"):
+					# Load every line as a JSON object and try to obtain an ASN from it...
+					try:
+						lineobj = json.loads(sline)
+					except json.decoder.JSONDecodeError:
+						log.error("Unable to parse line as a JSON object: %s" % sline)
 						continue
 
-					# Throw away anything after the first space...
-					sline = sline.split()[0]
+					# Skip line contiaining file metadata
+					try:
+						type = lineobj["type"]
 
-					# ... strip the "AS" prefix from it ...
-					sline = sline.strip("AS")
+						if type == "metadata":
+							continue
+					except KeyError:
+						pass
 
-					# ... and convert it into an integer. Voila.
-					asn = int(sline)
+					try:
+						asn = lineobj["asn"]
+						as_name = lineobj["asname"]
+					except KeyError:
+						log.warning("Unable to extract necessary information from line: %s" % sline)
+						continue
 
 					# Filter invalid ASNs...
 					if not self._check_parsed_asn(asn):
@@ -1794,6 +1804,20 @@ class CLI(object):
 						"%s" % asn,
 						name,
 						True
+					)
+
+					# In case we do not have an name for this AS already, update
+					# autnums table accordingly
+					self.db.execute("""
+						INSERT INTO autnums(
+							number,
+							name,
+							source
+						) VALUES (%s, %s, %s)
+						ON CONFLICT (number) DO NOTHING""",
+						"%s" % asn,
+						as_name,
+						name
 					)
 
 	@staticmethod
