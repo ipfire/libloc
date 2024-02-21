@@ -114,8 +114,16 @@ static int Country_set_continent_code(CountryObject* self, PyObject* value) {
 	return 0;
 }
 
-static PyObject* Country_richcompare(CountryObject* self, CountryObject* other, int op) {
-	int r = loc_country_cmp(self->country, other->country);
+static PyObject* Country_richcompare(CountryObject* self, PyObject* other, int op) {
+	int r;
+
+	// Check for type
+	if (!PyObject_IsInstance(other, (PyObject *)&CountryType))
+		Py_RETURN_NOTIMPLEMENTED;
+
+	CountryObject* o = (CountryObject*)other;
+
+	r = loc_country_cmp(self->country, o->country);
 
 	switch (op) {
 		case Py_EQ:
