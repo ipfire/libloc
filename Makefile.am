@@ -362,6 +362,7 @@ testdata.db: examples/python/create-database.py
 		$(PYTHON) $< $@
 
 dist_check_SCRIPTS = \
+	tests/python/networks-dedup.py \
 	tests/python/test-database.py \
 	tests/python/test-export.py
 
