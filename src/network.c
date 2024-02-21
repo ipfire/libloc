@@ -162,6 +162,10 @@ LOC_EXPORT unsigned int loc_network_prefix(struct loc_network* network) {
 	return 0;
 }
 
+unsigned int loc_network_raw_prefix(struct loc_network* network) {
+	return network->prefix;
+}
+
 LOC_EXPORT const struct in6_addr* loc_network_get_first_address(struct loc_network* network) {
 	return &network->first_address;
 }

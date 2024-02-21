@@ -200,7 +200,7 @@ int loc_network_tree_add_network(struct loc_network_tree* tree, struct loc_netwo
 	DEBUG(tree->ctx, "Adding network %p to tree %p\n", network, tree);
 
 	const struct in6_addr* first_address = loc_network_get_first_address(network);
-	const unsigned int prefix = loc_network_prefix(network);
+	const unsigned int prefix = loc_network_raw_prefix(network);
 
 	struct loc_network_tree_node* node = loc_network_tree_get_path(tree, first_address, prefix);
 	if (!node) {
@@ -228,7 +228,7 @@ static int loc_network_tree_delete_network(
 	DEBUG(tree->ctx, "Deleting network %s from tree...\n", loc_network_str(network));
 
 	const struct in6_addr* first_address = loc_network_get_first_address(network);
-		const unsigned int prefix = loc_network_prefix(network);
+		const unsigned int prefix = loc_network_raw_prefix(network);
 
 	node = loc_network_tree_get_path(tree, first_address, prefix);
 	if (!node) {
