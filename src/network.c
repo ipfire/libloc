@@ -51,6 +51,8 @@ struct loc_network {
 
 LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network,
 		struct in6_addr* address, unsigned int prefix) {
+	struct loc_network* n = NULL;
+
 	// Validate the prefix
 	if (!loc_address_valid_prefix(address, prefix)) {
 		ERROR(ctx, "Invalid prefix in %s: %u\n", loc_address_str(address), prefix);
@@ -58,7 +60,8 @@ LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network
 		return 1;
 	}
 
-	struct loc_network* n = calloc(1, sizeof(*n));
+	// Allocate a new network
+	n = calloc(1, sizeof(*n));
 	if (!n)
 		return 1;
 
@@ -72,7 +75,7 @@ LOC_EXPORT int loc_network_new(struct loc_ctx* ctx, struct loc_network** network
 		n->prefix = prefix;
 
 	// Convert the prefix into a bitmask
-	struct in6_addr bitmask = loc_prefix_to_bitmask(n->prefix);
+	const struct in6_addr bitmask = loc_prefix_to_bitmask(n->prefix);
 
 	// Store the first and last address in the network
 	n->first_address = loc_address_and(address, &bitmask);
