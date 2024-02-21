@@ -477,7 +477,7 @@ class CLI(object):
 		# Did we run successfully?
 		error = False
 
-		# Fetch all valid country codes to check parsed networks aganist
+		# Fetch all valid country codes to check parsed networks against
 		validcountries = self.countries
 
 		# Iterate over all potential sources
@@ -524,8 +524,15 @@ class CLI(object):
 
 				# Process all parsed networks from every RIR we happen to have access to,
 				# insert the largest network chunks into the networks table immediately...
-				families = self.db.query("SELECT DISTINCT family(network) AS family FROM _rirdata \
-					ORDER BY family(network)")
+				families = self.db.query("""
+					SELECT DISTINCT
+						family(network) AS family
+					FROM
+						_rirdata
+					ORDER BY
+						family(network)
+					""",
+				)
 
 				for family in (row.family for row in families):
 					# Fetch the smallest mask length in our data set
@@ -537,8 +544,8 @@ class CLI(object):
 						FROM
 							_rirdata
 						WHERE
-							family(network) = %s""",
-						family,
+							family(network) = %s
+						""", family,
 					)
 
 					# Copy all networks
@@ -578,8 +585,8 @@ class CLI(object):
 							family(network) = %s
 						ORDER BY
 							masklen(network) ASC
-						OFFSET 1""",
-						family,
+						OFFSET 1
+						""", family,
 					)
 
 					# ... and insert networks with this prefix in case they provide additional
@@ -631,16 +638,34 @@ class CLI(object):
 								parent_country IS NULL
 							OR
 								country <> parent_country
-							ON CONFLICT DO NOTHING""",
-							family, prefix,
+							ON CONFLICT DO NOTHING
+							""", family, prefix,
 						)
 
 				self.db.execute("""
-					INSERT INTO autnums(number, name, source)
-						SELECT _autnums.number, _organizations.name, _organizations.source FROM _autnums
-							JOIN _organizations ON _autnums.organization = _organizations.handle
-					ON CONFLICT (number) DO UPDATE SET name = excluded.name;
-				""")
+					INSERT INTO
+						autnums
+					(
+						number,
+						name,
+						source
+					)
+					SELECT
+						_autnums.number,
+						_organizations.name,
+						_organizations.source
+					FROM
+						_autnums
+					JOIN
+						_organizations ON _autnums.organization = _organizations.handle
+					ON CONFLICT
+					(
+						number
+					)
+					DO UPDATE
+						SET name = excluded.name
+					""",
+				)
 
 		# Download and import (technical) AS names from ARIN
 		with self.db.transaction():
