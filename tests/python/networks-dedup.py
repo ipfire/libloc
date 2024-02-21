@@ -23,6 +23,10 @@ import tempfile
 import unittest
 
 class Test(unittest.TestCase):
+	def setUp(self):
+		# Show even very large diffs
+		self.maxDiff = None
+
 	def __test(self, inputs, outputs):
 		"""
 			Takes a list of networks that are written to the database and
@@ -73,8 +77,6 @@ class Test(unittest.TestCase):
 		"""
 			Nothing should be changed here
 		"""
-		self.maxDiff = None
-
 		networks = (
 			("10.0.0.0/8", None, None),
 			("20.0.0.0/8", None, None),
