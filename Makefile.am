@@ -104,6 +104,7 @@ pkginclude_HEADERS = \
 	src/libloc/format.h \
 	src/libloc/network.h \
 	src/libloc/network-list.h \
+	src/libloc/network-tree.h \
 	src/libloc/private.h \
 	src/libloc/stringpool.h \
 	src/libloc/resolv.h \
@@ -122,6 +123,7 @@ src_libloc_la_SOURCES = \
 	src/database.c \
 	src/network.c \
 	src/network-list.c \
+	src/network-tree.c \
 	src/resolv.c \
 	src/stringpool.c \
 	src/writer.c

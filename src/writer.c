@@ -40,6 +40,7 @@
 #include <libloc/database.h>
 #include <libloc/format.h>
 #include <libloc/network.h>
+#include <libloc/network-tree.h>
 #include <libloc/private.h>
 #include <libloc/writer.h>
 
