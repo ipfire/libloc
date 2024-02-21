@@ -47,6 +47,8 @@ VALID_ASN_RANGES = (
 	(131072, 4199999999),
 )
 
+# Configure the CSV parser for ARIN
+csv.register_dialect("arin", delimiter=",", quoting=csv.QUOTE_ALL, quotechar="\"")
 
 class CLI(object):
 	def parse_cli(self):
@@ -1031,59 +1033,73 @@ class CLI(object):
 			"%s" % network, country, [country], source_key,
 		)
 
-	def _import_as_names_from_arin(self):
-		downloader = location.importer.Downloader()
+	def _import_as_names_from_arin(self, downloader):
+		# Delete all previously imported content
+		self.db.execute("DELETE FROM autnums  WHERE source = %s", "ARIN")
 
-		# Download AS names file from ARIN and load it into CSV parser
-		for line in downloader.request_lines("https://ftp.arin.net/pub/resource_registry_service/asns.csv"):
+		# Try to retrieve the feed from ftp.arin.net
+		feed = downloader.request_lines("https://ftp.arin.net/pub/resource_registry_service/asns.csv")
 
-			# Valid lines start with a " ...
-			if not line.startswith("\""):
+		# Walk through the file
+		for line in csv.DictReader(feed, dialect="arin"):
+			log.debug("Processing object: %s" % line)
+
+			# Fetch status
+			status = line.get("Status")
+
+			# We are only interested in anything managed by ARIN
+			if not status == "Full Registry Services":
 				continue
 
-			# Split line and check if there is a valid ASN in it...
-			for row in csv.reader([line]):
-				orgname = row[0]
-				orghandle = row[1]
-				firstasn = row[3]
-				lastasn = row[4]
+			# Fetch organization name
+			name = line.get("Org Name")
+
+			# Extract ASNs
+			first_asn = line.get("Start AS Number")
+			last_asn  = line.get("End AS Number")
+
+			# Cast to a number
+			try:
+				first_asn = int(first_asn)
+			except TypeError as e:
+				log.warning("Could not parse ASN '%s'" % first_asn)
+				continue
 
 			try:
-				firstasn = int(firstasn.strip("\""))
-				lastasn = int(lastasn.strip("\""))
-			except ValueError:
-				log.debug("Skipping ARIN AS names line not containing valid integers for ASN")
+				last_asn = int(last_asn)
+			except TypeError as e:
+				log.warning("Could not parse ASN '%s'" % last_asn)
 				continue
 
-			# Filter invalid ASNs...
-			if not self._check_parsed_asn(firstasn):
-				continue
+			# Check if the range is valid
+			if last_asn < first_asn:
+				log.warning("Invalid ASN range %s-%s" % (first_asn, last_asn))
 
-			if firstasn > lastasn:
-				continue
+			# Insert everything into the database
+			for asn in range(first_asn, last_asn + 1):
+				if not self._check_parsed_asn(asn):
+					log.warning("Skipping invalid ASN %s" % asn)
+					continue
 
-			# Filter any bulk AS assignments, since these are present for other RIRs where
-			# we get better data from elsewhere.
-			if not firstasn == lastasn:
-				continue
-
-			# Skip any AS name that appears to be a placeholder for a different RIR or entity...
-			if re.match(r"^(AFRINIC|APNIC|LACNIC|RIPE)$", orghandle.strip("\"")):
-				continue
-
-			# Things look good here, run INSERT statement and skip this one if we already have
-			# a (better?) name for this Autonomous System...
-			self.db.execute("""
-				INSERT INTO autnums(
-					number,
-					name,
-					source
-				) VALUES (%s, %s, %s)
-				ON CONFLICT (number) DO NOTHING""",
-				firstasn,
-				orgname.strip("\""),
-				"ARIN",
-			)
+				self.db.execute("""
+					INSERT INTO
+						autnums
+					(
+						number,
+						name,
+						source
+					)
+					VALUES
+					(
+						%s, %s, %s
+					)
+					ON CONFLICT
+					(
+						number
+					)
+					DO NOTHING
+					""", asn, name, "ARIN",
+				)
 
 	def handle_update_announcements(self, ns):
 		server = ns.server[0]
