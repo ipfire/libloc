@@ -502,6 +502,7 @@ class CLI(object):
 				""")
 
 				# Remove all previously imported content
+				self.db.execute("DELETE FROM autnums  WHERE source = %s", source)
 				self.db.execute("DELETE FROM networks WHERE source = %s", source)
 
 				try:
