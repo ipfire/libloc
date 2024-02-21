@@ -11,3 +11,4 @@ src/scripts/location-importer.in
 src/scripts/location.in
 src/systemd/location-update.service.in
 src/systemd/location-update.timer.in
+tools/copy.py

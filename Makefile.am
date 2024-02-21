@@ -542,6 +542,9 @@ upload-man: $(MANPAGES_HTML)
 	rsync -avHz --delete --progress $(MANPAGES_HTML) ms@fs01.haj.ipfire.org:/pub/man-pages/$(PACKAGE_NAME)/
 
 EXTRA_DIST += \
+	tools/copy.py
+
+EXTRA_DIST += \
 	debian/build.sh \
 	debian/changelog \
 	debian/control \
