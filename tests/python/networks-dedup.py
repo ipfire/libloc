@@ -27,11 +27,14 @@ class Test(unittest.TestCase):
 		# Show even very large diffs
 		self.maxDiff = None
 
-	def __test(self, inputs, outputs):
+	def __test(self, inputs, outputs=None):
 		"""
 			Takes a list of networks that are written to the database and
 			compares the result with the second argument.
 		"""
+		if outputs is None:
+			outputs = [network for network, cc, asn in inputs]
+
 		with tempfile.NamedTemporaryFile() as f:
 			w = location.Writer()
 
@@ -90,7 +93,51 @@ class Test(unittest.TestCase):
 		)
 
 		# The input should match the output
-		self.__test(networks, [network for network, cc, asn in networks])
+		self.__test(networks)
+
+	def test_dedup_with_properties(self):
+		"""
+			A more complicated deduplication test where properties have been set
+		"""
+		# Nothing should change here because of different countries
+		self.__test(
+			(
+				("10.0.0.0/8",  "DE", None),
+				("10.0.0.0/16", "AT", None),
+				("10.0.0.0/24", "DE", None),
+			),
+		)
+
+		# Nothing should change here because of different ASNs
+		self.__test(
+			(
+				("10.0.0.0/8",  None, 1000),
+				("10.0.0.0/16", None, 2000),
+				("10.0.0.0/24", None, 1000),
+			),
+		)
+
+		# Everything can be merged again
+		self.__test(
+			(
+				("10.0.0.0/8",  "DE", 1000),
+				("10.0.0.0/16", "DE", 1000),
+				("10.0.0.0/24", "DE", 1000),
+			),
+			("10.0.0.0/8",),
+		)
+
+	def test_merge(self):
+		"""
+			Checks whether the merging algorithm works
+		"""
+		self.__test(
+			(
+				("10.0.0.0/9",   None, None),
+				("10.128.0.0/9", None, None),
+			),
+			("10.0.0.0/8",),
+		)
 
 
 if __name__ == "__main__":
