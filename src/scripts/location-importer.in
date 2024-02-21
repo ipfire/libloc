@@ -1610,7 +1610,7 @@ class CLI(object):
 				"eu-south-2": "ES",
 				"eu-west-3": "FR",
 				"eu-north-1": "SE",
-				"eusc-de-east-1", "DE", # XXX: Undocumented, likely located in Berlin rather than Frankfurt
+				"eusc-de-east-1" : "DE", # XXX: Undocumented, likely located in Berlin rather than Frankfurt
 				"il-central-1": "IL", # XXX: This one is not documented anywhere except for ip-ranges.json itself
 				"me-central-1": "AE",
 				"me-south-1": "BH",
