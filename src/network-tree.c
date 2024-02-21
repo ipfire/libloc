@@ -479,7 +479,8 @@ ERROR:
 struct loc_network_tree_dedup_ctx {
 	struct loc_network_tree* tree;
 	struct loc_network_list* stack;
-	unsigned int removed;
+	unsigned int* removed;
+	int family;
 };
 
 static int loc_network_tree_dedup_step(struct loc_network* network, void* data) {
@@ -508,7 +509,7 @@ static int loc_network_tree_dedup_step(struct loc_network* network, void* data) 
 					return r;
 
 				// Count
-				ctx->removed++;
+				(*ctx->removed)++;
 
 				// Once we removed the subnet, we are done
 				goto END;
@@ -531,11 +532,20 @@ END:
 	return r;
 }
 
-static int loc_network_tree_dedup(struct loc_network_tree* tree) {
+static int loc_network_tree_dedup_filter(struct loc_network* network, void* data) {
+	const struct loc_network_tree_dedup_ctx* ctx = data;
+
+	// Match address family
+	return ctx->family == loc_network_address_family(network);
+}
+
+static int loc_network_tree_dedup_one(struct loc_network_tree* tree,
+		const int family, unsigned int* removed) {
 	struct loc_network_tree_dedup_ctx ctx = {
 		.tree    = tree,
 		.stack   = NULL,
-		.removed = 0,
+		.removed = removed,
+		.family  = family,
 	};
 	int r;
 
@@ -544,17 +554,33 @@ static int loc_network_tree_dedup(struct loc_network_tree* tree) {
 		return r;
 
 	// Walk through the entire tree
-	r = loc_network_tree_walk(tree, NULL, loc_network_tree_dedup_step, &ctx);
+	r = loc_network_tree_walk(tree,
+		loc_network_tree_dedup_filter, loc_network_tree_dedup_step, &ctx);
 	if (r)
 		goto ERROR;
-
-	DEBUG(tree->ctx, "%u network(s) have been removed\n", ctx.removed);
 
 ERROR:
 	if (ctx.stack)
 		loc_network_list_unref(ctx.stack);
 
 	return r;
+}
+
+static int loc_network_tree_dedup(struct loc_network_tree* tree) {
+	unsigned int removed = 0;
+	int r;
+
+	r = loc_network_tree_dedup_one(tree, AF_INET6, &removed);
+	if (r)
+		return r;
+
+	r = loc_network_tree_dedup_one(tree, AF_INET, &removed);
+	if (r)
+		return r;
+
+	DEBUG(tree->ctx, "%u network(s) have been removed\n", removed);
+
+	return 0;
 }
 
 static int loc_network_tree_delete_node(struct loc_network_tree* tree,
