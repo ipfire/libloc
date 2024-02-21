@@ -137,6 +137,22 @@ static PyObject* Country_richcompare(CountryObject* self, CountryObject* other, 
 	Py_RETURN_NOTIMPLEMENTED;
 }
 
+static Py_hash_t Country_hash(CountryObject* self) {
+	PyObject* code = NULL;
+	Py_hash_t hash = 0;
+
+	// Fetch the code as Python string
+	code = Country_get_code(self);
+	if (!code)
+		return -1;
+
+	// Fetch the hash of that string
+	hash = PyObject_Hash(code);
+	Py_DECREF(code);
+
+	return hash;
+}
+
 static struct PyGetSetDef Country_getsetters[] = {
 	{
 		"code",
@@ -175,4 +191,5 @@ PyTypeObject CountryType = {
 	.tp_repr =               (reprfunc)Country_repr,
 	.tp_str =                (reprfunc)Country_str,
 	.tp_richcompare =        (richcmpfunc)Country_richcompare,
+	.tp_hash =               (hashfunc)Country_hash,
 };
