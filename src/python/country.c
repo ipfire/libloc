@@ -81,6 +81,10 @@ static PyObject* Country_str(CountryObject* self) {
 static PyObject* Country_get_name(CountryObject* self) {
 	const char* name = loc_country_get_name(self->country);
 
+	// Return None if no name has been set
+	if (!name)
+		Py_RETURN_NONE;
+
 	return PyUnicode_FromString(name);
 }
 
@@ -98,6 +102,9 @@ static int Country_set_name(CountryObject* self, PyObject* value) {
 
 static PyObject* Country_get_continent_code(CountryObject* self) {
 	const char* code = loc_country_get_continent_code(self->country);
+
+	if (!code)
+		Py_RETURN_NONE;
 
 	return PyUnicode_FromString(code);
 }
