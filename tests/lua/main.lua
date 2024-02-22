@@ -65,4 +65,9 @@ function test_network()
 	luaunit.assertNil(n1:get_country_code())
 end
 
+-- This test is not very deterministic but should help to test the GC methods
+function test_gc()
+	print("GC: " .. collectgarbage("collect"))
+end
+
 os.exit(luaunit.LuaUnit.run())
