@@ -25,6 +25,7 @@
 
 #include "location.h"
 #include "database.h"
+#include "network.h"
 
 struct loc_ctx* ctx = NULL;
 
@@ -54,6 +55,11 @@ int luaopen_location(lua_State* L) {
 	register_database(L);
 
 	lua_setfield(L, -2, "Database");
+
+	// Register Network type
+	register_network(L);
+
+	lua_setfield(L, -2, "Network");
 
 	return 1;
 }

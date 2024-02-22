@@ -109,15 +109,5 @@ static const struct luaL_Reg database_functions[] = {
 };
 
 int register_database(lua_State* L) {
-	// Create a new metatable
-	luaL_newmetatable(L, "location.Database");
-
-	// Set functions
-	luaL_setfuncs(L, database_functions, 0);
-
-	// Configure metatable
-	lua_pushvalue(L, -1);
-	lua_setfield(L, -2, "__index");
-
-	return 1;
+	return register_class(L, "location.Database", database_functions);
 }

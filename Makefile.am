@@ -240,7 +240,9 @@ src_lua_location_la_SOURCES = \
 	src/lua/database.c \
 	src/lua/database.h \
 	src/lua/location.c \
-	src/lua/location.h
+	src/lua/location.h \
+	src/lua/network.c \
+	src/lua/network.h
 
 src_lua_location_la_CFLAGS = \
 	$(AM_CFLAGS) \
@@ -262,7 +264,9 @@ EXTRA_DIST += \
 	src/lua/database.c \
 	src/lua/database.h \
 	src/lua/location.c \
-	src/lua/location.h
+	src/lua/location.h \
+	src/lua/network.c \
+	src/lua/network.h
 
 LUA_TESTS = \
 	tests/lua/main.lua

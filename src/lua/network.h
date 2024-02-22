@@ -14,30 +14,12 @@
 	Lesser General Public License for more details.
 */
 
-#ifndef LUA_LOCATION_LOCATION_H
-#define LUA_LOCATION_LOCATION_H
+#ifndef LUA_LOCATION_NETWORK_H
+#define LUA_LOCATION_NETWORK_H
 
 #include <lua.h>
+#include <lauxlib.h>
 
-#include <libloc/libloc.h>
+int register_network(lua_State* L);
 
-extern struct loc_ctx* ctx;
-
-int luaopen_location(lua_State* L);
-
-static inline int register_class(lua_State* L,
-		const char* name, const struct luaL_Reg* functions) {
-	// Create a new metatable
-	luaL_newmetatable(L, name);
-
-	// Set functions
-	luaL_setfuncs(L, functions, 0);
-
-	// Configure metatable
-	lua_pushvalue(L, -1);
-	lua_setfield(L, -2, "__index");
-
-	return 1;
-}
-
-#endif /* LUA_LOCATION_LOCATION_H */
+#endif /* LUA_LOCATION_NETWORK_H */
