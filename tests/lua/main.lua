@@ -43,7 +43,11 @@ function test_lookup()
 	db = location.Database.open(ENV_TEST_DATABASE)
 
 	-- Perform a lookup
-	db.lookup("81.3.27.32")
+	network = db:lookup("81.3.27.32")
+
+	luaunit.assertEquals(network:get_family(), 2) -- AF_INET
+	luaunit.assertEquals(network:get_country_code(), "DE")
+	luaunit.assertEquals(network:get_asn(), 24679)
 end
 
 function test_network()
@@ -55,7 +59,7 @@ function test_network()
 	luaunit.assertNil(n1:get_asn())
 
 	-- The family should be IPv4
-	luaunit.assertEquals(n1:get_family(), 2)
+	luaunit.assertEquals(n1:get_family(), 2) -- AF_INET
 
 	-- The country code should be empty
 	luaunit.assertNil(n1:get_country_code())
