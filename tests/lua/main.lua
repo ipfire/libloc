@@ -65,6 +65,18 @@ function test_network()
 	luaunit.assertNil(n1:get_country_code())
 end
 
+function test_as()
+	location = require("location")
+
+	-- Create a new AS
+	as = location.AS.new(12345)
+	luaunit.assertEquals(as:get_number(), 12345)
+	luaunit.assertNil(as:get_name())
+
+	-- Reset
+	as = nil
+end
+
 function test_country()
 	location = require("location")
 
