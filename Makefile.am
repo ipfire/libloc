@@ -3,6 +3,7 @@ CLEANFILES =
 INSTALL_DIRS =
 ACLOCAL_AMFLAGS = -I m4 ${ACLOCAL_FLAGS}
 AM_MAKEFLAGS = --no-print-directory
+check_SCRIPTS =
 
 SUBDIRS = . po
 BINDINGS =
@@ -227,6 +228,46 @@ src_python__location_la_LIBADD = \
 	src/libloc.la \
 	$(PYTHON_LIBS)
 
+# ------------------------------------------------------------------------------
+
+if ENABLE_LUA
+lua_LTLIBRARIES = \
+	src/lua/location.la
+
+luadir = $(LUA_INSTALL_CMOD)
+
+src_lua_location_la_SOURCES = \
+	src/lua/location.c \
+	src/lua/location.h
+
+src_lua_location_la_CFLAGS = \
+	$(AM_CFLAGS) \
+	$(LUA_CFLAGS)
+
+src_lua_location_la_LDFLAGS = \
+	$(AM_LDFLAGS) \
+	$(LUA_LDFLAGS) \
+	-shared \
+	-module \
+	-avoid-version
+
+src_lua_location_la_LIBADD = \
+	src/libloc.la \
+	$(LUA_LIBS)
+endif
+
+EXTRA_DIST += \
+	src/lua/location.c \
+	src/lua/location.h
+
+LUA_TESTS = \
+	tests/lua/main.lua
+
+EXTRA_DIST += \
+	$(LUA_TESTS)
+
+# ------------------------------------------------------------------------------
+
 # Compile & install bindings
 all-local: $(foreach binding,$(BINDINGS),build-$(binding))
 check-local: $(foreach binding,$(BINDINGS),check-$(binding))
@@ -346,11 +387,13 @@ TESTS_LDADD = \
 	src/libloc-internal.la
 
 TESTS_ENVIRONMENT = \
+	LUA_PATH="$(abs_builddir)/src/lua/.libs/?.so;;" \
 	PYTHONPATH=$(abs_srcdir)/src/python:$(abs_builddir)/src/python/.libs \
 	TEST_DATA_DIR="$(abs_top_srcdir)/data"
 
 TESTS = \
 	$(check_PROGRAMS) \
+	$(check_SCRIPTS) \
 	$(dist_check_SCRIPTS)
 
 CLEANFILES += \
@@ -366,6 +409,11 @@ dist_check_SCRIPTS = \
 	tests/python/networks-dedup.py \
 	tests/python/test-database.py \
 	tests/python/test-export.py
+
+if ENABLE_LUA
+check_SCRIPTS += \
+	$(LUA_TESTS)
+endif
 
 check_PROGRAMS = \
 	src/test-libloc \
