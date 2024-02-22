@@ -237,6 +237,8 @@ lua_LTLIBRARIES = \
 luadir = $(LUA_INSTALL_CMOD)
 
 src_lua_location_la_SOURCES = \
+	src/lua/database.c \
+	src/lua/database.h \
 	src/lua/location.c \
 	src/lua/location.h
 
@@ -257,6 +259,8 @@ src_lua_location_la_LIBADD = \
 endif
 
 EXTRA_DIST += \
+	src/lua/database.c \
+	src/lua/database.h \
 	src/lua/location.c \
 	src/lua/location.h
 
@@ -389,7 +393,8 @@ TESTS_LDADD = \
 TESTS_ENVIRONMENT = \
 	LUA_CPATH="$(abs_builddir)/src/lua/.libs/?.so;;" \
 	PYTHONPATH=$(abs_srcdir)/src/python:$(abs_builddir)/src/python/.libs \
-	TEST_DATA_DIR="$(abs_top_srcdir)/data"
+	TEST_DATA_DIR="$(abs_top_srcdir)/data" \
+	TEST_DATABASE="$(abs_top_srcdir)/data/database.db"
 
 TESTS = \
 	$(check_PROGRAMS) \

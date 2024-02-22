@@ -14,15 +14,12 @@
 	Lesser General Public License for more details.
 */
 
-#ifndef LUA_LOCATION_LOCATION_H
-#define LUA_LOCATION_LOCATION_H
+#ifndef LUA_LOCATION_DATABASE_H
+#define LUA_LOCATION_DATABASE_H
 
 #include <lua.h>
+#include <lauxlib.h>
 
-#include <libloc/libloc.h>
+int register_database(lua_State* L);
 
-extern struct loc_ctx* ctx;
-
-int luaopen_location(lua_State* L);
-
-#endif /* LUA_LOCATION_LOCATION_H */
+#endif /* LUA_LOCATION_DATABASE_H */

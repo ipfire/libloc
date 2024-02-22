@@ -24,6 +24,7 @@
 #include <libloc/libloc.h>
 
 #include "location.h"
+#include "database.h"
 
 struct loc_ctx* ctx = NULL;
 
@@ -48,6 +49,11 @@ int luaopen_location(lua_State* L) {
 
 	// Register functions
 	luaL_newlib(L, location_functions);
+
+	// Register Database type
+	register_database(L);
+
+	lua_setfield(L, -2, "Database");
 
 	return 1;
 }

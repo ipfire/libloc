@@ -19,12 +19,31 @@
 
 luaunit = require("luaunit")
 
+ENV_TEST_DATABASE = os.getenv("TEST_DATABASE")
+
 function test_load()
 	-- Try loading the module
 	location = require("location")
 
 	-- Print the version
 	print(location.version())
+end
+
+function test_open_database()
+	location = require("location")
+
+	-- Open the database
+	db = location.Database.open(ENV_TEST_DATABASE)
+end
+
+function test_lookup()
+	location = require("location")
+
+	-- Open the database
+	db = location.Database.open(ENV_TEST_DATABASE)
+
+	-- Perform a lookup
+	db.lookup("81.3.27.32")
 end
 
 os.exit(luaunit.LuaUnit.run())
