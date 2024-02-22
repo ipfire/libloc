@@ -22,6 +22,7 @@
 #include <lualib.h>
 
 #include <libloc/libloc.h>
+#include <libloc/network.h>
 
 #include "location.h"
 #include "as.h"
@@ -76,6 +77,19 @@ int luaopen_location(lua_State* L) {
 	// Set DATABASE_PATH
 	lua_pushstring(L, LIBLOC_DEFAULT_DATABASE_PATH);
 	lua_setfield(L, -2, "DATABASE_PATH");
+
+	// Add flags
+	lua_pushnumber(L, LOC_NETWORK_FLAG_ANONYMOUS_PROXY);
+	lua_setfield(L, -2, "NETWORK_FLAG_ANONYMOUS_PROXY");
+
+	lua_pushnumber(L, LOC_NETWORK_FLAG_SATELLITE_PROVIDER);
+	lua_setfield(L, -2, "NETWORK_FLAG_SATELLITE_PROVIDER");
+
+	lua_pushnumber(L, LOC_NETWORK_FLAG_ANYCAST);
+	lua_setfield(L, -2, "NETWORK_FLAG_ANYCAST");
+
+	lua_pushnumber(L, LOC_NETWORK_FLAG_DROP);
+	lua_setfield(L, -2, "NETWORK_FLAG_DROP");
 
 	return 1;
 }
