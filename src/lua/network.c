@@ -72,13 +72,24 @@ static int Network_new(lua_State* L) {
 	return r;
 }
 
-static int Network_gc(lua_State* L) {
-	Network* self = luaL_checknetwork(L, 0);
+static int Network_close(lua_State* L) {
+	Network* self = luaL_checknetwork(L, 1);
 
-	if (self->network)
+	// Free the network
+	if (self->network) {
 		loc_network_unref(self->network);
+		self->network = NULL;
+	}
 
+	return 0;
+}
+
+static int Network_gc(lua_State* L) {
+	Network* self = luaL_checknetwork(L, 1);
+
+	// Free the object
 	free(self);
+
 	return 0;
 }
 
@@ -139,6 +150,7 @@ static const struct luaL_Reg Network_functions[] = {
 	{ "get_asn", Network_get_asn },
 	{ "get_family", Network_get_family },
 	{ "get_country_code", Network_get_country_code },
+	{ "__close", Network_close },
 	{ "__gc", Network_gc },
 	{ "__tostring", Network_tostring },
 	{ NULL, NULL },
