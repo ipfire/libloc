@@ -58,11 +58,16 @@ function test_lookup()
 	db = location.Database.open(ENV_TEST_DATABASE)
 
 	-- Perform a lookup
-	network = db:lookup("81.3.27.32")
+	network1 = db:lookup("81.3.27.32")
 
-	luaunit.assertEquals(network:get_family(), 2) -- AF_INET
-	luaunit.assertEquals(network:get_country_code(), "DE")
-	luaunit.assertEquals(network:get_asn(), 24679)
+	luaunit.assertEquals(network1:get_family(), 2) -- AF_INET
+	luaunit.assertEquals(network1:get_country_code(), "DE")
+	luaunit.assertEquals(network1:get_asn(), 24679)
+
+	-- Lookup something else
+	network2 = db:lookup("8.8.8.8")
+	luaunit.assertIsTrue(network2:has_flag(location.NETWORK_FLAG_ANYCAST))
+	luaunit.assertIsFalse(network2:has_flag(location.NETWORK_FLAG_DROP))
 end
 
 function test_network()

@@ -136,11 +136,26 @@ static int Network_get_country_code(lua_State* L) {
 	return 1;
 }
 
+// Has Flag?
+
+static int Network_has_flag(lua_State* L) {
+	Network* self = luaL_checknetwork(L, 1);
+
+	// Fetch flag
+	int flag = luaL_checknumber(L, 2);
+
+	// Push result
+	lua_pushboolean(L, loc_network_has_flag(self->network, flag));
+
+	return 1;
+}
+
 static const struct luaL_Reg Network_functions[] = {
 	{ "new", Network_new },
 	{ "get_asn", Network_get_asn },
-	{ "get_family", Network_get_family },
 	{ "get_country_code", Network_get_country_code },
+	{ "get_family", Network_get_family },
+	{ "has_flag", Network_has_flag },
 	{ "__gc", Network_gc },
 	{ "__tostring", Network_tostring },
 	{ NULL, NULL },
