@@ -14,11 +14,18 @@
 	Lesser General Public License for more details.
 */
 
+#include <errno.h>
+#include <string.h>
+
 #include <lua.h>
 #include <lauxlib.h>
 #include <lualib.h>
 
+#include <libloc/libloc.h>
+
 #include "location.h"
+
+struct loc_ctx* ctx = NULL;
 
 static int version(lua_State* L) {
 	lua_pushstring(L, PACKAGE_VERSION);
@@ -31,6 +38,15 @@ static const struct luaL_Reg location_functions[] = {
 };
 
 int luaopen_location(lua_State* L) {
+	int r;
+
+	// Initialize the context
+	r = loc_new(&ctx);
+	if (r)
+		return luaL_error(L,
+			"Could not initialize location context: %s\n", strerror(errno));
+
+	// Register functions
 	luaL_newlib(L, location_functions);
 
 	return 1;
