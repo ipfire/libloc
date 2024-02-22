@@ -72,7 +72,7 @@ static int Country_new(lua_State* L) {
 	return r;
 }
 
-static int Country_close(lua_State* L) {
+static int Country_gc(lua_State* L) {
 	Country* self = luaL_checkcountry(L, 1);
 
 	// Free country
@@ -80,15 +80,6 @@ static int Country_close(lua_State* L) {
 		loc_country_unref(self->country);
 		self->country = NULL;
 	}
-
-	return 0;
-}
-
-static int Country_gc(lua_State* L) {
-	Country* self = luaL_checkcountry(L, 1);
-
-	// Free the object
-	free(self);
 
 	return 0;
 }
@@ -115,7 +106,6 @@ static int Country_get_code(lua_State* L) {
 static const struct luaL_Reg Country_functions[] = {
 	{ "new", Country_new },
 	{ "get_code", Country_get_code },
-	{ "__close", Country_close },
 	{ "__eq", Country_eq },
 	{ "__gc", Country_gc },
 	{ NULL, NULL },

@@ -71,7 +71,7 @@ static int Database_open(lua_State* L) {
 	return 1;
 }
 
-static int Database_close(lua_State* L) {
+static int Database_gc(lua_State* L) {
 	Database* self = luaL_checkdatabase(L, 1);
 
 	// Free database
@@ -79,15 +79,6 @@ static int Database_close(lua_State* L) {
 		loc_database_unref(self->db);
 		self->db = NULL;
 	}
-
-	return 0;
-}
-
-static int Database_gc(lua_State* L) {
-	Database* self = luaL_checkdatabase(L, 1);
-
-	// Free the object
-	free(self);
 
 	return 0;
 }
@@ -116,7 +107,6 @@ static int Database_lookup(lua_State* L) {
 static const struct luaL_Reg database_functions[] = {
 	{ "open", Database_open },
 	{ "lookup", Database_lookup },
-	{ "__close", Database_close },
 	{ "__gc", Database_gc },
 	{ NULL, NULL },
 };
