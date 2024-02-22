@@ -73,6 +73,9 @@ function test_country()
 
 	c2 = location.Country.new("GB")
 	luaunit.assertNotEquals(c1, c2)
+
+	c1 = nil
+	c2 = nil
 end
 
 -- This test is not very deterministic but should help to test the GC methods
