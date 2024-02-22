@@ -19,7 +19,8 @@
 
 luaunit = require("luaunit")
 
-ENV_TEST_DATABASE = os.getenv("TEST_DATABASE")
+ENV_TEST_DATABASE    = os.getenv("TEST_DATABASE")
+ENV_TEST_SIGNING_KEY = os.getenv("TEST_SIGNING_KEY")
 
 function test_load()
 	-- Try loading the module
@@ -34,6 +35,9 @@ function test_open_database()
 
 	-- Open the database
 	db = location.Database.open(ENV_TEST_DATABASE)
+
+	-- Verify
+	luaunit.assertIsTrue(db:verify(ENV_TEST_SIGNING_KEY))
 
 	-- Description
 	luaunit.assertIsString(db:get_description())

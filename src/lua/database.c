@@ -183,6 +183,30 @@ static int Database_lookup(lua_State* L) {
 	return r;
 }
 
+static int Database_verify(lua_State* L) {
+	FILE* f = NULL;
+	int r;
+
+	Database* self = luaL_checkdatabase(L, 1);
+
+	// Fetch path to key
+	const char* key = luaL_checkstring(L, 2);
+
+	// Open the keyfile
+	f = fopen(key, "r");
+	if (!f)
+		return luaL_error(L, "Could not open key %s: %s\n", key, strerror(errno));
+
+	// Verify!
+	r = loc_database_verify(self->db, f);
+	fclose(f);
+
+	// Push result onto the stack
+	lua_pushboolean(L, (r == 0));
+
+	return 1;
+}
+
 static const struct luaL_Reg database_functions[] = {
 	{ "get_as", Database_get_as },
 	{ "get_description", Database_get_description },
@@ -191,6 +215,7 @@ static const struct luaL_Reg database_functions[] = {
 	{ "get_vendor", Database_get_vendor },
 	{ "open", Database_open },
 	{ "lookup", Database_lookup },
+	{ "verify", Database_verify },
 	{ "__gc", Database_gc },
 	{ NULL, NULL },
 };

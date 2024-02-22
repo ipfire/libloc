@@ -406,7 +406,8 @@ TESTS_ENVIRONMENT = \
 	LUA_CPATH="$(abs_builddir)/src/lua/.libs/?.so;;" \
 	PYTHONPATH=$(abs_srcdir)/src/python:$(abs_builddir)/src/python/.libs \
 	TEST_DATA_DIR="$(abs_top_srcdir)/data" \
-	TEST_DATABASE="$(abs_top_srcdir)/data/database.db"
+	TEST_DATABASE="$(abs_top_srcdir)/data/database.db" \
+	TEST_SIGNING_KEY="$(abs_top_srcdir)/data/signing-key.pem"
 
 TESTS = \
 	$(check_PROGRAMS) \
