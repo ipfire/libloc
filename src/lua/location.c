@@ -73,5 +73,9 @@ int luaopen_location(lua_State* L) {
 
 	lua_setfield(L, -2, "Network");
 
+	// Set DATABASE_PATH
+	lua_pushstring(L, LIBLOC_DEFAULT_DATABASE_PATH);
+	lua_setfield(L, -2, "DATABASE_PATH");
+
 	return 1;
 }
