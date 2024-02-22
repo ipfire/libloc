@@ -24,6 +24,7 @@
 
 #include "location.h"
 #include "as.h"
+#include "country.h"
 #include "database.h"
 #include "network.h"
 
@@ -107,6 +108,29 @@ static int Database_get_as(lua_State* L) {
 	return r;
 }
 
+static int Database_get_country(lua_State* L) {
+	struct loc_country* country = NULL;
+	int r;
+
+	Database* self = luaL_checkdatabase(L, 1);
+
+	// Fetch code
+	const char* code = luaL_checkstring(L, 2);
+
+	// Fetch the country
+	r = loc_database_get_country(self->db, &country, code);
+	if (r) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	// Create a new country object
+	r = create_country(L, country);
+	loc_country_unref(country);
+
+	return r;
+}
+
 static int Database_lookup(lua_State* L) {
 	struct loc_network* network = NULL;
 	int r;
@@ -130,6 +154,7 @@ static int Database_lookup(lua_State* L) {
 
 static const struct luaL_Reg database_functions[] = {
 	{ "get_as", Database_get_as },
+	{ "get_country", Database_get_country },
 	{ "open", Database_open },
 	{ "lookup", Database_lookup },
 	{ "__gc", Database_gc },

@@ -110,6 +110,22 @@ function test_country()
 	c2 = nil
 end
 
+function test_fetch_country()
+	location = require("location")
+
+	-- Open the database
+	db = location.Database.open(ENV_TEST_DATABASE)
+
+	-- Fetch an invalid country
+	c = db:get_country("XX")
+	luaunit.assertNil(c)
+
+	-- Fetch something that exists
+	c = db:get_country("DE")
+	luaunit.assertEquals(c:get_code(), "DE")
+	luaunit.assertEquals(c:get_name(), "Germany")
+end
+
 -- This test is not very deterministic but should help to test the GC methods
 function test_gc()
 	print("GC: " .. collectgarbage("collect"))
