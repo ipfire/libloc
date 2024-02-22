@@ -70,6 +70,8 @@ function test_country()
 
 	c1 = location.Country.new("DE")
 	luaunit.assertEquals(c1:get_code(), "DE")
+	luaunit.assertNil(c1:get_name())
+	luaunit.assertNil(c1:get_continent_code())
 
 	c2 = location.Country.new("GB")
 	luaunit.assertNotEquals(c1, c2)

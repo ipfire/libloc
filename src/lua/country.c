@@ -94,6 +94,19 @@ static int Country_eq(lua_State* L) {
 	return 1;
 }
 
+// Name
+
+static int Country_get_name(lua_State* L) {
+	Country* self = luaL_checkcountry(L, 1);
+
+	// Return the code
+	lua_pushstring(L, loc_country_get_name(self->country));
+
+	return 1;
+}
+
+// Code
+
 static int Country_get_code(lua_State* L) {
 	Country* self = luaL_checkcountry(L, 1);
 
@@ -103,11 +116,25 @@ static int Country_get_code(lua_State* L) {
 	return 1;
 }
 
+// Continent Code
+
+static int Country_get_continent_code(lua_State* L) {
+	Country* self = luaL_checkcountry(L, 1);
+
+	// Return the code
+	lua_pushstring(L, loc_country_get_continent_code(self->country));
+
+	return 1;
+}
+
 static const struct luaL_Reg Country_functions[] = {
 	{ "new", Country_new },
 	{ "get_code", Country_get_code },
+	{ "get_continent_code", Country_get_continent_code },
+	{ "get_name", Country_get_name },
 	{ "__eq", Country_eq },
 	{ "__gc", Country_gc },
+	{ "__tostring", Country_get_code },
 	{ NULL, NULL },
 };
 
