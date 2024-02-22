@@ -237,6 +237,8 @@ lua_LTLIBRARIES = \
 luadir = $(LUA_INSTALL_CMOD)
 
 src_lua_location_la_SOURCES = \
+	src/lua/country.c \
+	src/lua/country.h \
 	src/lua/database.c \
 	src/lua/database.h \
 	src/lua/location.c \
@@ -261,6 +263,8 @@ src_lua_location_la_LIBADD = \
 endif
 
 EXTRA_DIST += \
+	src/lua/country.c \
+	src/lua/country.h \
 	src/lua/database.c \
 	src/lua/database.h \
 	src/lua/location.c \

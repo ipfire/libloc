@@ -24,6 +24,7 @@
 #include <libloc/libloc.h>
 
 #include "location.h"
+#include "country.h"
 #include "database.h"
 #include "network.h"
 
@@ -50,6 +51,11 @@ int luaopen_location(lua_State* L) {
 
 	// Register functions
 	luaL_newlib(L, location_functions);
+
+	// Register Country type
+	register_country(L);
+
+	lua_setfield(L, -2, "Country");
 
 	// Register Database type
 	register_database(L);

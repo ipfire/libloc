@@ -65,6 +65,16 @@ function test_network()
 	luaunit.assertNil(n1:get_country_code())
 end
 
+function test_country()
+	location = require("location")
+
+	c1 = location.Country.new("DE")
+	luaunit.assertEquals(c1:get_code(), "DE")
+
+	c2 = location.Country.new("GB")
+	luaunit.assertNotEquals(c1, c2)
+end
+
 -- This test is not very deterministic but should help to test the GC methods
 function test_gc()
 	print("GC: " .. collectgarbage("collect"))
