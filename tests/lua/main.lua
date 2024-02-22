@@ -34,6 +34,17 @@ function test_open_database()
 
 	-- Open the database
 	db = location.Database.open(ENV_TEST_DATABASE)
+
+	-- Description
+	luaunit.assertIsString(db:get_description())
+
+	-- License
+	luaunit.assertIsString(db:get_license())
+	luaunit.assertEquals(db:get_license(), "CC BY-SA 4.0")
+
+	-- Vendor
+	luaunit.assertIsString(db:get_vendor())
+	luaunit.assertEquals(db:get_vendor(), "IPFire Project")
 end
 
 function test_lookup()

@@ -85,6 +85,37 @@ static int Database_gc(lua_State* L) {
 	return 0;
 }
 
+// Description
+
+static int Database_get_description(lua_State* L) {
+	Database* self = luaL_checkdatabase(L, 1);
+
+	// Push the description
+	lua_pushstring(L, loc_database_get_description(self->db));
+
+	return 1;
+}
+
+// License
+
+static int Database_get_license(lua_State* L) {
+	Database* self = luaL_checkdatabase(L, 1);
+
+	// Push the license
+	lua_pushstring(L, loc_database_get_license(self->db));
+
+	return 1;
+}
+
+static int Database_get_vendor(lua_State* L) {
+	Database* self = luaL_checkdatabase(L, 1);
+
+	// Push the vendor
+	lua_pushstring(L, loc_database_get_vendor(self->db));
+
+	return 1;
+}
+
 static int Database_get_as(lua_State* L) {
 	struct loc_as* as = NULL;
 	int r;
@@ -154,7 +185,10 @@ static int Database_lookup(lua_State* L) {
 
 static const struct luaL_Reg database_functions[] = {
 	{ "get_as", Database_get_as },
+	{ "get_description", Database_get_description },
 	{ "get_country", Database_get_country },
+	{ "get_license", Database_get_license },
+	{ "get_vendor", Database_get_vendor },
 	{ "open", Database_open },
 	{ "lookup", Database_lookup },
 	{ "__gc", Database_gc },
