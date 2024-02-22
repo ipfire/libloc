@@ -1,7 +1,9 @@
+*~
 *.log
 *.mo
 *.o
 *.tar.xz
+*.trs
 .deps/
 .libs/
 Makefile
