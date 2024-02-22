@@ -105,7 +105,7 @@ static int Network_tostring(lua_State* L) {
 // ASN
 
 static int Network_get_asn(lua_State* L) {
-	Network* self = luaL_checknetwork(L, 0);
+	Network* self = luaL_checknetwork(L, 1);
 
 	uint32_t asn = loc_network_get_asn(self->network);
 
@@ -121,7 +121,7 @@ static int Network_get_asn(lua_State* L) {
 // Family
 
 static int Network_get_family(lua_State* L) {
-	Network* self = luaL_checknetwork(L, 0);
+	Network* self = luaL_checknetwork(L, 1);
 
 	// Push family
 	lua_pushnumber(L, loc_network_address_family(self->network));
@@ -132,7 +132,7 @@ static int Network_get_family(lua_State* L) {
 // Country Code
 
 static int Network_get_country_code(lua_State* L) {
-	Network* self = luaL_checknetwork(L, 0);
+	Network* self = luaL_checknetwork(L, 1);
 
 	const char* country_code = loc_network_get_country_code(self->network);
 

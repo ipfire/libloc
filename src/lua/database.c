@@ -96,10 +96,10 @@ static int Database_lookup(lua_State* L) {
 	struct loc_network* network = NULL;
 	int r;
 
-	Database* self = luaL_checkdatabase(L, 0);
+	Database* self = luaL_checkdatabase(L, 1);
 
 	// Require a string
-	const char* address = luaL_checkstring(L, 1);
+	const char* address = luaL_checkstring(L, 2);
 
 	// Perform lookup
 	r = loc_database_lookup_from_string(self->db, address, &network);

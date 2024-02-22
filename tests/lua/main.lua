@@ -52,13 +52,13 @@ function test_network()
 	n1 = location.Network.new("10.0.0.0/8")
 
 	-- The ASN should be nul
-	luaunit.assertNil(n1.get_asn())
+	luaunit.assertNil(n1:get_asn())
 
 	-- The family should be IPv4
-	luaunit.assertEquals(n1.get_family(), 2)
+	luaunit.assertEquals(n1:get_family(), 2)
 
 	-- The country code should be empty
-	luaunit.assertNil(n1.get_country_code())
+	luaunit.assertNil(n1:get_country_code())
 end
 
 os.exit(luaunit.LuaUnit.run())
