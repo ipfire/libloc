@@ -77,6 +77,24 @@ function test_as()
 	as = nil
 end
 
+function test_fetch_as()
+	location = require("location")
+
+	-- Open the database
+	db = location.Database.open(ENV_TEST_DATABASE)
+
+	-- Fetch an AS
+	as = db:get_as(0)
+
+	-- This should not exist
+	luaunit.assertNil(as)
+
+	-- Fetch something that exists
+	as = db:get_as(204867)
+	luaunit.assertEquals(as:get_number(), 204867)
+	luaunit.assertEquals(as:get_name(), "Lightning Wire Labs GmbH")
+end
+
 function test_country()
 	location = require("location")
 

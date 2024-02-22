@@ -23,6 +23,7 @@
 #include <libloc/database.h>
 
 #include "location.h"
+#include "as.h"
 #include "database.h"
 #include "network.h"
 
@@ -83,6 +84,29 @@ static int Database_gc(lua_State* L) {
 	return 0;
 }
 
+static int Database_get_as(lua_State* L) {
+	struct loc_as* as = NULL;
+	int r;
+
+	Database* self = luaL_checkdatabase(L, 1);
+
+	// Fetch number
+	uint32_t asn = luaL_checknumber(L, 2);
+
+	// Fetch the AS
+	r = loc_database_get_as(self->db, &as, asn);
+	if (r) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	// Create a new AS object
+	r = create_as(L, as);
+	loc_as_unref(as);
+
+	return r;
+}
+
 static int Database_lookup(lua_State* L) {
 	struct loc_network* network = NULL;
 	int r;
@@ -105,6 +129,7 @@ static int Database_lookup(lua_State* L) {
 }
 
 static const struct luaL_Reg database_functions[] = {
+	{ "get_as", Database_get_as },
 	{ "open", Database_open },
 	{ "lookup", Database_lookup },
 	{ "__gc", Database_gc },
