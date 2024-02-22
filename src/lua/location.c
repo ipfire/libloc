@@ -15,9 +15,23 @@
 */
 
 #include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
 
 #include "location.h"
 
+static int version(lua_State* L) {
+	lua_pushstring(L, PACKAGE_VERSION);
+	return 1;
+}
+
+static const struct luaL_Reg location_functions[] = {
+	{ "version", version },
+	{ NULL, NULL },
+};
+
 int luaopen_location(lua_State* L) {
-	return 0;
+	luaL_newlib(L, location_functions);
+
+	return 1;
 }

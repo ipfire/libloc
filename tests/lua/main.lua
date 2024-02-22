@@ -22,6 +22,9 @@ luaunit = require("luaunit")
 function test_load()
 	-- Try loading the module
 	location = require("location")
+
+	-- Print the version
+	print(location.version())
 end
 
 os.exit(luaunit.LuaUnit.run())
