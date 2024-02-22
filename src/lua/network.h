@@ -20,6 +20,10 @@
 #include <lua.h>
 #include <lauxlib.h>
 
+#include <libloc/network.h>
+
 int register_network(lua_State* L);
+
+int create_network(lua_State* L, struct loc_network* network);
 
 #endif /* LUA_LOCATION_NETWORK_H */

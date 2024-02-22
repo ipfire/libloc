@@ -39,7 +39,7 @@ static Network* luaL_checknetwork(lua_State* L, int i) {
 	return (Network*)userdata;
 }
 
-static int create_network(lua_State* L, struct loc_network* network) {
+int create_network(lua_State* L, struct loc_network* network) {
 	// Allocate a new object
 	Network* self = (Network*)lua_newuserdata(L, sizeof(*self));
 

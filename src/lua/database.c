@@ -24,6 +24,7 @@
 
 #include "location.h"
 #include "database.h"
+#include "network.h"
 
 typedef struct database {
 	struct loc_database* db;
@@ -94,11 +95,11 @@ static int Database_lookup(lua_State* L) {
 	if (r)
 		return luaL_error(L, "Could not lookup address %s: %s\n", address, strerror(errno));
 
-	// XXX Return the network
-
+	// Create a network object
+	r = create_network(L, network);
 	loc_network_unref(network);
 
-	return 0;
+	return r;
 }
 
 static const struct luaL_Reg database_functions[] = {
