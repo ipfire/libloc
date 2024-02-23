@@ -669,7 +669,7 @@ class CLI(object):
 
 		# Download and import (technical) AS names from ARIN
 		with self.db.transaction():
-			self._import_as_names_from_arin()
+			self._import_as_names_from_arin(downloader)
 
 		# Return a non-zero exit code for errors
 		return 1 if error else 0
