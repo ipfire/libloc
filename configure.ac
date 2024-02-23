@@ -209,8 +209,6 @@ AM_PATH_PYTHON([3.4])
 PKG_CHECK_MODULES([PYTHON], [python-${PYTHON_VERSION}])
 
 # Lua
-PKG_CHECK_MODULES([LUA], [lua])
-
 AC_ARG_ENABLE(lua,
 	AS_HELP_STRING([--disable-lua], [do not build the Lua modules]), [], [enable_lua=yes])
 
@@ -218,6 +216,8 @@ AM_CONDITIONAL(ENABLE_LUA, test "$enable_lua" = "yes")
 
 AS_IF(
 	[test "$enable_lua" = "yes"], [
+		PKG_CHECK_MODULES([LUA], [lua])
+
 		AX_PROG_LUA_MODULES([luaunit],, [AC_MSG_ERROR([Lua modules are missing])])
 
 		LUA_INSTALL_LMOD=$($PKG_CONFIG --define-variable=prefix=${prefix} --variable=INSTALL_LMOD lua)
