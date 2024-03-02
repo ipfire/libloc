@@ -1835,7 +1835,7 @@ class CLI(object):
 				# Conduct a very basic sanity check to rule out CDN issues causing bogus DROP
 				# downloads.
 				if len(fcontent) > 10:
-					self.db.execute("DELETE FROM network_overrides WHERE source = %s", name)
+					self.db.execute("DELETE FROM network_feeds WHERE source = %s", name)
 				else:
 					log.warning("%s (%s) returned likely bogus file, ignored" % (name, url))
 					continue
@@ -1865,15 +1865,17 @@ class CLI(object):
 
 					# Conduct SQL statement...
 					self.db.execute("""
-						INSERT INTO network_overrides(
+						INSERT INTO
+							network_feeds
+						(
 							network,
 							source,
 							is_drop
-						) VALUES (%s, %s, %s)
-						ON CONFLICT (network) DO UPDATE SET is_drop = True""",
-						"%s" % network,
-						name,
-						True
+						)
+						VALUES
+						(
+							%s, %s, %s
+						)""", "%s" % network, name, True,
 					)
 
 		for name, url in asn_lists:
