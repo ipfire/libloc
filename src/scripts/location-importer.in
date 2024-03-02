@@ -1566,7 +1566,7 @@ class CLI(object):
 			self._update_overrides_for_aws()
 
 			# Update overrides for Spamhaus DROP feeds...
-			self._update_overrides_for_spamhaus_drop()
+			self._update_feed_for_spamhaus_drop()
 
 			for file in ns.files:
 				log.info("Reading %s..." % file)
@@ -1765,7 +1765,7 @@ class CLI(object):
 				)
 
 
-	def _update_overrides_for_spamhaus_drop(self):
+	def _update_feed_for_spamhaus_drop(self):
 		downloader = location.importer.Downloader()
 
 		ip_lists = [
@@ -1841,7 +1841,7 @@ class CLI(object):
 				# Conduct a very basic sanity check to rule out CDN issues causing bogus DROP
 				# downloads.
 				if len(fcontent) > 10:
-					self.db.execute("DELETE FROM autnum_overrides WHERE source = %s", name)
+					self.db.execute("DELETE FROM autnum_feeds WHERE source = %s", name)
 				else:
 					log.warning("%s (%s) returned likely bogus file, ignored" % (name, url))
 					continue
@@ -1883,15 +1883,17 @@ class CLI(object):
 
 					# Conduct SQL statement...
 					self.db.execute("""
-						INSERT INTO autnum_overrides(
+						INSERT INTO
+							autnum_feeds
+						(
 							number,
 							source,
 							is_drop
-						) VALUES (%s, %s, %s)
-						ON CONFLICT (number) DO UPDATE SET is_drop = True""",
-						"%s" % asn,
-						name,
-						True
+						)
+						VALUES
+						(
+							%s, %s, %s
+						)""", "%s" % asn, name, True,
 					)
 
 					# In case we do not have an name for this AS already, update
