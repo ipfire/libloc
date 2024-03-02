@@ -20,6 +20,7 @@
 import argparse
 import concurrent.futures
 import csv
+import functools
 import http.client
 import ipaddress
 import json
@@ -1558,8 +1559,14 @@ class CLI(object):
 				id
 		""")
 
+		# Create a downloader
+		downloader = location.importer.Downloader()
+
+		# Pass the downloader to the fetch_geofeed function
+		fetch_geofeed = functools.partial(self._fetch_geofeed, downloader)
+
 		with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-			results = executor.map(self._fetch_geofeed, geofeeds)
+			results = executor.map(fetch_geofeed, geofeeds)
 
 			# Fetch all results to raise any exceptions
 			for result in results:
@@ -1583,105 +1590,102 @@ class CLI(object):
 					)
 			""")
 
-	def _fetch_geofeed(self, geofeed):
+	def _fetch_geofeed(self, downloader, geofeed):
 		log.debug("Fetching Geofeed %s" % geofeed.url)
 
 		with self.db.transaction():
 			# Open the URL
 			try:
-				req = urllib.request.Request(geofeed.url, headers={
+				# Send the request
+				f = downloader.retrieve(geofeed.url, headers={
 					"User-Agent" : "location/%s" % location.__version__,
 
 					# We expect some plain text file in CSV format
-					"Accept" : "text/csv, text/plain",
+					"Accept"     : "text/csv, text/plain",
 				})
 
-				# XXX set proxy
+				# Remove any previous data
+				self.db.execute("DELETE FROM geofeed_networks \
+					WHERE geofeed_id = %s", geofeed.id)
 
-				# Send the request
-				with urllib.request.urlopen(req, timeout=10) as f:
-					# Remove any previous data
-					self.db.execute("DELETE FROM geofeed_networks \
-						WHERE geofeed_id = %s", geofeed.id)
+				lineno = 0
 
-					lineno = 0
+				# Read the output line by line
+				for line in f:
+					lineno += 1
 
-					# Read the output line by line
-					for line in f:
-						lineno += 1
+					try:
+						line = line.decode()
 
-						try:
-							line = line.decode()
+					# Ignore any lines we cannot decode
+					except UnicodeDecodeError:
+						log.debug("Could not decode line %s in %s" \
+							% (lineno, geofeed.url))
+						continue
 
-						# Ignore any lines we cannot decode
-						except UnicodeDecodeError:
-							log.debug("Could not decode line %s in %s" \
-								% (lineno, geofeed.url))
-							continue
+					# Strip any newline
+					line = line.rstrip()
 
-						# Strip any newline
-						line = line.rstrip()
+					# Skip empty lines
+					if not line:
+						continue
 
-						# Skip empty lines
-						if not line:
-							continue
+					# Try to parse the line
+					try:
+						fields = line.split(",", 5)
+					except ValueError:
+						log.debug("Could not parse line: %s" % line)
+						continue
 
-						# Try to parse the line
-						try:
-							fields = line.split(",", 5)
-						except ValueError:
-							log.debug("Could not parse line: %s" % line)
-							continue
+					# Check if we have enough fields
+					if len(fields) < 4:
+						log.debug("Not enough fields in line: %s" % line)
+						continue
 
-						# Check if we have enough fields
-						if len(fields) < 4:
-							log.debug("Not enough fields in line: %s" % line)
-							continue
+					# Fetch all fields
+					network, country, region, city, = fields[:4]
 
-						# Fetch all fields
-						network, country, region, city, = fields[:4]
+					# Try to parse the network
+					try:
+						network = ipaddress.ip_network(network, strict=False)
+					except ValueError:
+						log.debug("Could not parse network: %s" % network)
+						continue
 
-						# Try to parse the network
-						try:
-							network = ipaddress.ip_network(network, strict=False)
-						except ValueError:
-							log.debug("Could not parse network: %s" % network)
-							continue
+					# Strip any excess whitespace from country codes
+					country = country.strip()
 
-						# Strip any excess whitespace from country codes
-						country = country.strip()
+					# Make the country code uppercase
+					country = country.upper()
 
-						# Make the country code uppercase
-						country = country.upper()
+					# Check the country code
+					if not country:
+						log.debug("Empty country code in Geofeed %s line %s" \
+							% (geofeed.url, lineno))
+						continue
 
-						# Check the country code
-						if not country:
-							log.debug("Empty country code in Geofeed %s line %s" \
-								% (geofeed.url, lineno))
-							continue
+					elif not location.country_code_is_valid(country):
+						log.debug("Invalid country code in Geofeed %s:%s: %s" \
+							% (geofeed.url, lineno, country))
+						continue
 
-						elif not location.country_code_is_valid(country):
-							log.debug("Invalid country code in Geofeed %s:%s: %s" \
-								% (geofeed.url, lineno, country))
-							continue
-
-						# Write this into the database
-						self.db.execute("""
-							INSERT INTO
-								geofeed_networks (
-									geofeed_id,
-									network,
-									country,
-									region,
-									city
-								)
-							VALUES (%s, %s, %s, %s, %s)""",
-							geofeed.id,
-							"%s" % network,
-							country,
-							region,
-							city,
-						)
+					# Write this into the database
+					self.db.execute("""
+						INSERT INTO
+							geofeed_networks (
+								geofeed_id,
+								network,
+								country,
+								region,
+								city
+							)
+						VALUES (%s, %s, %s, %s, %s)""",
+						geofeed.id,
+						"%s" % network,
+						country,
+						region,
+						city,
+					)
 
 			# Catch any HTTP errors
 			except urllib.request.HTTPError as e:

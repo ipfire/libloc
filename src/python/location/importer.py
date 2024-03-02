@@ -109,7 +109,7 @@ class Downloader(object):
 		log.info("Using proxy %s" % url)
 		self.proxy = url
 
-	def retrieve(self, url, data=None):
+	def retrieve(self, url, **kwargs):
 		"""
 			This method will fetch the content at the given URL
 			and will return a file-object to a temporary file.
@@ -120,7 +120,7 @@ class Downloader(object):
 		t = tempfile.SpooledTemporaryFile(max_size=100 * 1024 * 1024)
 
 		# Create a new request
-		req = urllib.request.Request(url, data=data)
+		req = urllib.request.Request(url, **kwargs)
 
 		# Configure proxy
 		if self.proxy:
