@@ -1845,41 +1845,56 @@ class CLI(object):
 		# Parse the feed
 		aws_ip_dump = json.load(f)
 
-		# XXX: Set up a dictionary for mapping a region name to a country. Unfortunately,
+		# Set up a dictionary for mapping a region name to a country. Unfortunately,
 		# there seems to be no machine-readable version available of this other than
 		# https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/using-regions-availability-zones.html
 		# (worse, it seems to be incomplete :-/ ); https://www.cloudping.cloud/endpoints
 		# was helpful here as well.
 		aws_region_country_map = {
-				"af-south-1": "ZA",
-				"ap-east-1": "HK",
-				"ap-south-1": "IN",
-				"ap-south-2": "IN",
-				"ap-northeast-3": "JP",
-				"ap-northeast-2": "KR",
-				"ap-southeast-1": "SG",
-				"ap-southeast-2": "AU",
-				"ap-southeast-3": "MY",
-				"ap-southeast-4": "AU",
-				"ap-southeast-5": "NZ", # Auckland, NZ
-				"ap-southeast-6": "AP", # XXX: Precise location not documented anywhere
-				"ap-northeast-1": "JP",
-				"ca-central-1": "CA",
-				"ca-west-1": "CA",
-				"eu-central-1": "DE",
-				"eu-central-2": "CH",
-				"eu-west-1": "IE",
-				"eu-west-2": "GB",
-				"eu-south-1": "IT",
-				"eu-south-2": "ES",
-				"eu-west-3": "FR",
-				"eu-north-1": "SE",
-				"eusc-de-east-1" : "DE", # XXX: Undocumented, likely located in Berlin rather than Frankfurt
-				"il-central-1": "IL", # XXX: This one is not documented anywhere except for ip-ranges.json itself
-				"me-central-1": "AE",
-				"me-south-1": "BH",
-				"sa-east-1": "BR"
-				}
+			# Africa
+			"af-south-1"     : "ZA",
+
+			# Asia
+			"il-central-1"   : "IL", # Tel Aviv
+
+			# Asia/Pacific
+			"ap-northeast-1" : "JP",
+			"ap-northeast-2" : "KR",
+			"ap-northeast-3" : "JP",
+			"ap-east-1"      : "HK",
+			"ap-south-1"     : "IN",
+			"ap-south-2"     : "IN",
+			"ap-southeast-1" : "SG",
+			"ap-southeast-2" : "AU",
+			"ap-southeast-3" : "MY",
+			"ap-southeast-4" : "AU",
+			"ap-southeast-5" : "NZ", # Auckland, NZ
+			"ap-southeast-6" : "AP", # XXX: Precise location not documented anywhere
+
+			# Canada
+			"ca-central-1"   : "CA",
+			"ca-west-1"      : "CA",
+
+			# Europe
+			"eu-central-1"   : "DE",
+			"eu-central-2"   : "CH",
+			"eu-north-1"     : "SE",
+			"eu-west-1"      : "IE",
+			"eu-west-2"      : "GB",
+			"eu-west-3"      : "FR",
+			"eu-south-1"     : "IT",
+			"eu-south-2"     : "ES",
+
+			# Middle East
+			"me-central-1"   : "AE",
+			"me-south-1"     : "BH",
+
+			# South America
+			"sa-east-1"      : "BR",
+
+			# Undocumented, likely located in Berlin rather than Frankfurt
+			"eusc-de-east-1" : "DE",
+		}
 
 		# Fetch all countries that we know of
 		countries = self.fetch_countries()
