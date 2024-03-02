@@ -284,6 +284,15 @@ class CLI(object):
 
 		return db
 
+	def fetch_countries(self):
+		"""
+			Returns a list of all countries on the list
+		"""
+		# Fetch all valid country codes to check parsed networks aganist...
+		countries = self.db.query("SELECT country_code FROM countries ORDER BY country_code")
+
+		return [country.country_code for country in countries]
+
 	def handle_write(self, ns):
 		"""
 			Compiles a database in libloc format out of what is in the database
@@ -668,7 +677,7 @@ class CLI(object):
 		error = False
 
 		# Fetch all valid country codes to check parsed networks against
-		validcountries = self.countries
+		validcountries = self.fetch_countries()
 
 		# Iterate over all potential sources
 		for source in sorted(location.importer.SOURCES):
@@ -1872,12 +1881,8 @@ class CLI(object):
 				"sa-east-1": "BR"
 				}
 
-		# Fetch all valid country codes to check parsed networks aganist...
-		rows = self.db.query("SELECT * FROM countries ORDER BY country_code")
-		validcountries = []
-
-		for row in rows:
-			validcountries.append(row.country_code)
+		# Fetch all countries that we know of
+		countries = self.fetch_countries()
 
 		for snetwork in aws_ip_dump["prefixes"] + aws_ip_dump["ipv6_prefixes"]:
 			try:
@@ -1913,7 +1918,7 @@ class CLI(object):
 				continue
 
 			# Skip networks with unknown country codes
-			if not is_anycast and validcountries and cc not in validcountries:
+			if not is_anycast and countries and cc not in countries:
 				log.warning("Skipping Amazon AWS network with bogus country '%s': %s" % \
 					(cc, network))
 				return
@@ -2090,14 +2095,6 @@ class CLI(object):
 
 		# Default to None
 		return None
-
-	@property
-	def countries(self):
-		# Fetch all valid country codes to check parsed networks aganist
-		rows = self.db.query("SELECT * FROM countries ORDER BY country_code")
-
-		# Return all countries
-		return [row.country_code for row in rows]
 
 	def handle_import_countries(self, ns):
 		with self.db.transaction():
