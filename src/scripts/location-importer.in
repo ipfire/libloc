@@ -104,6 +104,11 @@ class CLI(object):
 			help=_("Update Geofeeds"))
 		update_geofeeds.set_defaults(func=self.handle_update_geofeeds)
 
+		# Update feeds
+		update_feeds = subparsers.add_parser("update-feeds",
+			help=_("Update Feeds"))
+		update_feeds.set_defaults(func=self.handle_update_feeds)
+
 		# Update overrides
 		update_overrides = subparsers.add_parser("update-overrides",
 			help=_("Update overrides"),
@@ -1707,13 +1712,6 @@ class CLI(object):
 				DELETE FROM network_overrides WHERE source = 'manual';
 			""")
 
-			# Update overrides for various cloud providers big enough to publish their own IP
-			# network allocation lists in a machine-readable format...
-			self._update_overrides_for_aws()
-
-			# Update overrides for Spamhaus DROP feeds...
-			self._update_feed_for_spamhaus_drop()
-
 			for file in ns.files:
 				log.info("Reading %s..." % file)
 
@@ -1789,7 +1787,17 @@ class CLI(object):
 						else:
 							log.warning("Unsupported type: %s" % type)
 
-	def _update_overrides_for_aws(self):
+	def handle_update_feeds(self, ns):
+		"""
+			Update any third-party feeds
+		"""
+		# AWS
+		self._update_feed_for_aws()
+
+		# Spamhaus
+		self._update_feed_for_spamhaus_drop()
+
+	def _update_feed_for_aws(self):
 		# Download Amazon AWS IP allocation file to create overrides...
 		downloader = location.importer.Downloader()
 
