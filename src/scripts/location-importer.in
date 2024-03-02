@@ -333,7 +333,7 @@ class CLI(object):
 				UNION
 				SELECT network FROM networks
 				UNION
-				SEELCT network FROM network_feeds
+				SELECT network FROM network_feeds
 				UNION
 				SELECT network FROM network_overrides
 				UNION
