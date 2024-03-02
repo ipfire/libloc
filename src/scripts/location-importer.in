@@ -1815,6 +1815,9 @@ class CLI(object):
 			("SPAMHAUS-DROP",   self._import_spamhaus_drop, "https://www.spamhaus.org/drop/drop.txt"),
 			("SPAMHAUS-EDROP",  self._import_spamhaus_drop, "https://www.spamhaus.org/drop/edrop.txt"),
 			("SPAMHAUS-DROPV6", self._import_spamhaus_drop, "https://www.spamhaus.org/drop/dropv6.txt"),
+
+			# Spamhaus ASNDROP
+			("SPAMHAUS-ASNDROP", self._import_spamhaus_asndrop, "https://www.spamhaus.org/drop/asndrop.json"),
 		)
 
 		# Walk through all feeds
@@ -1830,9 +1833,6 @@ class CLI(object):
 			except Exception as e:
 				log.error("Error processing feed '%s': %s" % (name, e))
 				success = False
-
-		# Spamhaus
-		#self._update_feed_for_spamhaus_drop()
 
 		# Return status
 		return 0 if success else 1
@@ -2030,78 +2030,54 @@ class CLI(object):
 		if not lines:
 			raise RuntimeError("Received bogus feed %s with no data" % name)
 
-	def _update_feed_for_spamhaus_drop(self):
-		downloader = location.importer.Downloader()
+	def _import_spamhaus_asndrop(self, name, f):
+		"""
+			Import Spamhaus ASNDROP feed
+		"""
+		for line in f:
+			# Decode the line
+			line = line.decode("utf-8")
 
-		asn_lists = [
-					("SPAMHAUS-ASNDROP", "https://www.spamhaus.org/drop/asndrop.json")
-				]
+			# Parse JSON
+			try:
+				line = json.loads(line)
+			except json.JSONDecodeError as e:
+				log.warning("%s: Unable to parse JSON object %s: %s" % (name, line, e))
+				continue
 
-		for name, url in asn_lists:
-			# Fetch URL
-			f = downloader.retrieve(url)
+			# Fetch type
+			type = line.get("type")
 
-			# Split into lines
-			fcontent = f.readlines()
+			# Skip any metadata
+			if type == "metadata":
+				continue
 
-			with self.db.transaction():
-				# Conduct a very basic sanity check to rule out CDN issues causing bogus DROP
-				# downloads.
-				if len(fcontent) > 10:
-					self.db.execute("DELETE FROM autnum_feeds WHERE source = %s", name)
-				else:
-					log.warning("%s (%s) returned likely bogus file, ignored" % (name, url))
-					continue
+			# Fetch ASN
+			asn  = line.get("asn")
 
-				# Iterate through every line, filter comments and add remaining ASNs to
-				# the override table in case they are valid...
-				for sline in fcontent:
-					# The response is assumed to be encoded in UTF-8...
-					sline = sline.decode("utf-8")
+			# Skip any lines without an ASN
+			if not asn:
+				continue
 
-					# Load every line as a JSON object and try to obtain an ASN from it...
-					try:
-						lineobj = json.loads(sline)
-					except json.decoder.JSONDecodeError:
-						log.error("Unable to parse line as a JSON object: %s" % sline)
-						continue
+			# Filter invalid ASNs
+			if not self._check_parsed_asn(asn):
+				log.warning("%s: Skipping bogus ASN %s" % (name, asn))
+				continue
 
-					# Skip line contiaining file metadata
-					try:
-						type = lineobj["type"]
-
-						if type == "metadata":
-							continue
-					except KeyError:
-						pass
-
-					try:
-						asn = lineobj["asn"]
-						as_name = lineobj["asname"]
-					except KeyError:
-						log.warning("Unable to extract necessary information from line: %s" % sline)
-						continue
-
-					# Filter invalid ASNs...
-					if not self._check_parsed_asn(asn):
-						log.warning("Skipping bogus ASN found in %s (%s): %s" % \
-							(name, url, asn))
-						continue
-
-					# Conduct SQL statement...
-					self.db.execute("""
-						INSERT INTO
-							autnum_feeds
-						(
-							number,
-							source,
-							is_drop
-						)
-						VALUES
-						(
-							%s, %s, %s
-						)""", "%s" % asn, name, True,
-					)
+			# Write to database
+			self.db.execute("""
+				INSERT INTO
+					autnum_feeds
+				(
+					number,
+					source,
+					is_drop
+				)
+				VALUES
+				(
+					%s, %s, %s
+				)""", "%s" % asn, name, True,
+			)
 
 	@staticmethod
 	def _parse_bool(block, key):
