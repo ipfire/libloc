@@ -220,6 +220,20 @@ class CLI(object):
 				CREATE INDEX IF NOT EXISTS network_geofeeds_url
 					ON network_geofeeds(url);
 
+				-- feeds
+				CREATE TABLE IF NOT EXISTS autnum_feeds(
+					number bigint NOT NULL,
+					source text NOT NULL,
+					name text,
+					country text,
+					is_anonymous_proxy boolean,
+					is_satellite_provider boolean,
+					is_anycast boolean,
+					is_drop boolean
+				);
+				CREATE UNIQUE INDEX IF NOT EXISTS autnum_feeds_unique
+					ON autnum_feeds(number, source);
+
 				-- overrides
 				CREATE TABLE IF NOT EXISTS autnum_overrides(
 					number bigint NOT NULL,
@@ -351,6 +365,11 @@ class CLI(object):
 							WHERE networks.autnum = overrides.number
 					),
 					(
+						SELECT country FROM autnum_feeds feeds
+							WHERE networks.autnum = feeds.number
+							ORDER BY source LIMIT 1
+					),
+					(
 						SELECT
 							geofeed_networks.country AS country
 						FROM
@@ -385,6 +404,11 @@ class CLI(object):
 							LIMIT 1
 					),
 					(
+						SELECT is_anonymous_proxy FROM autnum_feeds feeds
+							WHERE networks.autnum = feeds.number
+							ORDER BY source LIMIT 1
+					),
+					(
 						SELECT is_anonymous_proxy FROM autnum_overrides overrides
 							WHERE networks.autnum = overrides.number
 					),
@@ -396,6 +420,11 @@ class CLI(object):
 							WHERE networks.network <<= overrides.network
 							ORDER BY masklen(overrides.network) DESC
 							LIMIT 1
+					),
+					(
+						SELECT is_satellite_provider FROM autnum_feeds feeds
+							WHERE networks.autnum = feeds.number
+							ORDER BY source LIMIT 1
 					),
 					(
 						SELECT is_satellite_provider FROM autnum_overrides overrides
@@ -411,6 +440,11 @@ class CLI(object):
 							LIMIT 1
 					),
 					(
+						SELECT is_anycast FROM autnum_feeds feeds
+							WHERE networks.autnum = feeds.number
+							ORDER BY source LIMIT 1
+					),
+					(
 						SELECT is_anycast FROM autnum_overrides overrides
 							WHERE networks.autnum = overrides.number
 					),
@@ -422,6 +456,11 @@ class CLI(object):
 							WHERE networks.network <<= overrides.network
 							ORDER BY masklen(overrides.network) DESC
 							LIMIT 1
+					),
+					(
+						SELECT is_drop FROM autnum_feeds feeds
+							WHERE networks.autnum = feeds.number
+							ORDER BY source LIMIT 1
 					),
 					(
 						SELECT is_drop FROM autnum_overrides overrides
