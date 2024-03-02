@@ -1942,20 +1942,6 @@ class CLI(object):
 						)""", "%s" % asn, name, True,
 					)
 
-					# In case we do not have an name for this AS already, update
-					# autnums table accordingly
-					self.db.execute("""
-						INSERT INTO autnums(
-							number,
-							name,
-							source
-						) VALUES (%s, %s, %s)
-						ON CONFLICT (number) DO NOTHING""",
-						"%s" % asn,
-						as_name,
-						name
-					)
-
 	@staticmethod
 	def _parse_bool(block, key):
 		val = block.get(key)
