@@ -107,6 +107,8 @@ class CLI(object):
 		# Update feeds
 		update_feeds = subparsers.add_parser("update-feeds",
 			help=_("Update Feeds"))
+		update_feeds.add_argument("feeds", nargs="*",
+			help=_("Only update these feeds"))
 		update_feeds.set_defaults(func=self.handle_update_feeds)
 
 		# Update overrides
@@ -1812,6 +1814,10 @@ class CLI(object):
 
 		# Walk through all feeds
 		for name, callback, url, *args in feeds:
+			# Skip any feeds that were not requested on the command line
+			if ns.feeds and not name in ns.feeds:
+				continue
+
 			try:
 				self._process_feed(downloader, name, callback, url, *args)
 
