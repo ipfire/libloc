@@ -1705,7 +1705,7 @@ class CLI(object):
 
 		# At this point, we can assume the downloaded file to be valid
 		self.db.execute("""
-			DELETE FROM network_overrides WHERE source = 'Amazon AWS IP feed';
+			DELETE FROM network_feeds WHERE source = 'Amazon AWS IP feed'
 		""")
 
 		# XXX: Set up a dictionary for mapping a region name to a country. Unfortunately,
@@ -1793,23 +1793,21 @@ class CLI(object):
 
 				# Conduct SQL statement...
 				self.db.execute("""
-					INSERT INTO network_overrides(
+					INSERT INTO
+						network_feeds
+					(
 						network,
-						country,
 						source,
-						is_anonymous_proxy,
-						is_satellite_provider,
+						country,
 						is_anycast
-					) VALUES (%s, %s, %s, %s, %s, %s)
-					ON CONFLICT (network) DO NOTHING""",
-					"%s" % network,
-					cc,
-					"Amazon AWS IP feed",
-					None,
-					None,
-					is_anycast,
+					)
+					VALUES
+					(
+						%s, %s, %s, %s
+					)
+					ON CONFLICT (network, source) DO NOTHING
+					""", "%s" % network, "Amazon AWS IP feed", cc, is_anycast,
 				)
-
 
 	def _update_feed_for_spamhaus_drop(self):
 		downloader = location.importer.Downloader()
