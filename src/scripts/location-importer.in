@@ -1810,6 +1810,11 @@ class CLI(object):
 		feeds = (
 			# AWS IP Ranges
 			("AWS-IP-RANGES", self._import_aws_ip_ranges, "https://ip-ranges.amazonaws.com/ip-ranges.json"),
+
+			# Spamhaus DROP
+			("SPAMHAUS-DROP",   self._import_spamhaus_drop, "https://www.spamhaus.org/drop/drop.txt"),
+			("SPAMHAUS-EDROP",  self._import_spamhaus_drop, "https://www.spamhaus.org/drop/edrop.txt"),
+			("SPAMHAUS-DROPV6", self._import_spamhaus_drop, "https://www.spamhaus.org/drop/dropv6.txt"),
 		)
 
 		# Walk through all feeds
@@ -1827,7 +1832,7 @@ class CLI(object):
 				success = False
 
 		# Spamhaus
-		self._update_feed_for_spamhaus_drop()
+		#self._update_feed_for_spamhaus_drop()
 
 		# Return status
 		return 0 if success else 1
@@ -1969,72 +1974,68 @@ class CLI(object):
 				""", "%s" % network, name, cc, is_anycast,
 			)
 
+	def _import_spamhaus_drop(self, name, f):
+		"""
+			Import Spamhaus DROP IP feeds
+		"""
+		# Count all lines
+		lines = 0
+
+		# Walk through all lines
+		for line in f:
+			# Decode line
+			line = line.decode("utf-8")
+
+			# Strip off any comments
+			line, _, comment = line.partition(";")
+
+			# Ignore empty lines
+			if not line:
+				continue
+
+			# Strip any excess whitespace
+			line = line.strip()
+
+			# Increment line counter
+			lines += 1
+
+			# Parse the network
+			try:
+				network = ipaddress.ip_network(line)
+			except ValueError as e:
+				log.warning("%s: Could not parse network: %s - %s" % (name, line, e))
+				continue
+
+			# Check network
+			if not self._check_parsed_network(network):
+				log.warning("%s: Skipping bogus network: %s" % (name, network))
+				continue
+
+			# Insert into the database
+			self.db.execute("""
+				INSERT INTO
+					network_feeds
+				(
+					network,
+					source,
+					is_drop
+				)
+				VALUES
+				(
+					%s, %s, %s
+				)""", "%s" % network, name, True,
+			)
+
+		# Raise an exception if we could not import anything
+		if not lines:
+			raise RuntimeError("Received bogus feed %s with no data" % name)
+
 	def _update_feed_for_spamhaus_drop(self):
 		downloader = location.importer.Downloader()
-
-		ip_lists = [
-					("SPAMHAUS-DROP", "https://www.spamhaus.org/drop/drop.txt"),
-					("SPAMHAUS-EDROP", "https://www.spamhaus.org/drop/edrop.txt"),
-					("SPAMHAUS-DROPV6", "https://www.spamhaus.org/drop/dropv6.txt")
-				]
 
 		asn_lists = [
 					("SPAMHAUS-ASNDROP", "https://www.spamhaus.org/drop/asndrop.json")
 				]
-
-		for name, url in ip_lists:
-			# Fetch IP list from given URL
-			f = downloader.retrieve(url)
-
-			# Split into lines
-			fcontent = f.readlines()
-
-			with self.db.transaction():
-				# Conduct a very basic sanity check to rule out CDN issues causing bogus DROP
-				# downloads.
-				if len(fcontent) > 10:
-					self.db.execute("DELETE FROM network_feeds WHERE source = %s", name)
-				else:
-					log.warning("%s (%s) returned likely bogus file, ignored" % (name, url))
-					continue
-
-				# Iterate through every line, filter comments and add remaining networks to
-				# the override table in case they are valid...
-				for sline in fcontent:
-					# The response is assumed to be encoded in UTF-8...
-					sline = sline.decode("utf-8")
-
-					# Comments start with a semicolon...
-					if sline.startswith(";"):
-						continue
-
-					# Extract network and ignore anything afterwards...
-					try:
-						network = ipaddress.ip_network(sline.split()[0], strict=False)
-					except ValueError:
-						log.error("Unable to parse line: %s" % sline)
-						continue
-
-					# Sanitize parsed networks...
-					if not self._check_parsed_network(network):
-						log.warning("Skipping bogus network found in %s (%s): %s" % \
-							(name, url, network))
-						continue
-
-					# Conduct SQL statement...
-					self.db.execute("""
-						INSERT INTO
-							network_feeds
-						(
-							network,
-							source,
-							is_drop
-						)
-						VALUES
-						(
-							%s, %s, %s
-						)""", "%s" % network, name, True,
-					)
 
 		for name, url in asn_lists:
 			# Fetch URL
