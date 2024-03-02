@@ -1827,6 +1827,14 @@ class CLI(object):
 			("SPAMHAUS-ASNDROP", self._import_spamhaus_asndrop, "https://www.spamhaus.org/drop/asndrop.json"),
 		)
 
+		# Drop any data from feeds that we don't support (any more)
+		with self.db.transaction():
+			# Fetch the names of all feeds we support
+			sources = [name for name, *rest in feeds]
+
+			self.db.execute("DELETE FROM autnum_feeds  WHERE NOT source = ANY(%s)", sources)
+			self.db.execute("DELETE FROM network_feeds WHERE NOT source = ANY(%s)", sources)
+
 		# Walk through all feeds
 		for name, callback, url, *args in feeds:
 			# Skip any feeds that were not requested on the command line
