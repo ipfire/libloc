@@ -266,8 +266,8 @@ class CLI(object):
 				);
 				CREATE UNIQUE INDEX IF NOT EXISTS autnum_overrides_number
 					ON autnum_overrides(number);
-				ALTER TABLE autnum_overrides ADD COLUMN IF NOT EXISTS source text;
 				ALTER TABLE autnum_overrides ADD COLUMN IF NOT EXISTS is_drop boolean;
+				ALTER TABLE autnum_overrides DROP COLUMN IF EXISTS source;
 
 				CREATE TABLE IF NOT EXISTS network_overrides(
 					network inet NOT NULL,
@@ -280,8 +280,8 @@ class CLI(object):
 					ON network_overrides(network);
 				CREATE INDEX IF NOT EXISTS network_overrides_search
 					ON network_overrides USING GIST(network inet_ops);
-				ALTER TABLE network_overrides ADD COLUMN IF NOT EXISTS source text;
 				ALTER TABLE network_overrides ADD COLUMN IF NOT EXISTS is_drop boolean;
+				ALTER TABLE network_overrides DROP COLUMN IF EXISTS source;
 			""")
 
 		return db
@@ -1716,12 +1716,9 @@ class CLI(object):
 
 	def handle_update_overrides(self, ns):
 		with self.db.transaction():
-			# Only drop manually created overrides, as we can be reasonably sure to have them,
-			# and preserve the rest. If appropriate, it is deleted by correspondent functions.
-			self.db.execute("""
-				DELETE FROM autnum_overrides WHERE source = 'manual';
-				DELETE FROM network_overrides WHERE source = 'manual';
-			""")
+			# Drop any previous content
+			self.db.execute("TRUNCATE TABLE autnum_overrides")
+			self.db.execute("TRUNCATE TABLE network_overrides")
 
 			for file in ns.files:
 				log.info("Reading %s..." % file)
@@ -1743,19 +1740,24 @@ class CLI(object):
 								continue
 
 							self.db.execute("""
-								INSERT INTO network_overrides(
+								INSERT INTO
+									network_overrides
+								(
 									network,
 									country,
-									source,
 									is_anonymous_proxy,
 									is_satellite_provider,
 									is_anycast,
 									is_drop
-								) VALUES (%s, %s, %s, %s, %s, %s, %s)
-								ON CONFLICT (network) DO NOTHING""",
+								)
+								VALUES
+								(
+									%s, %s, %s, %s, %s, %s
+								)
+								ON CONFLICT (network) DO NOTHING
+								""",
 								"%s" % network,
 								block.get("country"),
-								"manual",
 								self._parse_bool(block, "is-anonymous-proxy"),
 								self._parse_bool(block, "is-satellite-provider"),
 								self._parse_bool(block, "is-anycast"),
@@ -1774,21 +1776,26 @@ class CLI(object):
 							autnum = autnum[2:]
 
 							self.db.execute("""
-								INSERT INTO autnum_overrides(
+								INSERT INTO
+									autnum_overrides
+								(
 									number,
 									name,
 									country,
-									source,
 									is_anonymous_proxy,
 									is_satellite_provider,
 									is_anycast,
 									is_drop
-								) VALUES(%s, %s, %s, %s, %s, %s, %s, %s)
-								ON CONFLICT DO NOTHING""",
+								)
+								VALUES
+								(
+									%s, %s, %s, %s, %s, %s, %s
+								)
+								ON CONFLICT (number) DO NOTHING
+								""",
 								autnum,
 								block.get("name"),
 								block.get("country"),
-								"manual",
 								self._parse_bool(block, "is-anonymous-proxy"),
 								self._parse_bool(block, "is-satellite-provider"),
 								self._parse_bool(block, "is-anycast"),
