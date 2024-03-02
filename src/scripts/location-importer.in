@@ -371,25 +371,45 @@ class CLI(object):
 				-- Country
 				COALESCE(
 					(
-						SELECT country FROM network_overrides overrides
-							WHERE networks.network <<= overrides.network
-							ORDER BY masklen(overrides.network) DESC
-							LIMIT 1
+						SELECT
+							country
+						FROM
+							network_overrides overrides
+						WHERE
+							networks.network <<= overrides.network
+						ORDER BY
+							masklen(overrides.network) DESC
+						LIMIT 1
 					),
 					(
-						SELECT country FROM autnum_overrides overrides
-							WHERE networks.autnum = overrides.number
+						SELECT
+							country
+						FROM
+							autnum_overrides overrides
+						WHERE
+							networks.autnum = overrides.number
 					),
 					(
-						SELECT country FROM network_feeds feeds
-							WHERE networks.network <<= feeds.network
-							ORDER BY masklen(feeds.network) DESC
-							LIMIT 1
+						SELECT
+							country
+						FROM
+							network_feeds feeds
+						WHERE
+							networks.network <<= feeds.network
+						ORDER BY
+							masklen(feeds.network) DESC
+						LIMIT 1
 					),
 					(
-						SELECT country FROM autnum_feeds feeds
-							WHERE networks.autnum = feeds.number
-							ORDER BY source LIMIT 1
+						SELECT
+							country
+						FROM
+							autnum_feeds feeds
+						WHERE
+							networks.autnum = feeds.number
+						ORDER BY
+							source
+						LIMIT 1
 					),
 					(
 						SELECT
@@ -420,97 +440,177 @@ class CLI(object):
 				-- Flags
 				COALESCE(
 					(
-						SELECT is_anonymous_proxy FROM network_overrides overrides
-							WHERE networks.network <<= overrides.network
-							ORDER BY masklen(overrides.network) DESC
-							LIMIT 1
+						SELECT
+							is_anonymous_proxy
+						FROM
+							network_overrides overrides
+						WHERE
+							networks.network <<= overrides.network
+						ORDER BY
+							masklen(overrides.network) DESC
+						LIMIT 1
 					),
 					(
-						SELECT is_anonymous_proxy FROM network_feeds feeds
-							WHERE networks.network <<= feeds.network
-							ORDER BY masklen(feeds.network) DESC
-							LIMIT 1
+						SELECT
+							is_anonymous_proxy
+						FROM
+							network_feeds feeds
+						WHERE
+							networks.network <<= feeds.network
+						ORDER BY
+							masklen(feeds.network) DESC
+						LIMIT 1
 					),
 					(
-						SELECT is_anonymous_proxy FROM autnum_feeds feeds
-							WHERE networks.autnum = feeds.number
-							ORDER BY source LIMIT 1
+						SELECT
+							is_anonymous_proxy
+						FROM
+							autnum_feeds feeds
+						WHERE
+							networks.autnum = feeds.number
+						ORDER BY
+							source
+						LIMIT 1
 					),
 					(
-						SELECT is_anonymous_proxy FROM autnum_overrides overrides
-							WHERE networks.autnum = overrides.number
+						SELECT
+							is_anonymous_proxy
+						FROM
+							autnum_overrides overrides
+						WHERE
+							networks.autnum = overrides.number
 					),
 					FALSE
 				) AS is_anonymous_proxy,
 				COALESCE(
 					(
-						SELECT is_satellite_provider FROM network_overrides overrides
-							WHERE networks.network <<= overrides.network
-							ORDER BY masklen(overrides.network) DESC
-							LIMIT 1
+						SELECT
+							is_satellite_provider
+						FROM
+							network_overrides overrides
+						WHERE
+							networks.network <<= overrides.network
+						ORDER BY
+							masklen(overrides.network) DESC
+						LIMIT 1
 					),
 					(
-						SELECT is_satellite_provider FROM network_feeds feeds
-							WHERE networks.network <<= feeds.network
-							ORDER BY masklen(feeds.network) DESC
-							LIMIT 1
+						SELECT
+							is_satellite_provider
+						FROM
+							network_feeds feeds
+						WHERE
+							networks.network <<= feeds.network
+						ORDER BY
+							masklen(feeds.network) DESC
+						LIMIT 1
 					),
 					(
-						SELECT is_satellite_provider FROM autnum_feeds feeds
-							WHERE networks.autnum = feeds.number
-							ORDER BY source LIMIT 1
+						SELECT
+							is_satellite_provider
+						FROM
+							autnum_feeds feeds
+						WHERE
+							networks.autnum = feeds.number
+						ORDER BY
+							source
+						LIMIT 1
 					),
 					(
-						SELECT is_satellite_provider FROM autnum_overrides overrides
-							WHERE networks.autnum = overrides.number
+						SELECT
+							is_satellite_provider
+						FROM
+							autnum_overrides overrides
+						WHERE
+							networks.autnum = overrides.number
 					),
 					FALSE
 				) AS is_satellite_provider,
 				COALESCE(
 					(
-						SELECT is_anycast FROM network_overrides overrides
-							WHERE networks.network <<= overrides.network
-							ORDER BY masklen(overrides.network) DESC
-							LIMIT 1
+						SELECT
+							is_anycast
+						FROM
+							network_overrides overrides
+						WHERE
+							networks.network <<= overrides.network
+						ORDER BY
+							masklen(overrides.network) DESC
+						LIMIT 1
 					),
 					(
-						SELECT is_anycast FROM network_feeds feeds
-							WHERE networks.network <<= feeds.network
-							ORDER BY masklen(feeds.network) DESC
-							LIMIT 1
+						SELECT
+							is_anycast
+						FROM
+							network_feeds feeds
+						WHERE
+							networks.network <<= feeds.network
+						ORDER BY
+							masklen(feeds.network) DESC
+						LIMIT 1
 					),
 					(
-						SELECT is_anycast FROM autnum_feeds feeds
-							WHERE networks.autnum = feeds.number
-							ORDER BY source LIMIT 1
+						SELECT
+							is_anycast
+						FROM
+							autnum_feeds feeds
+						WHERE
+							networks.autnum = feeds.number
+						ORDER BY
+							source
+						LIMIT 1
 					),
 					(
-						SELECT is_anycast FROM autnum_overrides overrides
-							WHERE networks.autnum = overrides.number
+						SELECT
+							is_anycast
+						FROM
+							autnum_overrides overrides
+						WHERE
+							networks.autnum = overrides.number
 					),
 					FALSE
 				) AS is_anycast,
 				COALESCE(
 					(
-						SELECT is_drop FROM network_overrides overrides
-							WHERE networks.network <<= overrides.network
-							ORDER BY masklen(overrides.network) DESC
-							LIMIT 1
+						SELECT
+							is_drop
+						FROM
+							network_overrides overrides
+						WHERE
+							networks.network <<= overrides.network
+						ORDER BY
+							masklen(overrides.network) DESC
+						LIMIT 1
 					),
 					(
-						SELECT is_drop FROM network_feeds feeds
-							WHERE networks.network <<= feeds.network
-							ORDER BY masklen(feeds.network) DESC
-							LIMIT 1
+						SELECT
+							is_drop
+						FROM
+							network_feeds feeds
+						WHERE
+							networks.network <<= feeds.network
+						ORDER BY
+							masklen(feeds.network) DESC
+						LIMIT 1
 					),
 					(
-						SELECT is_drop FROM autnum_feeds feeds
-							WHERE networks.autnum = feeds.number
-							ORDER BY source LIMIT 1
+						SELECT
+							is_drop
+						FROM
+							autnum_feeds feeds
+						WHERE
+							networks.autnum = feeds.number
+						ORDER BY
+							source
+						LIMIT 1
 					),
 					(
-						SELECT is_drop FROM autnum_overrides overrides
-							WHERE networks.autnum = overrides.number
+						SELECT
+							is_drop
+						FROM
+							autnum_overrides overrides
+						WHERE
+							networks.autnum = overrides.number
 					),
 					FALSE
 				) AS is_drop
