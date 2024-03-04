@@ -307,7 +307,7 @@ class CLI(object):
 		# Fetch all valid country codes to check parsed networks aganist...
 		countries = self.db.query("SELECT country_code FROM countries ORDER BY country_code")
 
-		return [country.country_code for country in countries]
+		return set((country.country_code for country in countries))
 
 	def handle_write(self, ns):
 		"""
