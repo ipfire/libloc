@@ -104,6 +104,8 @@ class CLI(object):
 
 		# Update WHOIS
 		update_whois = subparsers.add_parser("update-whois", help=_("Update WHOIS Information"))
+		update_whois.add_argument("sources", nargs="*",
+			help=_("Only update these sources"))
 		update_whois.set_defaults(func=self.handle_update_whois)
 
 		# Update announcements
@@ -702,6 +704,10 @@ class CLI(object):
 
 		# Iterate over all potential sources
 		for source in sorted(location.importer.SOURCES):
+			# Skip anything that should not be updated
+			if ns.sources and not source in ns.sources:
+				continue
+
 			with self.db.transaction():
 				# Create some temporary tables to store parsed data
 				self.db.execute("""
