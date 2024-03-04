@@ -904,9 +904,6 @@ class CLI(object):
 			(b) covering a too large chunk of the IP address space (prefix length
 				is < 7 for IPv4 networks, and < 10 for IPv6)
 			(c) "0.0.0.0" or "::" as a network address
-			(d) are too small for being publicly announced (we have decided not to
-				process them at the moment, as they significantly enlarge our
-				database without providing very helpful additional information)
 
 			This unfortunately is necessary due to brain-dead clutter across
 			various RIR databases, causing mismatches and eventually disruptions.
@@ -932,22 +929,16 @@ class CLI(object):
 			log.debug("Skipping unspecified network: %s" % network)
 			return False
 
-		if network.version == 4:
-			if network.prefixlen < 7:
-				log.debug("Skipping too big IP chunk: %s" % network)
-				return False
-
-			if network.prefixlen > 24:
-				log.debug("Skipping network too small to be publicly announced: %s" % network)
-				return False
-
-		elif network.version == 6:
+		# IPv6
+		if network.version == 6:
 			if network.prefixlen < 10:
 				log.debug("Skipping too big IP chunk: %s" % network)
 				return False
 
-			if network.prefixlen > 48:
-				log.debug("Skipping network too small to be publicly announced: %s" % network)
+		# IPv4
+		elif network.version == 4:
+			if network.prefixlen < 7:
+				log.debug("Skipping too big IP chunk: %s" % network)
 				return False
 
 		# In case we have made it here, the network is considered to
