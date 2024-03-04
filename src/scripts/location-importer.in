@@ -680,7 +680,12 @@ class CLI(object):
 		error = False
 
 		# Fetch all valid country codes to check parsed networks against
-		validcountries = self.fetch_countries()
+		countries = self.fetch_countries()
+
+		# Check if we have countries
+		if not countries:
+			log.error("Please import countries before importing any WHOIS data")
+			return 1
 
 		# Iterate over all potential sources
 		for source in sorted(location.importer.SOURCES):
@@ -711,12 +716,12 @@ class CLI(object):
 					# Fetch WHOIS sources
 					for url in location.importer.WHOIS_SOURCES.get(source, []):
 						for block in downloader.request_blocks(url):
-							self._parse_block(block, source, validcountries)
+							self._parse_block(block, source, countries)
 
 					# Fetch extended sources
 					for url in location.importer.EXTENDED_SOURCES.get(source, []):
 						for line in downloader.request_lines(url):
-							self._parse_line(line, source, validcountries)
+							self._parse_line(line, source, countries)
 				except urllib.error.URLError as e:
 					log.error("Could not retrieve data from %s: %s" % (source, e))
 					error = True
@@ -952,7 +957,7 @@ class CLI(object):
 		log.info("Supplied ASN %s out of publicly routable ASN ranges" % asn)
 		return False
 
-	def _parse_block(self, block, source_key, validcountries = None):
+	def _parse_block(self, block, source_key, countries):
 		# Get first line to find out what type of block this is
 		line = block[0]
 
@@ -962,7 +967,7 @@ class CLI(object):
 
 		# inetnum
 		if line.startswith("inet6num:") or line.startswith("inetnum:"):
-			return self._parse_inetnum_block(block, source_key, validcountries)
+			return self._parse_inetnum_block(block, source_key, countries)
 
 		# organisation
 		elif line.startswith("organisation:"):
@@ -1015,7 +1020,7 @@ class CLI(object):
 			autnum.get("asn"), autnum.get("org"), source_key,
 		)
 
-	def _parse_inetnum_block(self, block, source_key, validcountries = None):
+	def _parse_inetnum_block(self, block, source_key, countries):
 		log.debug("Parsing inetnum block:")
 
 		inetnum = {}
@@ -1112,14 +1117,14 @@ class CLI(object):
 			return
 
 		# Prepare skipping objects with unknown country codes...
-		invalidcountries = [singlecountry for singlecountry in inetnum.get("country") if singlecountry not in validcountries]
+		invalidcountries = [singlecountry for singlecountry in inetnum.get("country") if singlecountry not in countries]
 
 		# Iterate through all networks enumerated from above, check them for plausibility and insert
 		# them into the database, if _check_parsed_network() succeeded
 		for single_network in inetnum.get("inet6num") or inetnum.get("inetnum"):
 			if self._check_parsed_network(single_network):
 				# Skip objects with unknown country codes if they are valid to avoid log spam...
-				if validcountries and invalidcountries:
+				if invalidcountries:
 					log.warning("Skipping network with bogus countr(y|ies) %s (original countries: %s): %s" % \
 						(invalidcountries, inetnum.get("country"), inetnum.get("inet6num") or inetnum.get("inetnum")))
 					break
