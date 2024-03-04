@@ -713,7 +713,7 @@ class CLI(object):
 						name text NOT NULL, source text NOT NULL) ON COMMIT DROP;
 					CREATE UNIQUE INDEX _organizations_handle ON _organizations(handle);
 
-					CREATE TEMPORARY TABLE _rirdata(network inet NOT NULL, country text NOT NULL,
+					CREATE TEMPORARY TABLE _rirdata(network inet NOT NULL, country text,
 						original_countries text[] NOT NULL, source text NOT NULL)
 						ON COMMIT DROP;
 					CREATE INDEX _rirdata_search ON _rirdata
@@ -1133,28 +1133,51 @@ class CLI(object):
 					inetnum["geofeed"] = m.group(1)
 
 		# Skip empty objects
-		if not inetnum or not "country" in inetnum:
+		if not inetnum:
 			return
 
 		# Iterate through all networks enumerated from above, check them for plausibility and insert
 		# them into the database, if _check_parsed_network() succeeded
 		for single_network in inetnum.get("inet6num") or inetnum.get("inetnum"):
-			if self._check_parsed_network(single_network):
-				# Everything is fine here, run INSERT statement...
-				self.db.execute("INSERT INTO _rirdata(network, country, original_countries, source) \
-					VALUES(%s, %s, %s, %s) ON CONFLICT (network) DO UPDATE SET country = excluded.country",
-					"%s" % single_network, inetnum.get("country")[0], inetnum.get("country"), source_key,
+			if not self._check_parsed_network(single_network):
+				continue
+
+			# Fetch the countries or use a list with an empty country
+			countries = inetnum.get("country", [None])
+
+			# Insert the network into the database but only use the first country code
+			for cc in countries:
+				self.db.execute("""
+					INSERT INTO
+						_rirdata
+					(
+						network,
+						country,
+						original_countries,
+						source
+					)
+					VALUES
+					(
+						%s, %s, %s, %s
+					)
+					ON CONFLICT (network)
+						DO UPDATE SET country = excluded.country
+					""", "%s" % single_network, cc, [cc for cc in countries if cc], source_key,
 				)
 
-				# Update any geofeed information
-				geofeed = inetnum.get("geofeed", None)
-				if geofeed:
-					self._parse_geofeed(geofeed, single_network)
+				# If there are more than one country, we will only use the first one
+				break
 
-				# Delete any previous geofeeds
-				else:
-					self.db.execute("DELETE FROM network_geofeeds WHERE network = %s",
-						"%s" % single_network)
+			# Update any geofeed information
+			geofeed = inetnum.get("geofeed", None)
+			if geofeed:
+				self._parse_geofeed(geofeed, single_network)
+
+			# Delete any previous geofeeds
+			else:
+				self.db.execute(
+					"DELETE FROM network_geofeeds WHERE network = %s", "%s" % single_network,
+				)
 
 	def _parse_geofeed(self, url, single_network):
 		# Parse the URL
