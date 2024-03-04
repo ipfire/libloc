@@ -18,7 +18,6 @@
 ###############################################################################
 
 import argparse
-import concurrent.futures
 import csv
 import functools
 import http.client
@@ -1600,6 +1599,9 @@ class CLI(object):
 				yield line
 
 	def handle_update_geofeeds(self, ns):
+		# Create a downloader
+		downloader = location.importer.Downloader()
+
 		# Sync geofeeds
 		with self.db.transaction():
 			# Delete all geofeeds which are no longer linked
@@ -1647,18 +1649,10 @@ class CLI(object):
 				id
 		""")
 
-		# Create a downloader
-		downloader = location.importer.Downloader()
-
-		# Pass the downloader to the fetch_geofeed function
-		fetch_geofeed = functools.partial(self._fetch_geofeed, downloader)
-
-		with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
-			results = executor.map(fetch_geofeed, geofeeds)
-
-			# Fetch all results to raise any exceptions
-			for result in results:
-				pass
+		# Update all geofeeds
+		for geofeed in geofeeds:
+			with self.db.transaction():
+				self._fetch_geofeed(downloader, geofeed)
 
 		# Delete data from any feeds that did not update in the last two weeks
 		with self.db.transaction():
