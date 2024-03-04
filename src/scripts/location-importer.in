@@ -914,9 +914,13 @@ class CLI(object):
 			We will return False in case a network is not suitable for adding
 			it to our database, and True otherwise.
 		"""
-
-		if not network or not (isinstance(network, ipaddress.IPv4Network) or isinstance(network, ipaddress.IPv6Network)):
-			return False
+		# Check input
+		if isinstance(network, ipaddress.IPv6Network):
+			pass
+		elif isinstance(network, ipaddress.IPv4Network):
+			pass
+		else:
+			raise ValueError("Invalid network: %s (type %s)" % (network, type(network)))
 
 		if not network.is_global:
 			log.debug("Skipping non-globally routable network: %s" % network)
