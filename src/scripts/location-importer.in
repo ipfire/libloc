@@ -33,7 +33,7 @@ import urllib.error
 # Load our location module
 import location
 import location.database
-import location.importer
+from location.downloader import Downloader
 from location.i18n import _
 
 # Initialise logging
@@ -161,6 +161,9 @@ class CLI(object):
 	def run(self):
 		# Parse command line arguments
 		args = self.parse_cli()
+
+		# Initialize the downloader
+		self.downloader = Downloader()
 
 		# Initialise database
 		self.db = self._setup_database(args)
@@ -689,8 +692,6 @@ class CLI(object):
 			writer.write(file)
 
 	def handle_update_whois(self, ns):
-		downloader = location.importer.Downloader()
-
 		# Did we run successfully?
 		success = True
 
@@ -749,7 +750,7 @@ class CLI(object):
 				continue
 
 			try:
-				self._process_source(downloader, name, feeds, countries)
+				self._process_source(name, feeds, countries)
 
 			# Log an error but continue if an exception occurs
 			except Exception as e:
@@ -759,7 +760,7 @@ class CLI(object):
 		# Return a non-zero exit code for errors
 		return 0 if success else 1
 
-	def _process_source(self, downloader, source, feeds, countries):
+	def _process_source(self, source, feeds, countries):
 		"""
 			This function processes one source
 		"""
@@ -791,7 +792,7 @@ class CLI(object):
 			# Parse all feeds
 			for callback, url, *args in feeds:
 				# Retrieve the feed
-				f = downloader.retrieve(url)
+				f = self.downloader.retrieve(url)
 
 				# Call the callback
 				callback(source, countries, f, *args)
@@ -1599,9 +1600,6 @@ class CLI(object):
 				yield line
 
 	def handle_update_geofeeds(self, ns):
-		# Create a downloader
-		downloader = location.importer.Downloader()
-
 		# Sync geofeeds
 		with self.db.transaction():
 			# Delete all geofeeds which are no longer linked
@@ -1652,7 +1650,7 @@ class CLI(object):
 		# Update all geofeeds
 		for geofeed in geofeeds:
 			with self.db.transaction():
-				self._fetch_geofeed(downloader, geofeed)
+				self._fetch_geofeed(geofeed)
 
 		# Delete data from any feeds that did not update in the last two weeks
 		with self.db.transaction():
@@ -1672,14 +1670,14 @@ class CLI(object):
 					)
 			""")
 
-	def _fetch_geofeed(self, downloader, geofeed):
+	def _fetch_geofeed(self, geofeed):
 		log.debug("Fetching Geofeed %s" % geofeed.url)
 
 		with self.db.transaction():
 			# Open the URL
 			try:
 				# Send the request
-				f = downloader.retrieve(geofeed.url, headers={
+				f = self.downloader.retrieve(geofeed.url, headers={
 					"User-Agent" : "location/%s" % location.__version__,
 
 					# We expect some plain text file in CSV format
@@ -1897,9 +1895,6 @@ class CLI(object):
 		"""
 		success = True
 
-		# Create a downloader
-		downloader = location.importer.Downloader()
-
 		feeds = (
 			# AWS IP Ranges
 			("AWS-IP-RANGES", self._import_aws_ip_ranges, "https://ip-ranges.amazonaws.com/ip-ranges.json"),
@@ -1928,7 +1923,7 @@ class CLI(object):
 				continue
 
 			try:
-				self._process_feed(downloader, name, callback, url, *args)
+				self._process_feed(name, callback, url, *args)
 
 			# Log an error but continue if an exception occurs
 			except Exception as e:
@@ -1938,12 +1933,12 @@ class CLI(object):
 		# Return status
 		return 0 if success else 1
 
-	def _process_feed(self, downloader, name, callback, url, *args):
+	def _process_feed(self, name, callback, url, *args):
 		"""
 			Processes one feed
 		"""
 		# Open the URL
-		f = downloader.retrieve(url)
+		f = self.downloader.retrieve(url)
 
 		with self.db.transaction():
 			# Drop any previous content

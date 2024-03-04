@@ -16,6 +16,7 @@
 #                                                                             #
 ###############################################################################
 
+import gzip
 import logging
 import lzma
 import os
@@ -207,3 +208,56 @@ class Downloader(object):
 				return False
 
 		return True
+
+	def retrieve(self, url, **kwargs):
+		"""
+			This method will fetch the content at the given URL
+			and will return a file-object to a temporary file.
+
+			If the content was compressed, it will be decompressed on the fly.
+		"""
+		# Open a temporary file to buffer the downloaded content
+		t = tempfile.SpooledTemporaryFile(max_size=100 * 1024 * 1024)
+
+		# Create a new request
+		req = self._make_request(url, **kwargs)
+
+		# Send request
+		res = self._send_request(req)
+
+		# Write the payload to the temporary file
+		with res as f:
+			while True:
+				buf = f.read(65536)
+				if not buf:
+					break
+
+				t.write(buf)
+
+		# Rewind the temporary file
+		t.seek(0)
+
+		gzip_compressed = False
+
+		# Fetch the content type
+		content_type = res.headers.get("Content-Type")
+
+		# Decompress any gzipped response on the fly
+		if content_type in ("application/x-gzip", "application/gzip"):
+			gzip_compressed = True
+
+		# Check for the gzip magic in case web servers send a different MIME type
+		elif t.read(2) == b"\x1f\x8b":
+			gzip_compressed = True
+
+		# Reset again
+		t.seek(0)
+
+		# Decompress the temporary file
+		if gzip_compressed:
+			log.debug("Gzip compression detected")
+
+			t = gzip.GzipFile(fileobj=t, mode="rb")
+
+		# Return the temporary file handle
+		return t

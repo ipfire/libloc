@@ -194,7 +194,6 @@ dist_pkgpython_PYTHON = \
 	src/python/location/downloader.py \
 	src/python/location/export.py \
 	src/python/location/i18n.py \
-	src/python/location/importer.py \
 	src/python/location/logger.py
 
 pyexec_LTLIBRARIES = \
