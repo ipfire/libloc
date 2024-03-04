@@ -48,6 +48,11 @@ VALID_ASN_RANGES = (
 	(131072, 4199999999),
 )
 
+TRANSLATED_COUNTRIES = {
+	# When people say UK, they mean GB
+	"UK" : "GB",
+}
+
 IGNORED_COUNTRIES = set((
 	# Formerly Yugoslavia
 	"YU",
@@ -1109,9 +1114,11 @@ class CLI(object):
 					log.debug("Ignoring country code '%s'" % val)
 					continue
 
-				# When people set country codes to "UK", they actually mean "GB"
-				if val == "UK":
-					val = "GB"
+				# Translate country codes
+				try:
+					val = TRANSLATED_COUNTRIES[val]
+				except KeyError:
+					pass
 
 				inetnum[key].append(val)
 
