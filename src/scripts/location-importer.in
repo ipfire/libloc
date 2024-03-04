@@ -1112,6 +1112,11 @@ class CLI(object):
 				except KeyError:
 					pass
 
+				# Do we know this country?
+				if not cc in countries:
+					log.warning("Skipping invalid country code '%s'" % cc)
+					continue
+
 				try:
 					inetnum[key].append(cc)
 				except KeyError:
@@ -1131,19 +1136,10 @@ class CLI(object):
 		if not inetnum or not "country" in inetnum:
 			return
 
-		# Prepare skipping objects with unknown country codes...
-		invalidcountries = [singlecountry for singlecountry in inetnum.get("country") if singlecountry not in countries]
-
 		# Iterate through all networks enumerated from above, check them for plausibility and insert
 		# them into the database, if _check_parsed_network() succeeded
 		for single_network in inetnum.get("inet6num") or inetnum.get("inetnum"):
 			if self._check_parsed_network(single_network):
-				# Skip objects with unknown country codes if they are valid to avoid log spam...
-				if invalidcountries:
-					log.warning("Skipping network with bogus countr(y|ies) %s (original countries: %s): %s" % \
-						(invalidcountries, inetnum.get("country"), inetnum.get("inet6num") or inetnum.get("inetnum")))
-					break
-
 				# Everything is fine here, run INSERT statement...
 				self.db.execute("INSERT INTO _rirdata(network, country, original_countries, source) \
 					VALUES(%s, %s, %s, %s) ON CONFLICT (network) DO UPDATE SET country = excluded.country",
