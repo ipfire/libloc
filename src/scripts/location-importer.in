@@ -48,6 +48,14 @@ VALID_ASN_RANGES = (
 	(131072, 4199999999),
 )
 
+IGNORED_COUNTRIES = set((
+	# Formerly Yugoslavia
+	"YU",
+
+	# Some people use ZZ to say "no country" or to hide the country
+	"ZZ",
+))
+
 # Configure the CSV parser for ARIN
 csv.register_dialect("arin", delimiter=",", quoting=csv.QUOTE_ALL, quotechar="\"")
 
@@ -1095,6 +1103,11 @@ class CLI(object):
 					if val in inetnum.get("country"):
 						# ... but keep this list distinct...
 						continue
+
+				# Ignore certain country codes
+				if val in IGNORED_COUNTRIES:
+					log.debug("Ignoring country code '%s'" % val)
+					continue
 
 				# When people set country codes to "UK", they actually mean "GB"
 				if val == "UK":
