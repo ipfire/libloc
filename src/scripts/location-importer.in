@@ -922,8 +922,14 @@ class CLI(object):
 		else:
 			raise ValueError("Invalid network: %s (type %s)" % (network, type(network)))
 
+		# Ignore anything that isn't globally routable
 		if not network.is_global:
 			log.debug("Skipping non-globally routable network: %s" % network)
+			return False
+
+		# Ignore anything that is unspecified IP range (See RFC 5735 for IPv4 or RFC 2373 for IPv6)
+		elif network.is_unspecified:
+			log.debug("Skipping unspecified network: %s" % network)
 			return False
 
 		if network.version == 4:
@@ -935,10 +941,6 @@ class CLI(object):
 				log.debug("Skipping network too small to be publicly announced: %s" % network)
 				return False
 
-			if str(network.network_address) == "0.0.0.0":
-				log.debug("Skipping network based on 0.0.0.0: %s" % network)
-				return False
-
 		elif network.version == 6:
 			if network.prefixlen < 10:
 				log.debug("Skipping too big IP chunk: %s" % network)
@@ -947,15 +949,6 @@ class CLI(object):
 			if network.prefixlen > 48:
 				log.debug("Skipping network too small to be publicly announced: %s" % network)
 				return False
-
-			if str(network.network_address) == "::":
-				log.debug("Skipping network based on '::': %s" % network)
-				return False
-
-		else:
-			# This should not happen...
-			log.warning("Skipping network of unknown family, this should not happen: %s" % network)
-			return False
 
 		# In case we have made it here, the network is considered to
 		# be suitable for libloc consumption...
