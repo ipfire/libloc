@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libloc 0\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-29 12:46+0000\n"
+"POT-Creation-Date: 2024-03-04 12:21+0000\n"
 "PO-Revision-Date: 2018-02-01 14:05+0000\n"
 "Last-Translator: Michael Tremer <michael.tremer@ipfire.org>\n"
 "Language-Team: German\n"
@@ -82,6 +82,9 @@ msgstr ""
 msgid "Update WHOIS Information"
 msgstr ""
 
+msgid "Only update these sources"
+msgstr ""
+
 msgid "Update BGP Annoucements"
 msgstr ""
 
@@ -89,6 +92,15 @@ msgid "Route Server to connect to"
 msgstr ""
 
 msgid "SERVER"
+msgstr ""
+
+msgid "Update Geofeeds"
+msgstr ""
+
+msgid "Update Feeds"
+msgstr ""
+
+msgid "Only update these feeds"
 msgstr ""
 
 msgid "Update overrides"

@@ -7,7 +7,7 @@ msgid ""
 msgstr ""
 "Project-Id-Version: libloc\n"
 "Report-Msgid-Bugs-To: \n"
-"POT-Creation-Date: 2022-10-29 12:46+0000\n"
+"POT-Creation-Date: 2024-03-04 12:21+0000\n"
 "PO-Revision-Date: 2023-02-22 08:57+0100\n"
 "Last-Translator: Temuri Doghonadze <temuri.doghonadze@gmail.com>\n"
 "Language-Team: Georgian <(nothing)>\n"
@@ -83,6 +83,9 @@ msgstr "ბაზის ფორმატის ვერსია"
 msgid "Update WHOIS Information"
 msgstr "WHOIS-ის ინფორმაციის განახლება"
 
+msgid "Only update these sources"
+msgstr ""
+
 msgid "Update BGP Annoucements"
 msgstr "BGP-ის ანონსების განახლება"
 
@@ -91,6 +94,17 @@ msgstr "რომელ რაუტის სერვერს დავუკ
 
 msgid "SERVER"
 msgstr "სერვერი"
+
+#, fuzzy
+msgid "Update Geofeeds"
+msgstr "განახლება გადაფარავს"
+
+#, fuzzy
+msgid "Update Feeds"
+msgstr "განახლება გადაფარავს"
+
+msgid "Only update these feeds"
+msgstr ""
 
 msgid "Update overrides"
 msgstr "განახლება გადაფარავს"
