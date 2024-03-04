@@ -236,6 +236,7 @@ class CLI(object):
 				CREATE INDEX IF NOT EXISTS geofeed_networks_search
 					ON geofeed_networks USING GIST(network inet_ops);
 				CREATE TABLE IF NOT EXISTS network_geofeeds(network inet, url text);
+				ALTER TABLE network_geofeeds ADD COLUMN IF NOT EXISTS source text NOT NULL;
 				CREATE UNIQUE INDEX IF NOT EXISTS network_geofeeds_unique
 					ON network_geofeeds(network);
 				CREATE INDEX IF NOT EXISTS network_geofeeds_search
@@ -766,8 +767,9 @@ class CLI(object):
 		# Wrap everything into one large transaction
 		with self.db.transaction():
 			# Remove all previously imported content
-			self.db.execute("DELETE FROM autnums  WHERE source = %s", source)
-			self.db.execute("DELETE FROM networks WHERE source = %s", source)
+			self.db.execute("DELETE FROM autnums          WHERE source = %s", source)
+			self.db.execute("DELETE FROM networks         WHERE source = %s", source)
+			self.db.execute("DELETE FROM network_geofeeds WHERE source = %s", source)
 
 			# Create some temporary tables to store parsed data
 			self.db.execute("""
@@ -1276,15 +1278,9 @@ class CLI(object):
 			# Update any geofeed information
 			geofeed = inetnum.get("geofeed", None)
 			if geofeed:
-				self._parse_geofeed(geofeed, single_network)
+				self._parse_geofeed(source_key, geofeed, single_network)
 
-			# Delete any previous geofeeds
-			else:
-				self.db.execute(
-					"DELETE FROM network_geofeeds WHERE network = %s", "%s" % single_network,
-				)
-
-	def _parse_geofeed(self, url, single_network):
+	def _parse_geofeed(self, source, url, single_network):
 		# Parse the URL
 		url = urllib.parse.urlparse(url)
 
@@ -1299,16 +1295,19 @@ class CLI(object):
 		# Store/update any geofeeds
 		self.db.execute("""
 			INSERT INTO
-				network_geofeeds(
-					network,
-					url
-				)
-			VALUES(
-				%s, %s
+				network_geofeeds
+			(
+				network,
+				url,
+				source
+			)
+			VALUES
+			(
+				%s, %s, %s
 			)
 			ON CONFLICT (network) DO
 				UPDATE SET url = excluded.url""",
-			"%s" % single_network, url,
+			"%s" % single_network, url, source,
 		)
 
 	def _parse_org_block(self, block, source_key):
