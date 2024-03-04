@@ -88,6 +88,7 @@ po/POTFILES.in: Makefile
 		sed -e "s@$(abs_srcdir)/@@g" | LC_ALL=C sort > $@
 
 EXTRA_DIST += \
+	README.md \
 	examples/private-key.pem \
 	examples/public-key.pem \
 	examples/python/create-database.py \
