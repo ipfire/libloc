@@ -1099,28 +1099,23 @@ class CLI(object):
 				inetnum[key] = [ipaddress.ip_network(val, strict=False)]
 
 			elif key == "country":
-				val = val.upper()
-
-				# Catch RIR data objects with more than one country code...
-				if not key in inetnum:
-					inetnum[key] = []
-				else:
-					if val in inetnum.get("country"):
-						# ... but keep this list distinct...
-						continue
+				cc = val.upper()
 
 				# Ignore certain country codes
-				if val in IGNORED_COUNTRIES:
-					log.debug("Ignoring country code '%s'" % val)
+				if cc in IGNORED_COUNTRIES:
+					log.debug("Ignoring country code '%s'" % cc)
 					continue
 
 				# Translate country codes
 				try:
-					val = TRANSLATED_COUNTRIES[val]
+					cc = TRANSLATED_COUNTRIES[cc]
 				except KeyError:
 					pass
 
-				inetnum[key].append(val)
+				try:
+					inetnum[key].append(cc)
+				except KeyError:
+					inetnum[key] = [cc]
 
 			# Parse the geofeed attribute
 			elif key == "geofeed":
