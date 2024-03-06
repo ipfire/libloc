@@ -1736,6 +1736,10 @@ class CLI(object):
 					if not line:
 						continue
 
+					# Skip comments
+					elif line.startswith("#"):
+						continue
+
 					# Try to parse the line
 					try:
 						fields = line.split(",", 5)
