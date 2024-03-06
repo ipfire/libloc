@@ -301,6 +301,12 @@ class CLI(object):
 					ON network_overrides USING GIST(network inet_ops);
 				ALTER TABLE network_overrides ADD COLUMN IF NOT EXISTS is_drop boolean;
 				ALTER TABLE network_overrides DROP COLUMN IF EXISTS source;
+
+				CREATE TABLE IF NOT EXISTS geofeed_overrides(
+					url text NOT NULL
+				);
+				CREATE UNIQUE INDEX IF NOT EXISTS geofeed_overrides_url
+					ON geofeed_overrides(url);
 			""")
 
 		return db
@@ -1607,26 +1613,46 @@ class CLI(object):
 				DELETE FROM
 					geofeeds
 				WHERE
-					NOT EXISTS (
+					geofeeds.url NOT IN (
 						SELECT
-							1
+							network_geofeeds.url
 						FROM
 							network_geofeeds
-						WHERE
-							geofeeds.url = network_geofeeds.url
-					)""",
+
+						UNION
+
+						SELECT
+							geofeed_overrides.url
+						FROM
+							geofeed_overrides
+					)
+				""",
 			)
 
 			# Copy all geofeeds
 			self.db.execute("""
+				WITH all_geofeeds AS (
+					SELECT
+						network_geofeeds.url
+					FROM
+						network_geofeeds
+
+					UNION
+
+					SELECT
+						geofeed_overrides.url
+					FROM
+						geofeed_overrides
+				)
 				INSERT INTO
-					geofeeds(
-						url
-					)
+					geofeeds
+				(
+					url
+				)
 				SELECT
 					url
 				FROM
-					network_geofeeds
+					all_geofeeds
 				ON CONFLICT (url)
 					DO NOTHING
 				""",
@@ -1802,6 +1828,7 @@ class CLI(object):
 		with self.db.transaction():
 			# Drop any previous content
 			self.db.execute("TRUNCATE TABLE autnum_overrides")
+			self.db.execute("TRUNCATE TABLE geofeed_overrides")
 			self.db.execute("TRUNCATE TABLE network_overrides")
 
 			for file in ns.files:
@@ -1884,6 +1911,26 @@ class CLI(object):
 								self._parse_bool(block, "is-satellite-provider"),
 								self._parse_bool(block, "is-anycast"),
 								self._parse_bool(block, "drop"),
+							)
+
+						# Geofeeds
+						elif type == "geofeed":
+							url = block.get("geofeed")
+
+							# XXX Check the URL
+
+							self.db.execute("""
+								INSERT INTO
+									geofeed_overrides
+								(
+									url
+								)
+								VALUES
+								(
+									%s
+								)
+								ON CONFLICT (url) DO NOTHING
+								""", url,
 							)
 
 						else:
