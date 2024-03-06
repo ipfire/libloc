@@ -1917,7 +1917,21 @@ class CLI(object):
 						elif type == "geofeed":
 							url = block.get("geofeed")
 
-							# XXX Check the URL
+							# Parse the URL
+							try:
+								url = urllib.parse.urlparse(url)
+							except ValueError as e:
+								log.warning("Skipping invalid URL %s: %s" % (url, e))
+								continue
+
+							# Make sure that this is a HTTPS URL
+							if not url.scheme == "https":
+								log.warning("Skipping Geofeed URL that is not using HTTPS: %s" \
+									% url.geturl())
+								continue
+
+							# Normalize the URL and convert it back
+							url = url.geturl()
 
 							self.db.execute("""
 								INSERT INTO
