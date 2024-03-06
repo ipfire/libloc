@@ -492,11 +492,7 @@ static int loc_network_tree_dedup_step(struct loc_network* network, void* data) 
 	if (loc_network_list_empty(ctx->stack))
 		return loc_network_list_push(ctx->stack, network);
 
-	const unsigned int prefix = loc_network_prefix(network);
-
-	// Remove any networks that are not interesting
-	loc_network_list_remove_with_prefix_smaller_than(ctx->stack, prefix);
-
+	// Walk through all networks on the stack...
 	for (int i = loc_network_list_size(ctx->stack) - 1; i >= 0; i--) {
 		n = loc_network_list_get(ctx->stack, i);
 
@@ -518,6 +514,12 @@ static int loc_network_tree_dedup_step(struct loc_network* network, void* data) 
 			// Once we found a subnet, we are done
 			break;
 		}
+
+		// If the network wasn't a subnet, we can remove it,
+		// because we won't ever see a subnet again.
+		r = loc_network_list_remove(ctx->stack, n);
+		if (r)
+			goto END;
 
 		loc_network_unref(n);
 		n = NULL;
