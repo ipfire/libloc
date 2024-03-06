@@ -506,7 +506,7 @@ static int loc_network_tree_dedup_step(struct loc_network* network, void* data) 
 			if (loc_network_properties_cmp(n, network) == 0) {
 				r = loc_network_tree_delete_network(ctx->tree, network);
 				if (r)
-					return r;
+					goto END;
 
 				// Count
 				(*ctx->removed)++;
@@ -518,6 +518,9 @@ static int loc_network_tree_dedup_step(struct loc_network* network, void* data) 
 			// Once we found a subnet, we are done
 			break;
 		}
+
+		loc_network_unref(n);
+		n = NULL;
 	}
 
 	// If network did not get removed, we push it into the stack
