@@ -488,10 +488,6 @@ static int loc_network_tree_dedup_step(struct loc_network* network, void* data) 
 	struct loc_network* n = NULL;
 	int r;
 
-	// First call when we have not seen any networks, yet
-	if (loc_network_list_empty(ctx->stack))
-		return loc_network_list_push(ctx->stack, network);
-
 	// Walk through all networks on the stack...
 	for (int i = loc_network_list_size(ctx->stack) - 1; i >= 0; i--) {
 		n = loc_network_list_get(ctx->stack, i);
