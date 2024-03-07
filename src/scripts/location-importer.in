@@ -961,7 +961,7 @@ class CLI(object):
 	async def _import_extended_format(self, source, countries, f, *args):
 		# Iterate over all lines
 		for line in iterate_over_lines(f):
-			self._parse_line(block, source, countries)
+			self._parse_line(line, source, countries)
 
 	async def _import_arin_as_names(self, source, countries, f, *args):
 		# Walk through the file
