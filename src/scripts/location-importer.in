@@ -965,7 +965,7 @@ class CLI(object):
 
 	async def _import_arin_as_names(self, source, countries, f, *args):
 		# Walk through the file
-		for line in csv.DictReader(feed, dialect="arin"):
+		for line in csv.DictReader(f, dialect="arin"):
 			log.debug("Processing object: %s" % line)
 
 			# Fetch status
