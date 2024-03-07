@@ -22,6 +22,7 @@ import asyncio
 import csv
 import functools
 import http.client
+import io
 import ipaddress
 import json
 import logging
@@ -964,6 +965,9 @@ class CLI(object):
 			self._parse_line(line, source, countries)
 
 	async def _import_arin_as_names(self, source, countries, f, *args):
+		# Wrap the data to text
+		f = io.TextIOWrapper(f)
+
 		# Walk through the file
 		for line in csv.DictReader(f, dialect="arin"):
 			log.debug("Processing object: %s" % line)
