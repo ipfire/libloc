@@ -1354,8 +1354,12 @@ class CLI(object):
 			log.warning("Could not parse line: %s" % line)
 			return
 
+		# Skip ASN
+		if type == "asn":
+			return
+
 		# Skip any unknown protocols
-		if not type in ("ipv6", "ipv4"):
+		elif not type in ("ipv6", "ipv4"):
 			log.warning("Unknown IP protocol '%s'" % type)
 			return
 
