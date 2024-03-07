@@ -151,6 +151,14 @@ class Connection(object):
 
 		return conn.transaction()
 
+	def pipeline(self):
+		"""
+			Sets the connection into pipeline mode.
+		"""
+		conn = self.connection()
+
+		return conn.pipeline()
+
 
 class Row(dict):
 	"""A dict that allows for object-like property access syntax."""
