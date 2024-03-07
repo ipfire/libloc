@@ -1710,7 +1710,12 @@ class CLI(object):
 				try:
 					# Send the request
 					f = await asyncio.to_thread(
-						self.downloader.retrieve, geofeed.url,
+						self.downloader.retrieve,
+
+						# Fetch the feed by its URL
+						geofeed.url,
+
+						# Send some extra headers
 						headers={
 							"User-Agent" : "location/%s" % location.__version__,
 
@@ -1719,7 +1724,7 @@ class CLI(object):
 						},
 
 						# Don't wait longer than 10 seconds for a response
-						#timeout=10,
+						timeout=10,
 					)
 
 					# Remove any previous data

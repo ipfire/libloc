@@ -209,7 +209,7 @@ class Downloader(object):
 
 		return True
 
-	def retrieve(self, url, **kwargs):
+	def retrieve(self, url, timeout=None, **kwargs):
 		"""
 			This method will fetch the content at the given URL
 			and will return a file-object to a temporary file.
@@ -223,7 +223,7 @@ class Downloader(object):
 		req = self._make_request(url, **kwargs)
 
 		# Send request
-		res = self._send_request(req)
+		res = self._send_request(req, timeout=timeout)
 
 		# Write the payload to the temporary file
 		with res as f:
