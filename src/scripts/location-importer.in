@@ -1422,7 +1422,7 @@ class CLI(object):
 			)
 			ON CONFLICT (network)
 				DO UPDATE SET country = excluded.country
-			""", "%s" % network, country_code, [country], source_key,
+			""", "%s" % network, country_code, [country_code], source_key,
 		)
 
 	async def handle_update_announcements(self, ns):
