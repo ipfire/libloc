@@ -241,12 +241,13 @@ class CLI(object):
 					ON geofeed_networks USING GIST(network inet_ops);
 				CREATE TABLE IF NOT EXISTS network_geofeeds(network inet, url text);
 				ALTER TABLE network_geofeeds ADD COLUMN IF NOT EXISTS source text NOT NULL;
-				CREATE UNIQUE INDEX IF NOT EXISTS network_geofeeds_unique
-					ON network_geofeeds(network);
+				CREATE UNIQUE INDEX IF NOT EXISTS network_geofeeds_unique2
+					ON network_geofeeds(network, url);
 				CREATE INDEX IF NOT EXISTS network_geofeeds_search
 					ON network_geofeeds USING GIST(network inet_ops);
 				CREATE INDEX IF NOT EXISTS network_geofeeds_url
 					ON network_geofeeds(url);
+				DROP INDEX IF EXISTS network_geofeeds_unique;
 
 				-- feeds
 				CREATE TABLE IF NOT EXISTS autnum_feeds(
@@ -1330,10 +1331,9 @@ class CLI(object):
 			)
 			ON CONFLICT
 			(
-				network
+				network, url
 			)
 			DO UPDATE SET
-				url = excluded.url,
 				source = excluded.source
 			""", "%s" % single_network, url, source,
 		)
@@ -2019,10 +2019,9 @@ class CLI(object):
 								)
 								ON CONFLICT
 								(
-									network
+									network, url
 								)
 								DO UPDATE SET
-									url = excluded.url,
 									source = excluded.source
 								""", (("%s" % n, url, "overrides") for n in networks),
 							)
