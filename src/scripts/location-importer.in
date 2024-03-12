@@ -1328,9 +1328,14 @@ class CLI(object):
 			(
 				%s, %s, %s
 			)
-			ON CONFLICT (network) DO
-				UPDATE SET url = excluded.url""",
-			"%s" % single_network, url, source,
+			ON CONFLICT
+			(
+				network
+			)
+			DO UPDATE SET
+				url = excluded.url,
+				source = excluded.source
+			""", "%s" % single_network, url, source,
 		)
 
 	def _parse_org_block(self, block, source_key):
@@ -2012,6 +2017,13 @@ class CLI(object):
 								(
 									%s, %s, %s
 								)
+								ON CONFLICT
+								(
+									network
+								)
+								DO UPDATE SET
+									url = excluded.url,
+									source = excluded.source
 								""", (("%s" % n, url, "overrides") for n in networks),
 							)
 
