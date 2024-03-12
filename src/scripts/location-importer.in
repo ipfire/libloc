@@ -1087,6 +1087,29 @@ class CLI(object):
 		log.info("Supplied ASN %s out of publicly routable ASN ranges" % asn)
 		return False
 
+	def _check_geofeed_url(self, url):
+		"""
+			This function checks if a Geofeed URL is valid.
+
+			If so, it returns the normalized URL which should be stored instead of
+			the original one.
+		"""
+		# Parse the URL
+		try:
+			url = urllib.parse.urlparse(url)
+		except ValueError as e:
+			log.warning("Invalid URL %s: %s" % (url, e))
+			return
+
+		# Make sure that this is a HTTPS URL
+		if not url.scheme == "https":
+			log.warning("Skipping Geofeed URL that is not using HTTPS: %s" \
+				% url.geturl())
+			return
+
+		# Normalize the URL and convert it back
+		return url.geturl()
+
 	def _parse_block(self, block, source_key, countries):
 		# Get first line to find out what type of block this is
 		line = block[0]
@@ -1287,16 +1310,10 @@ class CLI(object):
 				self._parse_geofeed(source_key, geofeed, single_network)
 
 	def _parse_geofeed(self, source, url, single_network):
-		# Parse the URL
-		url = urllib.parse.urlparse(url)
-
-		# Make sure that this is a HTTPS URL
-		if not url.scheme == "https":
-			log.debug("Geofeed URL is not using HTTPS: %s" % geofeed)
+		# Check the URL
+		url = self._check_geofeed_url(url)
+		if not url:
 			return
-
-		# Put the URL back together normalized
-		url = url.geturl()
 
 		# Store/update any geofeeds
 		self.db.execute("""
@@ -1962,21 +1979,10 @@ class CLI(object):
 								log.warning("Geofeed %s is not permitted for any networks. Ignoring." % url)
 								continue
 
-							# Parse the URL
-							try:
-								url = urllib.parse.urlparse(url)
-							except ValueError as e:
-								log.warning("Skipping invalid URL %s: %s" % (url, e))
+							# Check the URL
+							url = self._check_geofeed_url(url)
+							if not url:
 								continue
-
-							# Make sure that this is a HTTPS URL
-							if not url.scheme == "https":
-								log.warning("Skipping Geofeed URL that is not using HTTPS: %s" \
-									% url.geturl())
-								continue
-
-							# Normalize the URL and convert it back
-							url = url.geturl()
 
 							# Store the Geofeed URL
 							self.db.execute("""
