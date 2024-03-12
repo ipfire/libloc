@@ -304,11 +304,7 @@ class CLI(object):
 				ALTER TABLE network_overrides ADD COLUMN IF NOT EXISTS is_drop boolean;
 				ALTER TABLE network_overrides DROP COLUMN IF EXISTS source;
 
-				CREATE TABLE IF NOT EXISTS geofeed_overrides(
-					url text NOT NULL
-				);
-				CREATE UNIQUE INDEX IF NOT EXISTS geofeed_overrides_url
-					ON geofeed_overrides(url);
+				DROP TABLE IF EXISTS geofeed_overrides;
 			""")
 
 		return db
@@ -1857,8 +1853,10 @@ class CLI(object):
 		with self.db.transaction():
 			# Drop any previous content
 			self.db.execute("TRUNCATE TABLE autnum_overrides")
-			self.db.execute("TRUNCATE TABLE geofeed_overrides")
 			self.db.execute("TRUNCATE TABLE network_overrides")
+
+			# Remove all Geofeeds
+			self.db.execute("DELETE FROM network_geofeeds WHERE source = %s", "overrides")
 
 			for file in ns.files:
 				log.info("Reading %s..." % file)
@@ -1944,7 +1942,25 @@ class CLI(object):
 
 						# Geofeeds
 						elif type == "geofeed":
+							networks = []
+
+							# Fetch the URL
 							url = block.get("geofeed")
+
+							# Fetch permitted networks
+							for n in block.get("network", []):
+								try:
+									n = ipaddress.ip_network(n)
+								except ValueError as e:
+									log.warning("Ignoring invalid network %s: %s" % (n, e))
+									continue
+
+								networks.append(n)
+
+							# Log a warning if not networks have been permitted
+							if not networks:
+								log.warning("Geofeed %s is not permitted for any networks. Ignoring." % url)
+								continue
 
 							# Parse the URL
 							try:
@@ -1962,9 +1978,10 @@ class CLI(object):
 							# Normalize the URL and convert it back
 							url = url.geturl()
 
+							# Store the Geofeed URL
 							self.db.execute("""
 								INSERT INTO
-									geofeed_overrides
+									geofeeds
 								(
 									url
 								)
@@ -1974,6 +1991,22 @@ class CLI(object):
 								)
 								ON CONFLICT (url) DO NOTHING
 								""", url,
+							)
+
+							# Store all permitted networks
+							self.db.executemany("""
+								INSERT INTO
+									network_geofeeds
+								(
+									network,
+									url,
+									source
+								)
+								VALUES
+								(
+									%s, %s, %s
+								)
+								""", (("%s" % n, url, "overrides") for n in networks),
 							)
 
 						else:
@@ -2332,8 +2365,19 @@ def read_blocks(f):
 			if i == 0:
 				type = key
 
-			# Store value
-			data[key] = value.strip()
+			# Strip any excess whitespace
+			value = value.strip()
+
+			# Store some values as a list
+			if type == "geofeed" and key == "network":
+				try:
+					data[key].append(value)
+				except KeyError:
+					data[key] = [value]
+
+			# Otherwise store the value as string
+			else:
+				data[key] = value
 
 		yield type, data
 
