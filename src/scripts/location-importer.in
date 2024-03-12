@@ -659,7 +659,7 @@ class CLI(object):
 		""")
 
 		for row in rows:
-			network = writer.add_network(row.network)
+			network = writer.add_network("%s" % row.network)
 
 			# Save country
 			if row.country:
