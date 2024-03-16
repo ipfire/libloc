@@ -1644,13 +1644,6 @@ class CLI(object):
 							network_geofeeds.url
 						FROM
 							network_geofeeds
-
-						UNION
-
-						SELECT
-							geofeed_overrides.url
-						FROM
-							geofeed_overrides
 					)
 				""",
 			)
@@ -1662,13 +1655,6 @@ class CLI(object):
 						network_geofeeds.url
 					FROM
 						network_geofeeds
-
-					UNION
-
-					SELECT
-						geofeed_overrides.url
-					FROM
-						geofeed_overrides
 				)
 				INSERT INTO
 					geofeeds
