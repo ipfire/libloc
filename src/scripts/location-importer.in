@@ -336,6 +336,9 @@ class CLI(object):
 		if ns.license:
 			writer.license = ns.license
 
+		# Analyze everything for the query planner hopefully making better decisions
+		self.db.execute("ANALYZE")
+
 		# Add all Autonomous Systems
 		log.info("Writing Autonomous Systems...")
 
