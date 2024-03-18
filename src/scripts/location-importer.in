@@ -197,7 +197,8 @@ class CLI(object):
 					first_seen_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
 					last_seen_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP);
 				CREATE UNIQUE INDEX IF NOT EXISTS announcements_networks ON announcements(network);
-				CREATE INDEX IF NOT EXISTS announcements_search ON announcements USING SPGIST(network inet_ops);
+				CREATE INDEX IF NOT EXISTS announcements_search2 ON announcements
+					USING SPGIST(network inet_ops);
 
 				-- autnums
 				CREATE TABLE IF NOT EXISTS autnums(number bigint, name text NOT NULL);
@@ -214,7 +215,8 @@ class CLI(object):
 				ALTER TABLE networks ADD COLUMN IF NOT EXISTS original_countries text[];
 				ALTER TABLE networks ADD COLUMN IF NOT EXISTS source text;
 				CREATE UNIQUE INDEX IF NOT EXISTS networks_network ON networks(network);
-				CREATE INDEX IF NOT EXISTS networks_search ON networks USING SPGIST(network inet_ops);
+				CREATE INDEX IF NOT EXISTS networks_search2 ON networks
+					USING SPGIST(network inet_ops);
 
 				-- geofeeds
 				CREATE TABLE IF NOT EXISTS geofeeds(
@@ -235,17 +237,12 @@ class CLI(object):
 				);
 				CREATE INDEX IF NOT EXISTS geofeed_networks_geofeed_id
 					ON geofeed_networks(geofeed_id);
-				CREATE INDEX IF NOT EXISTS geofeed_networks_search
-					ON geofeed_networks USING SPGIST(network inet_ops);
 				CREATE TABLE IF NOT EXISTS network_geofeeds(network inet, url text);
 				ALTER TABLE network_geofeeds ADD COLUMN IF NOT EXISTS source text NOT NULL;
 				CREATE UNIQUE INDEX IF NOT EXISTS network_geofeeds_unique2
 					ON network_geofeeds(network, url);
-				CREATE INDEX IF NOT EXISTS network_geofeeds_search
-					ON network_geofeeds USING SPGIST(network inet_ops);
 				CREATE INDEX IF NOT EXISTS network_geofeeds_url
 					ON network_geofeeds(url);
-				DROP INDEX IF EXISTS network_geofeeds_unique;
 
 				-- feeds
 				CREATE TABLE IF NOT EXISTS autnum_feeds(
@@ -272,8 +269,6 @@ class CLI(object):
 				);
 				CREATE UNIQUE INDEX IF NOT EXISTS network_feeds_unique
 					ON network_feeds(network, source);
-				CREATE INDEX IF NOT EXISTS network_feeds_search
-					ON network_feeds USING SPGIST(network inet_ops);
 
 				-- overrides
 				CREATE TABLE IF NOT EXISTS autnum_overrides(
@@ -298,15 +293,20 @@ class CLI(object):
 				);
 				CREATE UNIQUE INDEX IF NOT EXISTS network_overrides_network
 					ON network_overrides(network);
-				CREATE INDEX IF NOT EXISTS network_overrides_search
-					ON network_overrides USING SPGIST(network inet_ops);
 				ALTER TABLE network_overrides ADD COLUMN IF NOT EXISTS is_drop boolean;
 				ALTER TABLE network_overrides DROP COLUMN IF EXISTS source;
 
 				-- Cleanup things we no longer need
 				DROP TABLE IF EXISTS geofeed_overrides;
 				DROP INDEX IF EXISTS announcements_family;
+				DROP INDEX IF EXISTS announcements_search;
+				DROP INDEX IF EXISTS geofeed_networks_search;
 				DROP INDEX IF EXISTS networks_family;
+				DROP INDEX IF EXISTS networks_search;
+				DROP INDEX IF EXISTS network_feeds_search;
+				DROP INDEX IF EXISTS network_geofeeds_unique;
+				DROP INDEX IF EXISTS network_geofeeds_search;
+				DROP INDEX IF EXISTS network_overrides_search;
 			""")
 
 		return db
