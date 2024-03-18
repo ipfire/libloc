@@ -197,7 +197,6 @@ class CLI(object):
 					first_seen_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP,
 					last_seen_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP);
 				CREATE UNIQUE INDEX IF NOT EXISTS announcements_networks ON announcements(network);
-				CREATE INDEX IF NOT EXISTS announcements_family ON announcements(family(network));
 				CREATE INDEX IF NOT EXISTS announcements_search ON announcements USING SPGIST(network inet_ops);
 
 				-- autnums
@@ -215,7 +214,6 @@ class CLI(object):
 				ALTER TABLE networks ADD COLUMN IF NOT EXISTS original_countries text[];
 				ALTER TABLE networks ADD COLUMN IF NOT EXISTS source text;
 				CREATE UNIQUE INDEX IF NOT EXISTS networks_network ON networks(network);
-				CREATE INDEX IF NOT EXISTS networks_family ON networks USING BTREE(family(network));
 				CREATE INDEX IF NOT EXISTS networks_search ON networks USING SPGIST(network inet_ops);
 
 				-- geofeeds
@@ -305,7 +303,10 @@ class CLI(object):
 				ALTER TABLE network_overrides ADD COLUMN IF NOT EXISTS is_drop boolean;
 				ALTER TABLE network_overrides DROP COLUMN IF EXISTS source;
 
+				-- Cleanup things we no longer need
 				DROP TABLE IF EXISTS geofeed_overrides;
+				DROP INDEX IF EXISTS announcements_family;
+				DROP INDEX IF EXISTS networks_family;
 			""")
 
 		return db
