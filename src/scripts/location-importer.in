@@ -2099,10 +2099,12 @@ class CLI(object):
 
 								networks.append(n)
 
-							# Log a warning if not networks have been permitted
+							# If no networks have been specified, permit for everything
 							if not networks:
-								log.warning("Geofeed %s is not permitted for any networks. Ignoring." % url)
-								continue
+								networks = [
+									ipaddress.ip_network("::/0"),
+									ipaddress.ip_network("0.0.0.0/0"),
+								]
 
 							# Check the URL
 							url = self._check_geofeed_url(url)
