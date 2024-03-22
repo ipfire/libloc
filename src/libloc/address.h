@@ -131,10 +131,30 @@ static inline struct in6_addr loc_prefix_to_bitmask(const unsigned int prefix) {
 }
 
 static inline unsigned int loc_address_bit_length(const struct in6_addr* address) {
+	unsigned int bitlength = 0;
+
 	int octet = 0;
-	foreach_octet_in_address(octet, address) {
-		if (address->s6_addr[octet])
-			return (15 - octet) * 8 + 32 - __builtin_clz(address->s6_addr[octet]);
+
+	// Initialize the bit length
+	if (IN6_IS_ADDR_V4MAPPED(address))
+		bitlength = 32;
+	else
+		bitlength = 128;
+
+	// Walk backwards until we find the first one
+	foreach_octet_in_address_reverse(octet, address) {
+		// Count all trailing zeroes
+		int trailing_zeroes = __builtin_ctz(address->s6_addr[octet]);
+
+		// We only have one byte
+		if (trailing_zeroes > 8)
+			trailing_zeroes = 8;
+
+		// Remove any trailing zeroes from the total length
+		bitlength -= trailing_zeroes;
+
+		if (trailing_zeroes < 8)
+			return bitlength;
 	}
 
 	return 0;
