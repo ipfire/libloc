@@ -608,11 +608,15 @@ int loc_network_merge(struct loc_network** n,
 	const unsigned int prefix = loc_network_prefix(n1);
 
 	// How many bits do we need to represent this address?
-	const size_t bitlength = loc_address_bit_length(&n1->first_address) - 1;
+	const size_t bitlength = loc_address_bit_length(&n1->first_address);
 
 	// We cannot shorten this any more
-	if (bitlength < prefix)
+	if (bitlength >= prefix) {
+		DEBUG(n1->ctx, "Cannot shorten this any further because we need at least %jd bits,"
+			" but only have %d\n", bitlength, prefix);
+
 		return 0;
+	}
 
 	// Increment the last address of the first network
 	address = n1->last_address;
