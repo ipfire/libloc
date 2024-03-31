@@ -239,6 +239,7 @@ luadir = $(LUA_INSTALL_CMOD)
 src_lua_location_la_SOURCES = \
 	src/lua/as.c \
 	src/lua/as.h \
+	src/lua/compat.h \
 	src/lua/country.c \
 	src/lua/country.h \
 	src/lua/database.c \

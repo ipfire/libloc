@@ -24,6 +24,7 @@
 #include <libloc/network.h>
 
 #include "location.h"
+#include "compat.h"
 #include "network.h"
 
 typedef struct network {

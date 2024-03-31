@@ -24,6 +24,7 @@
 
 #include "location.h"
 #include "as.h"
+#include "compat.h"
 #include "country.h"
 #include "database.h"
 #include "network.h"
