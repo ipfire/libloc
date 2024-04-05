@@ -151,4 +151,15 @@ function test_gc()
 	print("GC: " .. collectgarbage("collect"))
 end
 
+function test_list_networks()
+	location = require("location")
+
+	-- Open the database
+	db = location.Database.open(ENV_TEST_DATABASE)
+
+	for network in db:list_networks() do
+		print(network)
+	end
+end
+
 os.exit(luaunit.LuaUnit.run())

@@ -217,6 +217,50 @@ static int Database_verify(lua_State* L) {
 	return 1;
 }
 
+static int Database_next_network(lua_State* L) {
+	struct loc_network* network = NULL;
+	int r;
+
+	struct loc_database_enumerator* e = lua_touserdata(L, lua_upvalueindex(1));
+
+	// Fetch the next network
+	r = loc_database_enumerator_next_network(e, &network);
+	if (r)
+		return luaL_error(L, "Could not fetch network: %s\n", strerror(errno));
+
+	// If we have received no network, we have reached the end
+	if (!network) {
+		lua_pushnil(L);
+		return 1;
+	}
+
+	// Create a network object
+	r = create_network(L, network);
+	loc_network_unref(network);
+
+	return r;
+}
+
+static int Database_list_networks(lua_State* L) {
+	struct loc_database_enumerator* e = NULL;
+	int r;
+
+	Database* self = luaL_checkdatabase(L, 1);
+
+	// Create a new enumerator
+	r = loc_database_enumerator_new(&e, self->db, LOC_DB_ENUMERATE_NETWORKS, 0);
+	if (r)
+		return luaL_error(L, "Could not create enumerator: %s\n", strerror(errno));
+
+	// Push the enumerator onto the stack
+	lua_pushlightuserdata(L, e);
+
+	// Push the closure onto the stack
+	lua_pushcclosure(L, Database_next_network, 1);
+
+	return 1;
+}
+
 static const struct luaL_Reg database_functions[] = {
 	{ "get_as", Database_get_as },
 	{ "get_description", Database_get_description },
@@ -225,6 +269,7 @@ static const struct luaL_Reg database_functions[] = {
 	{ "get_vendor", Database_get_vendor },
 	{ "open", Database_open },
 	{ "lookup", Database_lookup },
+	{ "list_networks", Database_list_networks },
 	{ "verify", Database_verify },
 	{ "__gc", Database_gc },
 	{ NULL, NULL },
