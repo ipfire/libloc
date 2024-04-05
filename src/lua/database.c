@@ -217,14 +217,38 @@ static int Database_verify(lua_State* L) {
 	return 1;
 }
 
-static int Database_next_network(lua_State* L) {
+typedef struct enumerator {
+	struct loc_database_enumerator* e;
+} DatabaseEnumerator;
+
+static DatabaseEnumerator* luaL_checkdatabaseenumerator(lua_State* L, int i) {
+	void* userdata = luaL_checkudata(L, i, "location.DatabaseEnumerator");
+
+	// Throw an error if the argument doesn't match
+	luaL_argcheck(L, userdata, i, "DatabaseEnumerator expected");
+
+	return (DatabaseEnumerator*)userdata;
+}
+
+static int DatabaseEnumerator_gc(lua_State* L) {
+	DatabaseEnumerator* self = luaL_checkdatabaseenumerator(L, 1);
+
+	if (self->e) {
+		loc_database_enumerator_unref(self->e);
+		self->e = NULL;
+	}
+
+	return 0;
+}
+
+static int DatabaseEnumerator_next_network(lua_State* L) {
 	struct loc_network* network = NULL;
 	int r;
 
-	struct loc_database_enumerator* e = lua_touserdata(L, lua_upvalueindex(1));
+	DatabaseEnumerator* self = luaL_checkdatabaseenumerator(L, lua_upvalueindex(1));
 
 	// Fetch the next network
-	r = loc_database_enumerator_next_network(e, &network);
+	r = loc_database_enumerator_next_network(self->e, &network);
 	if (r)
 		return luaL_error(L, "Could not fetch network: %s\n", strerror(errno));
 
@@ -242,21 +266,22 @@ static int Database_next_network(lua_State* L) {
 }
 
 static int Database_list_networks(lua_State* L) {
-	struct loc_database_enumerator* e = NULL;
+	DatabaseEnumerator* e = NULL;
 	int r;
 
 	Database* self = luaL_checkdatabase(L, 1);
 
+	// Allocate a new enumerator
+	e = lua_newuserdata(L, sizeof(*e));
+	luaL_setmetatable(L, "location.DatabaseEnumerator");
+
 	// Create a new enumerator
-	r = loc_database_enumerator_new(&e, self->db, LOC_DB_ENUMERATE_NETWORKS, 0);
+	r = loc_database_enumerator_new(&e->e, self->db, LOC_DB_ENUMERATE_NETWORKS, 0);
 	if (r)
 		return luaL_error(L, "Could not create enumerator: %s\n", strerror(errno));
 
-	// Push the enumerator onto the stack
-	lua_pushlightuserdata(L, e);
-
 	// Push the closure onto the stack
-	lua_pushcclosure(L, Database_next_network, 1);
+	lua_pushcclosure(L, DatabaseEnumerator_next_network, 1);
 
 	return 1;
 }
@@ -277,4 +302,13 @@ static const struct luaL_Reg database_functions[] = {
 
 int register_database(lua_State* L) {
 	return register_class(L, "location.Database", database_functions);
+}
+
+static const struct luaL_Reg database_enumerator_functions[] = {
+	{ "__gc", DatabaseEnumerator_gc },
+	{ NULL, NULL },
+};
+
+int register_database_enumerator(lua_State* L) {
+	return register_class(L, "location.DatabaseEnumerator", database_enumerator_functions);
 }

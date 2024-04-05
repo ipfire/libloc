@@ -70,6 +70,11 @@ int luaopen_location(lua_State* L) {
 
 	lua_setfield(L, -2, "Database");
 
+	// Register DatabaseEnumerator type
+	register_database_enumerator(L);
+
+	lua_setfield(L, -2, "DatabaseEnumerator");
+
 	// Register Network type
 	register_network(L);
 
