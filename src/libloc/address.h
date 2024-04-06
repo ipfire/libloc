@@ -300,6 +300,37 @@ static inline int loc_address_count_trailing_zero_bits(const struct in6_addr* ad
 	return zeroes;
 }
 
+static inline int loc_address_get_octet(const struct in6_addr* address, const unsigned int i) {
+	if (IN6_IS_ADDR_V4MAPPED(address)) {
+		if (i >= 4)
+			return -ERANGE;
+
+		return (address->s6_addr32[3] >> (i * 8)) & 0xff;
+
+	} else {
+		if (i >= 32)
+			return -ERANGE;
+
+		return address->s6_addr[i];
+	}
+}
+
+static inline int loc_address_get_nibble(const struct in6_addr* address, const unsigned int i) {
+	int octet = 0;
+
+	// Fetch the octet
+	octet = loc_address_get_octet(address, i / 2);
+	if (octet < 0)
+		return octet;
+
+	// Shift if we want an uneven nibble
+	if (i % 2 == 0)
+		octet >>= 4;
+
+	// Return the nibble
+	return octet & 0x0f;
+}
+
 #endif /* LIBLOC_PRIVATE */
 
 #endif /* LIBLOC_ADDRESS_H */
