@@ -151,6 +151,24 @@ function test_gc()
 	print("GC: " .. collectgarbage("collect"))
 end
 
+function test_subnets()
+	location = require("location")
+
+	-- Open the database
+	db = location.Database.open(ENV_TEST_DATABASE)
+
+	local network = db:lookup("1.1.1.1")
+
+	local subnets = network:subnets()
+
+	luaunit.assertIsTable(subnets)
+	luaunit.assertEquals(#subnets, 2)
+
+	for i, subnet in ipairs(subnets) do
+		print(subnet)
+	end
+end
+
 function test_list_networks()
 	location = require("location")
 

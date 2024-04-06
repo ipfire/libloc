@@ -151,6 +151,36 @@ static int Network_has_flag(lua_State* L) {
 	return 1;
 }
 
+// Subnets
+
+static int Network_subnets(lua_State* L) {
+	struct loc_network* subnet1 = NULL;
+	struct loc_network* subnet2 = NULL;
+	int r;
+
+	Network* self = luaL_checknetwork(L, 1);
+
+	// Make subnets
+	r = loc_network_subnets(self->network, &subnet1, &subnet2);
+	if (r)
+		return luaL_error(L, "Could not create subnets of %s: %s\n",
+			loc_network_str(self->network), strerror(errno));
+
+	// Create a new table
+	lua_createtable(L, 2, 0);
+
+	// Create the networks & push them onto the table
+	create_network(L, subnet1);
+	loc_network_unref(subnet1);
+	lua_rawseti(L, -2, 1);
+
+	create_network(L, subnet2);
+	loc_network_unref(subnet2);
+	lua_rawseti(L, -2, 2);
+
+	return 1;
+}
+
 // Reverse Pointer
 
 static int Network_reverse_pointer(lua_State* L) {
@@ -188,6 +218,7 @@ static const struct luaL_Reg Network_functions[] = {
 	{ "get_family", Network_get_family },
 	{ "has_flag", Network_has_flag },
 	{ "reverse_pointer", Network_reverse_pointer },
+	{ "subnets", Network_subnets },
 	{ "__gc", Network_gc },
 	{ "__tostring", Network_tostring },
 	{ NULL, NULL },
