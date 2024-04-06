@@ -404,6 +404,7 @@ TESTS_LDADD = \
 	src/libloc-internal.la
 
 TESTS_ENVIRONMENT = \
+	LD_LIBRARY_PATH="$(abs_builddir)/src/.libs" \
 	LUA_CPATH="$(abs_builddir)/src/lua/.libs/?.so;;" \
 	PYTHONPATH=$(abs_srcdir)/src/python:$(abs_builddir)/src/python/.libs \
 	TEST_DATA_DIR="$(abs_top_srcdir)/data" \
