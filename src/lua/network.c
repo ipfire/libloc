@@ -151,12 +151,43 @@ static int Network_has_flag(lua_State* L) {
 	return 1;
 }
 
+// Reverse Pointer
+
+static int Network_reverse_pointer(lua_State* L) {
+	char* rp = NULL;
+
+	Network* self = luaL_checknetwork(L, 1);
+
+	// Fetch the suffix
+	const char* suffix = luaL_optstring(L, 2, NULL);
+
+	// Make the reverse pointer
+	rp = loc_network_reverse_pointer(self->network, suffix);
+	if (!rp) {
+		switch (errno) {
+			case ENOTSUP:
+				lua_pushnil(L);
+				return 1;
+
+			default:
+				return luaL_error(L, "Could not create reverse pointer: %s\n", strerror(errno));
+		}
+	}
+
+	// Return the response
+	lua_pushstring(L, rp);
+	free(rp);
+
+	return 1;
+}
+
 static const struct luaL_Reg Network_functions[] = {
 	{ "new", Network_new },
 	{ "get_asn", Network_get_asn },
 	{ "get_country_code", Network_get_country_code },
 	{ "get_family", Network_get_family },
 	{ "has_flag", Network_has_flag },
+	{ "reverse_pointer", Network_reverse_pointer },
 	{ "__gc", Network_gc },
 	{ "__tostring", Network_tostring },
 	{ NULL, NULL },

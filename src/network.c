@@ -700,3 +700,121 @@ int loc_network_new_from_database_v1(struct loc_ctx* ctx, struct loc_network** n
 
 	return 0;
 }
+
+static char* loc_network_reverse_pointer6(struct loc_network* network, const char* suffix) {
+	char* buffer = NULL;
+	int r;
+
+	unsigned int prefix = loc_network_prefix(network);
+
+	// Must border on a nibble
+	if (prefix % 4) {
+		errno = ENOTSUP;
+		return NULL;
+	}
+
+	if (!suffix)
+		suffix = "ip6.arpa.";
+
+	// Initialize the buffer
+	r = asprintf(&buffer, "%s", suffix);
+	if (r < 0)
+		goto ERROR;
+
+	for (unsigned int i = 0; i < (prefix / 4); i++) {
+		r = asprintf(&buffer, "%x.%s", loc_address_get_nibble(&network->first_address, i), buffer);
+		if (r < 0)
+			goto ERROR;
+	}
+
+	// Add the asterisk
+	if (prefix < 128) {
+		r = asprintf(&buffer, "*.%s", buffer);
+		if (r < 0)
+			goto ERROR;
+	}
+
+	return buffer;
+
+ERROR:
+	if (buffer)
+		free(buffer);
+
+	return NULL;
+}
+
+static char* loc_network_reverse_pointer4(struct loc_network* network, const char* suffix) {
+	char* buffer = NULL;
+	int r;
+
+	unsigned int prefix = loc_network_prefix(network);
+
+	// Must border on an octet
+	if (prefix % 8) {
+		errno = ENOTSUP;
+		return NULL;
+	}
+
+	if (!suffix)
+		suffix = "in-addr.arpa.";
+
+	switch (prefix) {
+		case 32:
+			r = asprintf(&buffer, "%d.%d.%d.%d.%s",
+				loc_address_get_octet(&network->first_address, 3),
+				loc_address_get_octet(&network->first_address, 2),
+				loc_address_get_octet(&network->first_address, 1),
+				loc_address_get_octet(&network->first_address, 0),
+				suffix);
+			break;
+
+		case 24:
+			r = asprintf(&buffer, "*.%d.%d.%d.%s",
+				loc_address_get_octet(&network->first_address, 2),
+				loc_address_get_octet(&network->first_address, 1),
+				loc_address_get_octet(&network->first_address, 0),
+				suffix);
+			break;
+
+		case 16:
+			r = asprintf(&buffer, "*.%d.%d.%s",
+				loc_address_get_octet(&network->first_address, 1),
+				loc_address_get_octet(&network->first_address, 0),
+				suffix);
+			break;
+
+		case 8:
+			r = asprintf(&buffer, "*.%d.%s",
+				loc_address_get_octet(&network->first_address, 0),
+				suffix);
+			break;
+
+		case 0:
+			r = asprintf(&buffer, "*.%s", suffix);
+			break;
+
+		// To make the compiler happy
+		default:
+			return NULL;
+	}
+
+	if (r < 0)
+		return NULL;
+
+	return buffer;
+}
+
+LOC_EXPORT char* loc_network_reverse_pointer(struct loc_network* network, const char* suffix) {
+	switch (network->family) {
+		case AF_INET6:
+			return loc_network_reverse_pointer6(network, suffix);
+
+		case AF_INET:
+			return loc_network_reverse_pointer4(network, suffix);
+
+		default:
+			break;
+	}
+
+	return NULL;
+}

@@ -158,7 +158,7 @@ function test_list_networks()
 	db = location.Database.open(ENV_TEST_DATABASE)
 
 	for network in db:list_networks() do
-		print(network)
+		print(network, network:reverse_pointer())
 	end
 end
 
