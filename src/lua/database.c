@@ -86,6 +86,20 @@ static int Database_gc(lua_State* L) {
 	return 0;
 }
 
+// Created At
+
+static int Database_created_at(lua_State* L) {
+	Database* self = luaL_checkdatabase(L, 1);
+
+	// Fetch the time
+	time_t created_at = loc_database_created_at(self->db);
+
+	// Push the time onto the stack
+	lua_pushnumber(L, created_at);
+
+	return 1;
+}
+
 // Description
 
 static int Database_get_description(lua_State* L) {
@@ -287,6 +301,7 @@ static int Database_list_networks(lua_State* L) {
 }
 
 static const struct luaL_Reg database_functions[] = {
+	{ "created_at", Database_created_at },
 	{ "get_as", Database_get_as },
 	{ "get_description", Database_get_description },
 	{ "get_country", Database_get_country },
