@@ -2163,7 +2163,6 @@ class CLI(object):
 
 			# Spamhaus DROP
 			("SPAMHAUS-DROP",   self._import_spamhaus_drop, "https://www.spamhaus.org/drop/drop.txt"),
-			("SPAMHAUS-EDROP",  self._import_spamhaus_drop, "https://www.spamhaus.org/drop/edrop.txt"),
 			("SPAMHAUS-DROPV6", self._import_spamhaus_drop, "https://www.spamhaus.org/drop/dropv6.txt"),
 
 			# Spamhaus ASNDROP
