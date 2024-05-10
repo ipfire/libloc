@@ -145,8 +145,6 @@ src_libloc_la_LDFLAGS = \
 
 if HAVE_LD_VERSION_SCRIPT
 src_libloc_la_LDFLAGS += -Wl,--version-script=$(top_srcdir)/src/libloc.sym
-else
-src_libloc_la_LDFLAGS += -export-symbols $(top_srcdir)/src/libloc.sym
 endif
 
 src_libloc_la_LIBADD = \
