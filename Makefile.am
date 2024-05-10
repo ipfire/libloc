@@ -135,11 +135,13 @@ EXTRA_DIST += src/libloc.sym
 src_libloc_la_CFLAGS = \
 	$(AM_CFLAGS) \
 	-DLIBLOC_PRIVATE \
-	-fvisibility=hidden
+	-fvisibility=hidden \
+	$(OPENSSL_CFLAGS)
 
 src_libloc_la_LDFLAGS = \
 	$(AM_LDFLAGS) \
-	-version-info $(LIBLOC_CURRENT):$(LIBLOC_REVISION):$(LIBLOC_AGE)
+	-version-info $(LIBLOC_CURRENT):$(LIBLOC_REVISION):$(LIBLOC_AGE) \
+	$(OPENSSL_LDFLAGS)
 
 if HAVE_LD_VERSION_SCRIPT
 src_libloc_la_LDFLAGS += -Wl,--version-script=$(top_srcdir)/src/libloc.sym
