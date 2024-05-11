@@ -409,7 +409,7 @@ static int loc_database_clone_handle(struct loc_database* db, FILE* f) {
 	}
 
 	// Reopen the file so that we can keep our own file handle
-	db->f = fdopen(fd, "r");
+	db->f = fdopen(fd, "r+");
 	if (!db->f) {
 		ERROR(db->ctx, "Could not re-open database file\n");
 		return 1;
