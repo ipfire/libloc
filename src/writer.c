@@ -643,6 +643,8 @@ END:
 }
 
 LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f, enum loc_database_version version) {
+	size_t bytes_written = 0;
+
 	// Check version
 	switch (version) {
 		case LOC_DATABASE_VERSION_UNSET:
@@ -766,7 +768,11 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f, enum loc_dat
 	if (r)
 		return r;
 
-	fwrite(&header, 1, sizeof(header), f);
+	bytes_written = fwrite(&header, 1, sizeof(header), f);
+	if (bytes_written < sizeof(header)) {
+		ERROR(writer->ctx, "Could not write header: %s\n", strerror(errno));
+		return r;
+	}
 
 	// Flush everything
 	fflush(f);
