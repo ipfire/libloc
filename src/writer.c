@@ -774,6 +774,11 @@ LOC_EXPORT int loc_writer_write(struct loc_writer* writer, FILE* f, enum loc_dat
 		return r;
 	}
 
+	// Seek back to the end
+	r = fseek(f, 0, SEEK_END);
+	if (r)
+		return r;
+
 	// Flush everything
 	fflush(f);
 
