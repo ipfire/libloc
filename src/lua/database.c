@@ -52,6 +52,7 @@ static int Database_open(lua_State* L) {
 
 	// Allocate a new object
 	Database* self = (Database*)lua_newuserdata(L, sizeof(*self));
+	self->db = NULL;
 
 	// Set metatable
 	luaL_setmetatable(L, "location.Database");
