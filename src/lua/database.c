@@ -189,23 +189,18 @@ static int Database_lookup(lua_State* L) {
 
 	// Perform lookup
 	r = loc_database_lookup_from_string(self->db, address, &network);
-	if (r) {
-		switch (errno) {
-			// Return nil if the network was not found
-			case ENOENT:
-				lua_pushnil(L);
-				return 1;
+	if (r)
+		return luaL_error(L, "Could not lookup address %s: %s\n", address, strerror(errno));
 
-			default:
-				return luaL_error(L, "Could not lookup address %s: %s\n", address, strerror(errno));
-		}
+	// Nothing found
+	if (!network) {
+		lua_pushnil(L);
+		return 1;
 	}
 
 	// Create a network object
-	if (network) {
-		r = create_network(L, network);
-		loc_network_unref(network);
-	}
+	r = create_network(L, network);
+	loc_network_unref(network);
 
 	return r;
 }
