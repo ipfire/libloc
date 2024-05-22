@@ -30,6 +30,28 @@ function test_load()
 	print(location.version())
 end
 
+log_callback_called = 0
+
+function log_callback(level, message)
+	log_callback_called = 1
+	print("LOG " .. message)
+end
+
+function test_log_callback()
+	location = require("location")
+
+	-- Set the callback
+	location.set_log_callback(log_callback)
+
+	-- Enable debugging
+	location.set_log_level(7)
+
+	-- Perform some random operation
+	local db = location.Database.open(ENV_TEST_DATABASE)
+
+	luaunit.assertIsTrue(log_callback_called)
+end
+
 function test_open_database()
 	location = require("location")
 
