@@ -202,8 +202,10 @@ static int Database_lookup(lua_State* L) {
 	}
 
 	// Create a network object
-	r = create_network(L, network);
-	loc_network_unref(network);
+	if (network) {
+		r = create_network(L, network);
+		loc_network_unref(network);
+	}
 
 	return r;
 }

@@ -924,11 +924,12 @@ static int __loc_database_lookup(struct loc_database* db, const struct in6_addr*
 	// If this node has a leaf, we will check if it matches
 	if (__loc_database_node_is_leaf(node_v1)) {
 		r = __loc_database_lookup_handle_leaf(db, address, network, network_address, level, node_v1);
-		if (r <= 0)
+		if (r < 0)
 			return r;
 	}
 
-	return 1;
+	// Return no error - even if nothing was found
+	return 0;
 }
 
 LOC_EXPORT int loc_database_lookup(struct loc_database* db,
