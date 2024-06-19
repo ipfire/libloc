@@ -199,6 +199,8 @@ class CLI(object):
 				CREATE UNIQUE INDEX IF NOT EXISTS announcements_networks ON announcements(network);
 				CREATE INDEX IF NOT EXISTS announcements_search2 ON announcements
 					USING SPGIST(network inet_ops);
+				ALTER TABLE announcements ALTER COLUMN first_seen_at SET NOT NULL;
+				ALTER TABLE announcements ALTER COLUMN last_seen_at  SET NOT NULL;
 
 				-- autnums
 				CREATE TABLE IF NOT EXISTS autnums(number bigint, name text NOT NULL);
