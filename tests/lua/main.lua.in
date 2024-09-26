@@ -33,7 +33,7 @@ end
 log_callback_called = 0
 
 function log_callback(level, message)
-	log_callback_called = 1
+	log_callback_called = true
 	print("LOG " .. message)
 end
 
