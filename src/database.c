@@ -1626,7 +1626,6 @@ static int __loc_database_enumerator_next_bogon(
 	return 0;
 
 FINISH:
-
 	if (!loc_address_all_zeroes(&enumerator->gap6_start)) {
 		r = loc_address_reset_last(&gap_end, AF_INET6);
 		if (r)

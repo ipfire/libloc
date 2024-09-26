@@ -160,6 +160,33 @@ static inline unsigned int loc_address_bit_length(const struct in6_addr* address
 	return 0;
 }
 
+static inline int loc_address_common_bits(const struct in6_addr* a1, const struct in6_addr* a2) {
+	int bits = 0;
+
+	// Both must be of the same family
+	if (IN6_IS_ADDR_V4MAPPED(a1) && !IN6_IS_ADDR_V4MAPPED(a2))
+		return -EINVAL;
+
+	else if (!IN6_IS_ADDR_V4MAPPED(a1) && IN6_IS_ADDR_V4MAPPED(a2))
+		return -EINVAL;
+
+	// Walk through both addresses octet by octet
+	for (unsigned int i = (IN6_IS_ADDR_V4MAPPED(a1) ? 12 : 0); i <= 15; i++) {
+		// Fast path if the entire octet matches
+		if (a1->s6_addr[i] == a2->s6_addr[i]) {
+			bits += 8;
+
+		// Otherwise we XOR the octets and count the leading zeroes
+		// (where both octets have been identical).
+		} else {
+			bits += __builtin_clz(a1->s6_addr[i] ^ a2->s6_addr[i]) - 24;
+			break;
+		}
+	}
+
+	return bits;
+}
+
 static inline int loc_address_reset(struct in6_addr* address, int family) {
 	switch (family) {
 		case AF_INET6:
@@ -283,21 +310,6 @@ static inline void loc_address_decrement(struct in6_addr* address) {
 			address->s6_addr[octet] = 255;
 		}
 	}
-}
-
-static inline int loc_address_count_trailing_zero_bits(const struct in6_addr* address) {
-	int zeroes = 0;
-
-	int octet = 0;
-	foreach_octet_in_address_reverse(octet, address) {
-		if (address->s6_addr[octet]) {
-			zeroes += __builtin_ctz(address->s6_addr[octet]);
-			break;
-		} else
-			zeroes += 8;
-	}
-
-	return zeroes;
 }
 
 static inline int loc_address_get_octet(const struct in6_addr* address, const unsigned int i) {
