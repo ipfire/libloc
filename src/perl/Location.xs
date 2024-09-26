@@ -166,15 +166,21 @@ lookup_country_code(db, address)
 	char* address;
 
 	CODE:
+		struct loc_network *network = NULL;
+		const char* country_code = NULL;
 		RETVAL = &PL_sv_undef;
 
 		// Lookup network
-		struct loc_network *network;
 		int err = loc_database_lookup_from_string(db, address, &network);
-		if (!err) {
-			// Extract the country code
-			const char* country_code = loc_network_get_country_code(network);
-			RETVAL = newSVpv(country_code, strlen(country_code));
+		if (err) {
+			croak("Error fetching a network from the database\n");
+		}
+
+		// Extract the country code if we have found a network
+		if (network) {
+			country_code = loc_network_get_country_code(network);
+			if (country_code)
+				RETVAL = newSVpv(country_code, strlen(country_code));
 
 			loc_network_unref(network);
 		}
@@ -188,6 +194,7 @@ lookup_network_has_flag(db, address, flag)
 	char* flag;
 
 	CODE:
+		struct loc_network *network = NULL;
 		RETVAL = false;
 
 		enum loc_network_flags iv = 0;
@@ -204,11 +211,13 @@ lookup_network_has_flag(db, address, flag)
 			croak("Invalid flag");
 
 		// Lookup network
-		struct loc_network *network;
 		int err = loc_database_lookup_from_string(db, address, &network);
+		if (err) {
+			croak("Error fetching a network from the database\n");
+		}
 
-		if (!err) {
-			// Check if the network has the given flag.
+		// Check if the network has the given flag
+		if (network) {
 			if (loc_network_has_flag(network, iv)) {
 				RETVAL = true;
 			}
@@ -225,13 +234,17 @@ lookup_asn(db, address)
 	char* address;
 
 	CODE:
+		struct loc_network *network = NULL;
 		RETVAL = &PL_sv_undef;
 
 		// Lookup network
-		struct loc_network *network;
 		int err = loc_database_lookup_from_string(db, address, &network);
-		if (!err) {
-			// Extract the ASN
+		if (err) {
+			croak("Error fetching a network from the database\n");
+		}
+
+		// Extract the ASN
+		if (network) {
 			unsigned int as_number = loc_network_get_asn(network);
 			if (as_number > 0) {
 				RETVAL = newSViv(as_number);
