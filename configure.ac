@@ -217,11 +217,13 @@ AM_CONDITIONAL(ENABLE_LUA, test "$enable_lua" = "yes")
 AS_IF(
 	[test "$enable_lua" = "yes"], [
 		for lua in lua lua5.4 lua5.3 lua5.2 lua5.1; do
-			PKG_CHECK_MODULES([LUA], [${lua}],[break], [true])
+			PKG_CHECK_MODULES([LUA], [${lua}], [break], [true])
 		done
 
 		AX_PROG_LUA_MODULES([luaunit],, [AC_MSG_ERROR([Lua modules are missing])])
 
+		LUA_VERSION=$($PKG_CONFIG --variable=major_version ${lua})
+		AC_SUBST(LUA_VERSION)
 		LUA_INSTALL_LMOD=$($PKG_CONFIG --define-variable=prefix=${prefix} --variable=INSTALL_LMOD ${lua})
 		AC_SUBST(LUA_INSTALL_LMOD)
 		LUA_INSTALL_CMOD=$($PKG_CONFIG --define-variable=prefix=${prefix} --variable=INSTALL_CMOD ${lua})

@@ -45,6 +45,7 @@ DISTCHECK_CONFIGURE_FLAGS = \
 
 SED_PROCESS = \
 	$(AM_V_GEN)$(MKDIR_P) $(dir $@) && $(SED) \
+	-e 's,@LUA_VERSION\@,$(LUA_VERSION),g' \
 	-e 's,@VERSION\@,$(VERSION),g' \
 	-e 's,@prefix\@,$(prefix),g' \
 	-e 's,@exec_prefix\@,$(exec_prefix),g' \
@@ -281,7 +282,14 @@ LUA_TESTS = \
 	tests/lua/main.lua
 
 EXTRA_DIST += \
-	$(LUA_TESTS)
+	tests/lua/main.lua.in
+
+CLEANFILES += \
+	tests/lua/main.lua
+
+tests/lua/main.lua: tests/lua/main.lua.in Makefile
+	$(SED_PROCESS)
+	chmod o+x $@
 
 # ------------------------------------------------------------------------------
 

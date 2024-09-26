@@ -1,4 +1,4 @@
-#!/usr/bin/lua
+#!/usr/bin/lua@LUA_VERSION@
 --[[###########################################################################
 #                                                                             #
 # libloc - A library to determine the location of someone on the Internet     #
