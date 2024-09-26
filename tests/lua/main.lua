@@ -48,6 +48,7 @@ function test_log_callback()
 
 	-- Perform some random operation
 	local db = location.Database.open(ENV_TEST_DATABASE)
+	luaunit.assertNotNil(db)
 
 	luaunit.assertIsTrue(log_callback_called)
 end
@@ -57,6 +58,7 @@ function test_open_database()
 
 	-- Open the database
 	db = location.Database.open(ENV_TEST_DATABASE)
+	luaunit.assertNotNil(db)
 
 	-- Verify
 	luaunit.assertIsTrue(db:verify(ENV_TEST_SIGNING_KEY))
@@ -78,6 +80,7 @@ function test_lookup()
 
 	-- Open the database
 	db = location.Database.open(ENV_TEST_DATABASE)
+	luaunit.assertNotNil(db)
 
 	-- Perform a lookup
 	network1 = db:lookup("81.3.27.32")
@@ -96,6 +99,7 @@ function test_network()
 	location = require("location")
 
 	n1 = location.Network.new("10.0.0.0/8")
+	luaunit.assertNotNil(n1)
 
 	-- The ASN should be nul
 	luaunit.assertNil(n1:get_asn())
@@ -109,6 +113,7 @@ end
 
 function test_as()
 	location = require("location")
+	luaunit.assertNotNil(location)
 
 	-- Create a new AS
 	as = location.AS.new(12345)
@@ -124,6 +129,7 @@ function test_fetch_as()
 
 	-- Open the database
 	db = location.Database.open(ENV_TEST_DATABASE)
+	luaunit.assertNotNil(db)
 
 	-- Fetch an AS
 	as = db:get_as(0)
@@ -141,11 +147,13 @@ function test_country()
 	location = require("location")
 
 	c1 = location.Country.new("DE")
+	luaunit.assertNotNil(c1)
 	luaunit.assertEquals(c1:get_code(), "DE")
 	luaunit.assertNil(c1:get_name())
 	luaunit.assertNil(c1:get_continent_code())
 
 	c2 = location.Country.new("GB")
+	luaunit.assertNotNil(c2)
 	luaunit.assertNotEquals(c1, c2)
 
 	c1 = nil
@@ -157,6 +165,7 @@ function test_fetch_country()
 
 	-- Open the database
 	db = location.Database.open(ENV_TEST_DATABASE)
+	luaunit.assertNotNil(db)
 
 	-- Fetch an invalid country
 	c = db:get_country("XX")
@@ -178,6 +187,7 @@ function test_subnets()
 
 	-- Open the database
 	db = location.Database.open(ENV_TEST_DATABASE)
+	luaunit.assertNotNil(db)
 
 	local network = db:lookup("1.1.1.1")
 
@@ -196,6 +206,7 @@ function test_list_networks()
 
 	-- Open the database
 	db = location.Database.open(ENV_TEST_DATABASE)
+	luaunit.assertNotNil(db)
 
 	for network in db:list_networks() do
 		print(network, network:reverse_pointer())
