@@ -173,7 +173,7 @@ lookup_country_code(db, address)
 		// Lookup network
 		int err = loc_database_lookup_from_string(db, address, &network);
 		if (err) {
-			croak("Error fetching a network from the database\n");
+			goto END;
 		}
 
 		// Extract the country code if we have found a network
@@ -184,6 +184,8 @@ lookup_country_code(db, address)
 
 			loc_network_unref(network);
 		}
+
+		END:
 	OUTPUT:
 		RETVAL
 
@@ -213,7 +215,7 @@ lookup_network_has_flag(db, address, flag)
 		// Lookup network
 		int err = loc_database_lookup_from_string(db, address, &network);
 		if (err) {
-			croak("Error fetching a network from the database\n");
+			goto END;
 		}
 
 		// Check if the network has the given flag
@@ -225,6 +227,7 @@ lookup_network_has_flag(db, address, flag)
 			loc_network_unref(network);
 		}
 
+		END:
 	OUTPUT:
 		RETVAL
 
@@ -240,7 +243,7 @@ lookup_asn(db, address)
 		// Lookup network
 		int err = loc_database_lookup_from_string(db, address, &network);
 		if (err) {
-			croak("Error fetching a network from the database\n");
+			goto END;
 		}
 
 		// Extract the ASN
@@ -252,6 +255,8 @@ lookup_asn(db, address)
 
 			loc_network_unref(network);
 		}
+
+		END:
 	OUTPUT:
 		RETVAL
 
