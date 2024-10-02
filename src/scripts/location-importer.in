@@ -2238,9 +2238,10 @@ class CLI(object):
 			"ap-southeast-1" : "SG",
 			"ap-southeast-2" : "AU",
 			"ap-southeast-3" : "MY",
-			"ap-southeast-4" : "AU",
-			"ap-southeast-5" : "NZ", # Auckland, NZ
+			"ap-southeast-4" : "AU", # Melbourne
+			"ap-southeast-5" : "MY", # Malaysia
 			"ap-southeast-6" : "AP", # XXX: Precise location not documented anywhere
+			"ap-southeast-7" : "AP", # XXX: Precise location unknown
 
 			# Canada
 			"ca-central-1"   : "CA",
@@ -2259,6 +2260,9 @@ class CLI(object):
 			# Middle East
 			"me-central-1"   : "AE",
 			"me-south-1"     : "BH",
+
+			# Mexico
+			"mx-central-1"   : "MX",
 
 			# South America
 			"sa-east-1"      : "BR",
