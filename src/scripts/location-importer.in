@@ -1973,7 +1973,7 @@ class CLI(object):
 							WHERE geofeed_id = %s", geofeed.id)
 
 				# Catch any other errors and connection timeouts
-				except (http.client.InvalidURL, urllib.request.URLError, TimeoutError) as e:
+				except (http.client.InvalidURL, http.client.RemoteDisconnected, urllib.request.URLError, TimeoutError) as e:
 					log.debug("Could not fetch URL %s: %s" % (geofeed.url, e))
 
 					self.db.execute("UPDATE geofeeds SET status = %s, error = %s \
