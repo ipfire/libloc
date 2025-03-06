@@ -469,6 +469,7 @@ def installBuildDepsRedHat(distro, compier) {
 			lua-lunit \
 			openssl-devel \
 			perl-devel \
+			perl(Test::More) \
 			python3-devel \
 			systemd-devel
 	"""
