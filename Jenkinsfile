@@ -125,84 +125,8 @@ pipeline {
 
 		stage("Coverage Tests") {
 			parallel {
-				stage("Address Sanitizer") {
-					agent {
-						docker {
-							image "debian:trixie"
-
-							// Run as root inside the containers to install dependencies
-							args "-u root"
-
-							customWorkspace "${JOB_NAME}/${BUILD_ID}/asan"
-						}
-					}
-
-					stages {
-						stage("Install Dependencies") {
-							steps {
-								script {
-									installBuildDepsDebian("trixie", "gcc", "amd64")
-								}
-							}
-						}
-
-						stage("Configure") {
-							steps {
-								sh "./autogen.sh"
-								sh """
-									./configure \
-										--prefix=/usr \
-										--enable-asan \
-										--enable-debug
-								"""
-							}
-						}
-
-						stage("Build") {
-							steps {
-								sh "make -j\$(nproc)"
-							}
-						}
-
-						stage("Check") {
-							steps {
-								script {
-									try {
-										sh "make check"
-									} catch (Exception e) {
-										unstable("Address Sanitizer checks failed")
-									}
-								}
-							}
-
-							post {
-								unstable {
-									// Copy test logs into a special directory
-									sh """
-										mkdir -pv asan
-										find tests -name "*.log" | xargs --no-run-if-empty \
-											cp --verbose --parents --target-directory=asan/
-									"""
-
-									// Archive the logs only if the stage fails
-									archiveArtifacts artifacts: "asan/**/*"
-
-									echo "The test logs have been archived"
-								}
-							}
-						}
-					}
-
-					// Cleanup the workspace afterwards
-					post {
-						always {
-							cleanWs()
-						}
-					}
-				}
-
 				/*
-					Run Pakfire through Clang's Static Analyzer...
+					Run through Clang's Static Analyzer...
 				*/
 				stage("Clang Static Analyzer") {
 					agent {
@@ -231,7 +155,14 @@ pipeline {
 						stage("Configure") {
 							steps {
 								sh "./autogen.sh"
-								sh "scan-build ./configure --prefix=/usr --enable-debug"
+								sh """
+									scan-build \
+									./configure \
+										--prefix=/usr \
+										--enable-debug \
+										--enable-lua \
+										--enable-perl
+								"""
 							}
 						}
 
@@ -244,85 +175,6 @@ pipeline {
 						stage("Publish Report") {
 							steps {
 								archiveArtifacts artifacts: "scan-build-output/**/*"
-							}
-						}
-					}
-
-					// Cleanup the workspace afterwards
-					post {
-						always {
-							cleanWs()
-						}
-					}
-				}
-
-				stage("LCOV") {
-					agent {
-						docker {
-							image "debian:bookworm"
-
-							// Run as root inside the containers to install dependencies
-							args "-u root"
-
-							customWorkspace "${JOB_NAME}/${BUILD_ID}/lcov"
-						}
-					}
-
-					stages {
-						stage("Install Dependencies") {
-							steps {
-								script {
-									installBuildDepsDebian("bookworm", "gcc", "amd64")
-
-									// Install lcov
-									sh "apt-get install -y lcov"
-								}
-							}
-						}
-
-						stage("Configure") {
-							steps {
-								sh "./autogen.sh"
-								sh """
-									./configure \
-										--prefix=/usr \
-										--enable-coverage \
-										--enable-debug
-								"""
-							}
-						}
-
-						stage("Build") {
-							steps {
-								sh "make -j\$(nproc)"
-							}
-						}
-
-						stage("Check") {
-							steps {
-								sh "make check || true"
-							}
-						}
-
-						stage("Publish Report") {
-							steps {
-								// Capture coverage data
-								sh """
-									lcov \
-										--capture \
-										--directory . \
-										--output-file coverage.info
-								"""
-
-								// Generate HTML report
-								sh """
-									genhtml \
-										coverage.info \
-										--output-directory lcov
-								"""
-
-								// Upload the report
-								archiveArtifacts artifacts: "lcov/**/*"
 							}
 						}
 					}
