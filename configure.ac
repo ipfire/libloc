@@ -198,19 +198,31 @@ AS_IF(
 			PKG_CHECK_MODULES([LUA], [${lua}], [break], [true])
 		done
 
-		AX_PROG_LUA_MODULES([luaunit], [enable_lua_tests=yes], [AC_MSG_WARN([luaunit is missing, won't run tests])])
-
 		LUA_VERSION=$($PKG_CONFIG --variable=major_version ${lua})
-		AC_SUBST(LUA_VERSION)
-		LUA_INSTALL_LMOD=$($PKG_CONFIG --define-variable=prefix=${prefix} --variable=INSTALL_LMOD ${lua})
-		AC_SUBST(LUA_INSTALL_LMOD)
-		LUA_INSTALL_CMOD=$($PKG_CONFIG --define-variable=prefix=${prefix} --variable=INSTALL_CMOD ${lua})
-		AC_SUBST(LUA_INSTALL_CMOD)
+		if test -z "${LUA_VERSION}"; then
+			LUA_VERSION=$($PKG_CONFIG --variable=V ${lua})
+		fi
 
 		# Fail if we could not find anything to link against
 		if test "x${LUA_VERSION}" = "x"; then
 			AC_MSG_ERROR([Could not find Lua])
 		fi
+
+		AC_SUBST(LUA_VERSION)
+
+		LUA_INSTALL_LMOD=$($PKG_CONFIG --define-variable=prefix=${prefix} --variable=INSTALL_LMOD ${lua})
+		if test -z "${LUA_INSTALL_LMOD}"; then
+			LUA_INSTALL_LMOD="${datadir}/lua/${LUA_VERSION}"
+		fi
+		AC_SUBST(LUA_INSTALL_LMOD)
+
+		LUA_INSTALL_CMOD=$($PKG_CONFIG --define-variable=prefix=${prefix} --variable=INSTALL_CMOD ${lua})
+		if test -z "${LUA_INSTALL_CMOD}"; then
+			LUA_INSTALL_CMOD="${libdir}/lua/${LUA_VERSION}"
+		fi
+		AC_SUBST(LUA_INSTALL_CMOD)
+
+		AX_PROG_LUA_MODULES([luaunit], [enable_lua_tests=yes], [AC_MSG_WARN([luaunit is missing, won't run tests])])
 	],
 )
 
