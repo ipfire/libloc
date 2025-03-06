@@ -2,5 +2,4 @@ usr/bin
 usr/share/bash-completion/completions/location
 var/lib/location/database.db
 var/lib/location/signing-key.pem
-lib/systemd/system
-usr/share/man/man1
+usr/lib/systemd/system
