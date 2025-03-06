@@ -341,7 +341,7 @@ LOC_EXPORT int loc_network_subnets(struct loc_network* network,
 
 	// Check if the new prefix is valid
 	if (!loc_address_valid_prefix(&network->first_address, prefix)) {
-		ERROR(network->ctx, "Invalid prefix: %d\n", prefix);
+		ERROR(network->ctx, "Invalid prefix: %u\n", prefix);
 		errno = EINVAL;
 		return 1;
 	}
@@ -612,8 +612,8 @@ int loc_network_merge(struct loc_network** n,
 
 	// We cannot shorten this any more
 	if (bitlength >= prefix) {
-		DEBUG(n1->ctx, "Cannot shorten this any further because we need at least %jd bits,"
-			" but only have %d\n", bitlength, prefix);
+		DEBUG(n1->ctx, "Cannot shorten this any further because we need at least %lu bits,"
+			" but only have %u\n", bitlength, prefix);
 
 		return 0;
 	}
@@ -686,7 +686,7 @@ int loc_network_new_from_database_v1(struct loc_ctx* ctx, struct loc_network** n
 	uint32_t asn = be32toh(dbobj->asn);
 	r = loc_network_set_asn(*network, asn);
 	if (r) {
-		ERROR(ctx, "Could not set ASN: %d\n", asn);
+		ERROR(ctx, "Could not set ASN: %u\n", asn);
 		return r;
 	}
 
@@ -722,7 +722,8 @@ static char* loc_network_reverse_pointer6(struct loc_network* network, const cha
 		goto ERROR;
 
 	for (unsigned int i = 0; i < (prefix / 4); i++) {
-		r = asprintf(&buffer, "%x.%s", loc_address_get_nibble(&network->first_address, i), buffer);
+		r = asprintf(&buffer, "%x.%s",
+			(unsigned int)loc_address_get_nibble(&network->first_address, i), buffer);
 		if (r < 0)
 			goto ERROR;
 	}

@@ -156,8 +156,8 @@ static inline int __loc_database_check_boundaries(struct loc_database* db,
 		return 1;
 
 	DEBUG(db->ctx, "Database read check failed at %p for %zu byte(s)\n", p, length);
-	DEBUG(db->ctx, "  p      = %p (offset = %jd, length = %zu)\n", p, offset, length);
-	DEBUG(db->ctx, "  data   = %p (length = %zu)\n", db->data, db->length);
+	DEBUG(db->ctx, "  p      = %p (offset = %lu, length = %zu)\n", p, offset, length);
+	DEBUG(db->ctx, "  data   = %p (length = %zd)\n", db->data, db->length);
 	DEBUG(db->ctx, "  end    = %p\n", db->data + db->length);
 	DEBUG(db->ctx, "  overflow of %zu byte(s)\n", offset + length - db->length);
 
@@ -258,7 +258,7 @@ static int loc_database_mmap(struct loc_database* db) {
 		return 1;
 	}
 
-	DEBUG(db->ctx, "Mapped database of %zu byte(s) at %p\n", db->length, db->data);
+	DEBUG(db->ctx, "Mapped database of %zd byte(s) at %p\n", db->length, db->data);
 
 	// Tell the system that we expect to read data randomly
 	r = madvise(db->data, db->length, MADV_RANDOM);
@@ -618,7 +618,7 @@ LOC_EXPORT int loc_database_verify(struct loc_database* db, FILE* f) {
 			break;
 
 		default:
-			ERROR(db->ctx, "Cannot compute hash for database with format %d\n",
+			ERROR(db->ctx, "Cannot compute hash for database with format %u\n",
 				db->version);
 			r = -EINVAL;
 			goto CLEANUP;
@@ -1236,7 +1236,7 @@ LOC_EXPORT int loc_database_enumerator_next_as(
 
 		r = loc_as_match_string(*as, enumerator->string);
 		if (r == 1) {
-			DEBUG(enumerator->ctx, "AS%d (%s) matches %s\n",
+			DEBUG(enumerator->ctx, "AS%u (%s) matches %s\n",
 				loc_as_get_number(*as), loc_as_get_name(*as), enumerator->string);
 
 			return 0;
@@ -1347,12 +1347,12 @@ static int __loc_database_enumerator_next_network(
 		*network = NULL;
 	}
 
-	DEBUG(enumerator->ctx, "Called with a stack of %u nodes\n",
+	DEBUG(enumerator->ctx, "Called with a stack of %d nodes\n",
 		enumerator->network_stack_depth);
 
 	// Perform DFS
 	while (enumerator->network_stack_depth > 0) {
-		DEBUG(enumerator->ctx, "Stack depth: %u\n", enumerator->network_stack_depth);
+		DEBUG(enumerator->ctx, "Stack depth: %d\n", enumerator->network_stack_depth);
 
 		// Get object from top of the stack
 		struct loc_node_stack* node = &enumerator->network_stack[enumerator->network_stack_depth];
