@@ -396,11 +396,6 @@ static int loc_network_tree_merge_step(struct loc_network* network, void* data) 
 			if (r)
 				goto ERROR;
 
-			// Add the new network to the stack
-			r = loc_network_list_push(ctx->networks, m);
-			if (r)
-				goto ERROR;
-
 			// Remove the previous network from the stack
 			r = loc_network_list_remove(ctx->networks, n);
 			if (r)
@@ -411,6 +406,11 @@ static int loc_network_tree_merge_step(struct loc_network* network, void* data) 
 
 			// Try merging the new network with others
 			r = loc_network_tree_merge_step(m, data);
+			if (r)
+				goto ERROR;
+
+			// Add the new network to the stack
+			r = loc_network_list_push(ctx->networks, m);
 			if (r)
 				goto ERROR;
 
