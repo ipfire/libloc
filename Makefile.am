@@ -21,11 +21,13 @@ AM_CPPFLAGS = \
 	-DSYSCONFDIR=\""$(sysconfdir)"\" \
 	-I${top_srcdir}/src
 
-AM_CFLAGS = ${my_CFLAGS} \
+AM_CFLAGS = \
+	$(OUR_CFLAGS) \
 	-ffunction-sections \
 	-fdata-sections
 
-AM_LDFLAGS = ${my_LDFLAGS}
+AM_LDFLAGS = \
+	$(OUR_LDFLAGS)
 
 # leaving a space here to work around automake's conditionals
  ifeq ($(OS),Darwin)
@@ -218,7 +220,10 @@ src_python__location_la_SOURCES = \
 
 src_python__location_la_CFLAGS = \
 	$(AM_CFLAGS) \
-	$(PYTHON_CFLAGS)
+	$(PYTHON_CFLAGS) \
+	-Wno-cast-function-type \
+	-Wno-redundant-decls \
+	-Wno-strict-aliasing
 
 src_python__location_la_LDFLAGS = \
 	$(AM_LDFLAGS) \

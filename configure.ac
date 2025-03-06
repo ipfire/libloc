@@ -125,33 +125,65 @@ AC_CHECK_FUNCS([ \
     qsort \
 ])
 
-my_CFLAGS="\
--Wall \
--Wchar-subscripts \
--Wformat-security \
--Wmissing-declarations \
--Wmissing-prototypes \
--Wnested-externs \
--Wpointer-arith \
--Wshadow \
--Wsign-compare \
--Wstrict-prototypes \
--Wtype-limits \
-"
-AC_SUBST([my_CFLAGS])
-AC_SUBST([my_LDFLAGS])
+CC_CHECK_FLAGS_APPEND([with_cflags], [CFLAGS], [\
+	-std=gnu17 \
+	-Wall \
+	-Wextra \
+	-Warray-bounds=2 \
+	-Wdate-time \
+	-Wendif-labels \
+	-Werror=format=2 \
+	-Werror=format-signedness \
+	-Werror=implicit-function-declaration \
+	-Werror=implicit-int \
+	-Werror=incompatible-pointer-types \
+	-Werror=int-conversion \
+	-Werror=missing-declarations \
+	-Werror=missing-prototypes \
+	-Werror=overflow \
+	-Werror=override-init \
+	-Werror=return-type \
+	-Werror=shift-count-overflow \
+	-Werror=shift-overflow=2 \
+	-Werror=strict-flex-arrays \
+	-Werror=undef \
+	-Wfloat-equal \
+	-Wimplicit-fallthrough=5 \
+	-Winit-self \
+	-Wlogical-op \
+	-Wmissing-include-dirs \
+	-Wmissing-noreturn \
+	-Wnested-externs \
+	-Wold-style-definition \
+	-Wpointer-arith \
+	-Wredundant-decls \
+	-Wshadow \
+	-Wstrict-aliasing=2 \
+	-Wstrict-prototypes \
+	-Wsuggest-attribute=noreturn \
+	-Wunused-function \
+	-Wwrite-strings \
+	-Wzero-length-bounds \
+	-Wno-unused-parameter \
+	-Wno-missing-field-initializers \
+	-fdiagnostics-show-option \
+	-fno-common \
+])
+
+# Enable -fno-semantic-interposition (if available)
+CC_CHECK_FLAGS_APPEND([with_cflags], [CFLAGS], [-fno-semantic-interposition])
+CC_CHECK_FLAGS_APPEND([with_ldflags], [LDFLAGS], [-fno-semantic-interposition])
 
 # Enable -fanalyzer if requested
 AC_ARG_ENABLE([analyzer],
 	AS_HELP_STRING([--enable-analyzer], [enable static analyzer (-fanalyzer) @<:@default=disabled@:>@]),
 	[], [enable_analyzer=no])
 AS_IF([test "x$enable_analyzer" = "xyes"],
-	CC_CHECK_FLAGS_APPEND([my_CFLAGS], [CFLAGS], [-fanalyzer])
+	CC_CHECK_FLAGS_APPEND([with_cflags], [CFLAGS], [-fanalyzer])
 )
 
-# Enable -fno-semantic-interposition (if available)
-CC_CHECK_FLAGS_APPEND([my_CFLAGS], [CFLAGS], [-fno-semantic-interposition])
-CC_CHECK_FLAGS_APPEND([my_LDFLAGS], [LDFLAGS], [-fno-semantic-interposition])
+AC_SUBST([OUR_CFLAGS], $with_cflags)
+AC_SUBST([OUR_LDFLAGS], $with_ldflags)
 
 # ------------------------------------------------------------------------------
 
