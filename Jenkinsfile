@@ -63,7 +63,14 @@ pipeline {
 							sh "./autogen.sh"
 
 							// Run ./configure...
-							sh "CC=${env.COMPILER} ./configure --prefix=/usr --enable-debug --enable-perl"
+							sh """
+								CC=${env.COMPILER} \
+								./configure \
+									--prefix=/usr \
+									--enable-debug \
+									--enable-lua \
+									--enable-perl
+							"""
 						}
 
 						post {
