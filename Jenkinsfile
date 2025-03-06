@@ -101,7 +101,7 @@ pipeline {
 								// Copy test logs into a special directory
 								sh """
 									mkdir -pv tests/${DISTRO}/${COMPILER}
-									find tests -name "*.log" | xargs --no-run-if-empty \
+									find src tests -name "*.log" | xargs --no-run-if-empty \
 										cp --verbose --parents --target-directory=tests/${DISTRO}/${COMPILER}/
 								"""
 
