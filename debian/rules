@@ -5,7 +5,7 @@ export PYBUILD_SYSTEM=custom
 export PYBUILD_CLEAN_ARGS=dh_auto_clean
 export PYBUILD_CONFIGURE_ARGS=intltoolize --force --automake; \
 	PYTHON={interpreter} dh_auto_configure -- \
-	--disable-man-pages --disable-lua --disable-perl
+	--disable-man-pages --disable-perl
 export PYBUILD_BUILD_ARGS=dh_auto_build
 export PYBUILD_INSTALL_ARGS=dh_auto_install --destdir={destdir}; \
 	mkdir -p {destdir}/usr/lib/python{version}/dist-packages; \

@@ -7,6 +7,7 @@ Build-Depends:
  debhelper-compat (= 13),
  dh-sequence-python3,
  intltool,
+ liblua5.4-dev,
  libssl-dev,
  libsystemd-dev,
  pkg-config,
