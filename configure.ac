@@ -198,7 +198,7 @@ AS_IF(
 			PKG_CHECK_MODULES([LUA], [${lua}], [break], [true])
 		done
 
-		AX_PROG_LUA_MODULES([luaunit],, [AC_MSG_ERROR([Lua modules are missing])])
+		AX_PROG_LUA_MODULES([luaunit], [enable_lua_tests=yes], [AC_MSG_WARN([luaunit is missing, won't run tests])])
 
 		LUA_VERSION=$($PKG_CONFIG --variable=major_version ${lua})
 		AC_SUBST(LUA_VERSION)
@@ -215,6 +215,7 @@ AS_IF(
 )
 
 AM_CONDITIONAL(ENABLE_LUA, [test "x$enable_lua" = "xyes"])
+AM_CONDITIONAL(ENABLE_LUA_TESTS, [test "x$enable_lua_tests" = "xyes"])
 
 # Perl
 AC_PATH_PROG(PERL, perl, no)

@@ -439,7 +439,7 @@ dist_check_SCRIPTS = \
 	tests/python/test-database.py \
 	tests/python/test-export.py
 
-if ENABLE_LUA
+if ENABLE_LUA_TESTS
 check_SCRIPTS += \
 	$(LUA_TESTS)
 endif
