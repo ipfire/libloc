@@ -92,11 +92,7 @@ pipeline {
 					stage("Check") {
 						steps {
 							script {
-								try {
-									sh "make check"
-								} catch (Exception e) {
-									unstable("Failed on ${env.DISTRO} with ${env.COMPILER}...")
-								}
+								sh "make check"
 							}
 						}
 
