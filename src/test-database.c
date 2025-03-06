@@ -46,7 +46,7 @@ const char* networks[] = {
 	NULL,
 };
 
-static int attempt_to_open(struct loc_ctx* ctx, char* path) {
+static int attempt_to_open(struct loc_ctx* ctx, const char* path) {
 	FILE* f = fopen(path, "r");
 	if (!f)
 		return -1;
