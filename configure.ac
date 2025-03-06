@@ -178,26 +178,6 @@ AS_IF([test "x$with_systemd" != "xno"],
       [have_systemd=no]
 )
 
-AS_IF([test "x$have_systemd" = "xyes"],
-      [AC_MSG_CHECKING([for systemd system unit directory])
-	AC_ARG_WITH([systemdsystemunitdir],
-		AS_HELP_STRING([--with-systemdsystemunitdir=DIR], [Directory for systemd service files]),
-		[], [with_systemdsystemunitdir=$($PKG_CONFIG --variable=systemdsystemunitdir systemd)]
-	)
-
-	AC_SUBST([systemdsystemunitdir], [$with_systemdsystemunitdir])
-
-	if test -n "$systemdsystemunitdir" -a "x$systemdsystemunitdir" != xno; then
-		AC_MSG_RESULT([$systemdsystemunitdir])
-	else
-		AC_MSG_ERROR([not found (try --with-systemdsystemunitdir)])
-	fi
-      ],
-      [AS_IF([test "x$with_systemd" = "xyes"],
-             [AC_MSG_ERROR([Systemd support is enabled but no systemd has been found.])
-      ])
-])
-
 AM_CONDITIONAL(HAVE_SYSTEMD, [test "x$have_systemd" = "xyes"])
 
 # ------------------------------------------------------------------------------

@@ -58,6 +58,7 @@ SED_PROCESS = \
 cron_dailydir = $(sysconfdir)/cron.daily
 databasedir = $(localstatedir)/lib/location
 pkgconfigdir = $(libdir)/pkgconfig
+systemdsystemunitdir = $(prefix)/lib/systemd/system
 
 # Overwrite Python path
 pkgpythondir = $(pythondir)/location
