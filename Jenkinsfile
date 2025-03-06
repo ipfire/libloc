@@ -465,6 +465,7 @@ def installBuildDepsRedHat(distro, compier) {
 			pkg-config \
 			${compiler} \
 			\
+			lua-devel \
 			openssl-devel \
 			perl-devel \
 			python3-devel \
@@ -487,6 +488,7 @@ def installBuildDepsArchLinux(distro, compiler) {
 			pkg-config \
 			${compiler} \
 			\
+			lua \
 			openssl \
 			perl \
 			python3 \
@@ -509,6 +511,7 @@ def installBuildDepsDebian(distro, compiler, arch) {
 			pkg-config \
 			${compiler} \
 			\
+			liblua5.4-dev \
 			libperl-dev \
 			libpython3-dev \
 			libssl-dev \
