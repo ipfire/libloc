@@ -451,6 +451,7 @@ static int loc_network_tree_merge(struct loc_network_tree* tree) {
 		.networks = NULL,
 		.merged   = 0,
 	};
+	unsigned int total_merged = 0;
 	int r;
 
 	// Create a new list
@@ -458,12 +459,23 @@ static int loc_network_tree_merge(struct loc_network_tree* tree) {
 	if (r)
 		goto ERROR;
 
-	// Walk through the entire tree
-	r = loc_network_tree_walk(tree, NULL, loc_network_tree_merge_step, &ctx);
-	if (r)
-		goto ERROR;
+	// This is a fix for a very interesting problem which only occurs on non-Debian
+	// systems where the algorithm seems to miss some merges. If we run it multiple
+	// times it will however find them...
+	do {
+		// Reset merges
+		ctx.merged = 0;
 
-	DEBUG(tree->ctx, "%u network(s) have been merged\n", ctx.merged);
+		// Walk through the entire tree
+		r = loc_network_tree_walk(tree, NULL, loc_network_tree_merge_step, &ctx);
+		if (r)
+			goto ERROR;
+
+		// Count all merges
+		total_merged += ctx.merged;
+	} while (ctx.merged > 0);
+
+	DEBUG(tree->ctx, "%u network(s) have been merged\n", total_merged);
 
 ERROR:
 	if (ctx.networks)
