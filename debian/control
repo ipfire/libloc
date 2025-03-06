@@ -6,7 +6,6 @@ Standards-Version: 4.6.1
 Build-Depends:
  debhelper-compat (= 13),
  dh-sequence-python3,
- asciidoc,
  intltool,
  libssl-dev,
  libsystemd-dev,
