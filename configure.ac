@@ -192,7 +192,7 @@ PKG_CHECK_MODULES([PYTHON], [python-${PYTHON_VERSION}])
 AC_ARG_ENABLE(lua,
 	AS_HELP_STRING([--disable-lua], [do not build the Lua modules]), [], [enable_lua=yes])
 
-AM_CONDITIONAL(ENABLE_LUA, test "$enable_lua" = "yes")
+AM_CONDITIONAL(ENABLE_LUA, [test "x$enable_lua" = "xyes"])
 
 AS_IF(
 	[test "$enable_lua" = "yes"], [
