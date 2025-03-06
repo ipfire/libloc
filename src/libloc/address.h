@@ -132,6 +132,7 @@ static inline struct in6_addr loc_prefix_to_bitmask(const unsigned int prefix) {
 
 static inline unsigned int loc_address_bit_length(const struct in6_addr* address) {
 	unsigned int bitlength = 0;
+	int trailing_zeroes;
 
 	int octet = 0;
 
@@ -143,8 +144,14 @@ static inline unsigned int loc_address_bit_length(const struct in6_addr* address
 
 	// Walk backwards until we find the first one
 	foreach_octet_in_address_reverse(octet, address) {
+		// __builtin_ctz does not support zero as input
+		if (!address->s6_addr[octet]) {
+			bitlength -= 8;
+			continue;
+		}
+
 		// Count all trailing zeroes
-		int trailing_zeroes = __builtin_ctz(address->s6_addr[octet]);
+		trailing_zeroes = __builtin_ctz(address->s6_addr[octet]);
 
 		// We only have one byte
 		if (trailing_zeroes > 8)
