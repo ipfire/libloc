@@ -192,10 +192,8 @@ PKG_CHECK_MODULES([PYTHON], [python-${PYTHON_VERSION}])
 AC_ARG_ENABLE(lua,
 	AS_HELP_STRING([--disable-lua], [do not build the Lua modules]), [], [enable_lua=yes])
 
-AM_CONDITIONAL(ENABLE_LUA, [test "x$enable_lua" = "xyes"])
-
 AS_IF(
-	[test "$enable_lua" = "yes"], [
+	[test "x$enable_lua" = "xyes"], [
 		for lua in lua lua5.4 lua5.3 lua5.2 lua5.1; do
 			PKG_CHECK_MODULES([LUA], [${lua}], [break], [true])
 		done
@@ -208,8 +206,15 @@ AS_IF(
 		AC_SUBST(LUA_INSTALL_LMOD)
 		LUA_INSTALL_CMOD=$($PKG_CONFIG --define-variable=prefix=${prefix} --variable=INSTALL_CMOD ${lua})
 		AC_SUBST(LUA_INSTALL_CMOD)
+
+		# Fail if we could not find anything to link against
+		if test "x${LUA_VERSION}" = "x"; then
+			AC_MSG_ERROR([Could not find Lua])
+		fi
 	],
 )
+
+AM_CONDITIONAL(ENABLE_LUA, [test "x$enable_lua" = "xyes"])
 
 # Perl
 AC_PATH_PROG(PERL, perl, no)
