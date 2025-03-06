@@ -466,6 +466,7 @@ def installBuildDepsRedHat(distro, compier) {
 			${compiler} \
 			\
 			lua-devel \
+			lua-lunit \
 			openssl-devel \
 			perl-devel \
 			python3-devel \
@@ -515,6 +516,7 @@ def installBuildDepsDebian(distro, compiler, arch) {
 			libperl-dev \
 			libpython3-dev \
 			libssl-dev \
-			libsystemd-dev
+			libsystemd-dev \
+			lua-unit
 	"""
 }
