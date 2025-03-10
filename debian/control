@@ -98,3 +98,15 @@ Priority: optional
 Section: oldlibs
 Description: transitional package
  This is a transitional package. It can safely be removed.
+
+Package: lua-location
+Architecture: any
+Section: libs
+Depends:
+ ${misc:Depends},
+ ${shlibs:Depends},
+Multi-Arch: foreign
+Description: ${source:Synopsis} (Lua bindings)
+ ${source:Extended-Description}
+ .
+ This package provides the Lua bindings for libloc.
