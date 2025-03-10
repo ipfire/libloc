@@ -453,11 +453,15 @@ pipeline {
 // Installs everything we need on RHEL/Fedora/etc.
 def installBuildDepsRedHat(distro, compier) {
 	// Install basic development tools
-	sh "dnf group install -y development-tools"
-
-	// Enable CodeReady Builder for Almalinux 9
 	if (distro.contains("almalinux:9")) {
+		sh "dnf group install -y 'Development Tools'"
+
+		// Enable CodeReady Builder for Almalinux 9
 		sh "dnf config-manager --set-enabled crb"
+
+	// Other distributions
+	} else {
+		sh "dnf group install -y development-tools"
 	}
 
 	// Install our own build and runtime dependencies
