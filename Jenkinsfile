@@ -208,7 +208,7 @@ pipeline {
 
 							axis {
 								name "ARCH"
-								values "amd64", "arm64", "armel", "armhf", "i386", "ppc64el"
+								values "amd64", "arm64", "armel", "armhf", "i386", "ppc64el", "s390x"
 							}
 						}
 
@@ -371,7 +371,7 @@ pipeline {
 						// Unstash all stashed packages from the matrix build
 						script {
 							for (distro in ["trixie", "bookworm"]) {
-								for (arch in ["amd64", "arm64", "armel", "armhf", "i386", "ppc64el"]) {
+								for (arch in ["amd64", "arm64", "armel", "armhf", "i386", "ppc64el", "s390x"]) {
 									unstash "${distro}-${arch}"
 								}
 
