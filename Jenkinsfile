@@ -11,6 +11,7 @@ pipeline {
 					axis {
 						name "DISTRO"
 						values \
+							"almalinux:9", \
 							"archlinux:base-devel", \
 							"debian:trixie", \
 							"debian:bookworm", \
@@ -45,8 +46,8 @@ pipeline {
 								if (env.DISTRO.contains("archlinux")) {
 									installBuildDepsArchLinux(env.DISTRO, env.COMPILER)
 
-								// Fedora, etc.
-								} else if (env.DISTRO.contains("fedora")) {
+								// Fedora, Alma Linux, etc.
+								} else if (env.DISTRO.contains("fedora") || env.DISTRO.contains("almalinux")) {
 									installBuildDepsRedHat(env.DISTRO, env.COMPILER)
 
 								// Debian & Ubuntu
@@ -453,6 +454,11 @@ pipeline {
 def installBuildDepsRedHat(distro, compier) {
 	// Install basic development tools
 	sh "dnf group install -y development-tools"
+
+	// Enable CodeReady Builder for Almalinux 9
+	if (distro.contains("almalinux:9")) {
+		sh "dnf config-manager --set-enabled crb"
+	}
 
 	// Install our own build and runtime dependencies
 	sh """
