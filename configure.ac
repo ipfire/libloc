@@ -1,6 +1,6 @@
 AC_PREREQ(2.60)
 AC_INIT([libloc],
-        [0.9.17],
+        [0.9.18],
         [location@lists.ipfire.org],
         [libloc],
         [https://location.ipfire.org/])

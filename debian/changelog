@@ -1,3 +1,208 @@
+libloc (0.9.18-1) unstable; urgency=medium
+
+  [ Michael Tremer ]
+  * python: Make AS objects hashable
+  * network: Fix bit length check when merging networks
+  * network: Fix deduplication not looking far enough
+  * network-tree: Split into a separate file
+  * tools: Import the copy script
+  * network-tree: Run deduplication once for each family
+  * network-tree: Use the raw prefix to place networks onto the tree
+  * network: Tidy up some code
+  * tests: Add a simple test for deduplication
+  * python: Make Country hashable
+  * python: Fix rich comparison function for Country
+  * tests: Add some tests for the Country object
+  * country: Return NULL/None for unset attributes
+  * python: Fix rich comparison for AS objects
+  * python: Implement rich comparison for Network objects
+  * tests: Build out more dedup tests
+  * tests: Show even large diffs in dedup tests
+  * tests: Add more dedup/merge tests
+  * tests: Make the new tests executable
+  * importer: Fix Python syntax error
+  * importer: Refactor ARIN importer
+  * importer: Drop previously imported AS names, too
+  * importer: Tidy up SQL queries
+  * configure: Require Lua
+  * lua: Create scaffolding for a module
+  * .gitignore: Ignore some more temporary files
+  * lua: Add version() function
+  * lua: Initialize location context
+  * lua: Add a Database object with a dummy lookup function
+  * lua: Add a Network object
+  * lua: Actually return a network after lookup()
+  * lua: database: Rename the __gc method for consistency
+  * lua: database: Add __close method
+  * lua: network: Add a __close method
+  * lua: Fix calling methods that belong to an object
+  * lua: Check if we can read the network's properties
+  * lua: Force garbage collection to test those methods
+  * lua: Create Country objects
+  * lua: Force testing garbage collection for countries
+  * lua: Don't try to free memory that was allocated by Lua
+  * lua: country: Export remaining properties
+  * lua: Add AS object
+  * lua: database: Implementing fetching AS objects
+  * lua: database: Implement fetching countries
+  * lua: database: Export description/license/vendor
+  * lua: database: Implement verify()
+  * configure: Check for luaunit
+  * lua: Export default database path
+  * lua: Export network flags
+  * lua: network: Implement checking flags
+  * configure: Don't check for Lua when --disable-lua is passed
+  * importer: Pass downloader to the ARIN import
+  * importer: Create an extra table for feeds
+  * importer: Import the Spamhaus ASN feed into the new feeds table
+  * importer: Create a feeds table for networks, too
+  * importer: Don't import any AS names from Spamhaus
+  * importer: Import Spamhaus DROP feeds into the new feeds table
+  * importer: Import AWS IP feed into the new feeds table
+  * importer: Fix typo in SQL query
+  * importer: Reformat the large SQL query
+  * importer: Create a new subcommand to import feeds
+  * importer: Refactor feed parsing
+  * importer: Simplify fetching countries
+  * importer: Reformat AWS dictionary
+  * importer: Completely rewrite the AWS parser
+  * importer: Add the option to only update one feed
+  * importer: Refactor parsing Spamhaus DROP feeds
+  * importer: Refactor parsing Spamhaus ASNDROP
+  * importer: Drop source field from overrides table
+  * importer: Drop any data from feeds we no longer support
+  * importer: Use the downloader to import Geofeeds
+  * importer: Remove superfluous function call
+  * importer: Fail if no countries have been imported, yet
+  * importer: Ignore certain country codes
+  * importer: Make translating country codes more extensible
+  * importer: Return known countries as a set()
+  * importer: When storing country codes, make the code more straight-
+    forward
+  * importer: Skip any countries that we don't know
+  * importer: Change country code logic
+  * importer: Improve check for network objects
+  * importer: Improve checks for unspecified networks
+  * importer: Also import networks that are smaller than /48 or /24
+  * importer: Add option to only import specific RIRs
+  * importer: Create a better structure to import RIRs
+  * importer: Drop the geofeed sources when updating RIR data
+  * importer: No longer import Geofeeds concurrently
+  * database: Migrate to psycopg3
+  * importer: Move the split functions into the main importer
+  * importer: Merge the downloader into our main downloader
+  * Update translations
+  * Add README.md
+  * tree: Fix memory leak in dedup code
+  * tree: Be smarter when removing networks from the stack
+  * tree: Don't check if we need to fill the stack
+  * importer: Add structure to add Geofeed overrides
+  * importer: Check imported Geofeed override URLs
+  * importer: Ignore comments in Geofeeds
+  * database: Create a connection pool for async operation
+  * importer: Wrap everything into asyncio
+  * importer: Timeout if fetching a Geofeed takes longer than 5 seconds
+  * importer: Use database pipelining when parsing feeds
+  * importer: Fix incorrect variable name
+  * importer: Fix another incorrect variable name
+  * importer: Skip ASN lines in extended format
+  * importer: Fix another variable error in CSV parser
+  * importer: Convert the file handle to text before passing to the CSV
+    parser
+  * importer: Remove a debugging line
+  * importer: Import Geofeed overrides with other Geofeeds
+  * importer: Unify the way we check Geofeed URLs
+  * importer: Currently update the source when encountering a conflict
+  * importer: Allow storing multiple Geofeeds for the same network
+  * importer: Convert networks back to string
+  * importer: Remove more traces of the Geofeed overrides table
+  * importer: ANALYZE all tables before we are running the export
+  * importer: Replace all GIST indexes with SP-GIST
+  * importer: Make the export 200x faster
+  * importer: Drop any indexes we no longer need
+  * importer: Drop even more indexes
+  * importer: Permit Geofeeds for everything instead of ignoring
+  * address: Fix bit length calculation
+  * network: Fix handling bit length on merge
+  * tests: Add tests for #13236
+  * lua: Add compatibility function to compile with Lua >= 5.1
+  * lua: Don't raise an error if a network cannot be found
+  * tests: Fix bit length tests
+  * lua: Create a simple iterator for all networks
+  * lua: Cleanup any database iterators
+  * address: Add functions to access a specific byte/nibble in an
+    address
+  * network: Add function to return a reverse pointer for networks
+  * lua: Add function that returns subnets of a network
+  * lua: Add method to access database creation time
+  * importer: Drop EDROP as it has been merged into DROP
+  * configure: Use pkg-config to find OpenSSL
+  * writer: Fail if the header could not be written successfully
+  * writer: Move the cursor back to end when finished writing
+  * database: Re-open the file handle in r+ mode
+  * configure: Scan for multiple Lua versions
+  * lua: Initialize the database object pointer
+  * Revert "database: Re-open the file handle in r+ mode"
+  * libloc: Allow passing a pointer to the log callback
+  * lua: Implement setting a log callback function
+  * database: Have the lookup function return 0 even if nothing was
+    found
+  * lua: Fix raising an exception if no network was found
+  * importer: Ensure that we set timestamps in the announcements table
+  * lua: Check if we got returned something on some tests
+  * lua: Ensure that the testsuite is being executed with the correct
+    version
+  * tests: lua: Set a variable to true if we are checking for a boolean
+    later
+  * libloc: Refactor summarizing IP address ranges
+  * perl: Fix a couple of NULL-pointer derefences in the module
+  * importer: Update a few AWS locations
+  * importer: Ignore any sudden disconnects when we fetch a Geofeed
+  * importer: Don't import /4 or /10 networks from the routing table
+  * po: Update POTFILES.in
+  * data: Import today's database
+  * jenkins: Initial import
+  * configure: Don't automatically detect systemdunitdir
+  * configure: Check syntax of Lua check
+  * jenkins: Always Lua extension, too
+  * jenkins: Don't expect any tests to fail
+  * jenkins: Remove extra tests we currently don't support
+  * configure: Fail if Lua was enabled, but not found
+  * jenkins: Add all supported Debian architectures
+  * jenkins: Actually install Lua when we want to build against it
+  * configure: Don't run Lua tests if luaunit is not available
+  * jenkins: Install lua-unit wherever available
+  * configure: Make Lua check work on Fedora, too
+  * tree: Add network to the stack after we have tried again
+  * tree: Try harder to merge networks
+  * jenkins: Upload logs from tests in src/, too
+  * tests: Make bit length mismatch message clearer
+  * Fix all sorts of string formatting issues
+  * configure: Enable more compiler warnings
+  * address: Never pass zero to __builtin_ctz
+  * tests: Constify path to open in database test
+  * jenkins: Install perl(Test::More) on Fedora
+  * log: Perform formatting string sanitation when logging to stderr
+  * tree: Replace bitfields with flags to mark deleted nodes
+  * lua: Perform formatting string sanitization
+  * jenkins: Fix syntax to install perl(Test::More)
+  * python: Fix type for keyword lists
+  * python: Fix unintended fallthrough
+  * Fix string formatting issues on 32 bit systems
+  * network: Remove dead assignment
+  * database: Correctly check return value of dup()
+
+  [ Peter Müller ]
+  * location-importer: Add missing area code for AWS
+  * location-importer: Fix Spamhaus ASN-DROP parsing
+  * location-importer: Replace ARIN AS names source with one that offers
+    human-readable names
+
+  [ Stefan Schantl ]
+  * perl: Return nothing in case invalid data has been passed to libloc
+
+ -- Michael Tremer <michael.tremer@ipfire.org>  Mon, 10 Mar 2025 11:04:29 +0000
+
 libloc (0.9.17-1) unstable; urgency=medium
 
   [ Michael Tremer ]
