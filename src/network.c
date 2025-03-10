@@ -605,15 +605,15 @@ int loc_network_merge(struct loc_network** n,
 	if (!n1->prefix || !n2->prefix)
 		return 0;
 
-	const unsigned int prefix = loc_network_prefix(n1);
+	const size_t prefix = loc_network_prefix(n1);
 
 	// How many bits do we need to represent this address?
 	const size_t bitlength = loc_address_bit_length(&n1->first_address);
 
 	// We cannot shorten this any more
 	if (bitlength >= prefix) {
-		DEBUG(n1->ctx, "Cannot shorten this any further because we need at least %lu bits,"
-			" but only have %u\n", bitlength, prefix);
+		DEBUG(n1->ctx, "Cannot shorten this any further because we need at least %zu bits,"
+			" but only have %zu\n", bitlength, prefix);
 
 		return 0;
 	}

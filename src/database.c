@@ -79,7 +79,7 @@ struct loc_database {
 
 	// Data mapped into memory
 	char* data;
-	off_t length;
+	ssize_t length;
 
 	struct loc_stringpool* pool;
 
@@ -149,17 +149,17 @@ struct loc_database_enumerator {
 
 static inline int __loc_database_check_boundaries(struct loc_database* db,
 		const char* p, const size_t length) {
-	size_t offset = p - db->data;
+	ssize_t offset = p - db->data;
 
 	// Return if everything is within the boundary
-	if (offset <= db->length - length)
+	if (offset <= (ssize_t)(db->length - length))
 		return 1;
 
 	DEBUG(db->ctx, "Database read check failed at %p for %zu byte(s)\n", p, length);
-	DEBUG(db->ctx, "  p      = %p (offset = %lu, length = %zu)\n", p, offset, length);
+	DEBUG(db->ctx, "  p      = %p (offset = %zd, length = %zu)\n", p, offset, length);
 	DEBUG(db->ctx, "  data   = %p (length = %zd)\n", db->data, db->length);
 	DEBUG(db->ctx, "  end    = %p\n", db->data + db->length);
-	DEBUG(db->ctx, "  overflow of %zu byte(s)\n", offset + length - db->length);
+	DEBUG(db->ctx, "  overflow of %zd byte(s)\n", (ssize_t)(offset + length - db->length));
 
 	// Otherwise raise EFAULT
 	errno = EFAULT;

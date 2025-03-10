@@ -43,7 +43,7 @@ struct loc_stringpool {
 };
 
 static int loc_stringpool_grow(struct loc_stringpool* pool, const size_t size) {
-	DEBUG(pool->ctx, "Growing string pool by %lu byte(s)\n", size);
+	DEBUG(pool->ctx, "Growing string pool by %zu byte(s)\n", size);
 
 	// Increment size
 	pool->size += size;
@@ -127,7 +127,7 @@ int loc_stringpool_open(struct loc_ctx* ctx, struct loc_stringpool** pool,
 	p->data   = data;
 	p->length = length;
 
-	DEBUG(p->ctx, "Opened string pool at %p (%jd bytes)\n", p->data, p->length);
+	DEBUG(p->ctx, "Opened string pool at %p (%zd bytes)\n", p->data, p->length);
 
 	*pool = p;
 	return 0;
