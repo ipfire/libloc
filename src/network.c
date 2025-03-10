@@ -570,9 +570,8 @@ LOC_EXPORT struct loc_network_list* loc_network_exclude_list(
 			loc_network_unref(subnet);
 		}
 
-		if (passed) {
-			r = loc_network_list_push(subnets, subnet_to_check);
-		}
+		if (passed)
+			loc_network_list_push(subnets, subnet_to_check);
 
 		loc_network_unref(subnet_to_check);
 	}
