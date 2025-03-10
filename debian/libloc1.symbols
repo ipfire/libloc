@@ -1,6 +1,7 @@
 libloc.so.1 libloc1 #MINVER#
 * Build-Depends-Package: libloc-dev
  LIBLOC_1@LIBLOC_1 0.9.4
+ LIBLOC_2@LIBLOC_2 0.9.18
  loc_as_cmp@LIBLOC_1 0.9.4
  loc_as_get_name@LIBLOC_1 0.9.4
  loc_as_get_number@LIBLOC_1 0.9.4
@@ -101,6 +102,7 @@ libloc.so.1 libloc1 #MINVER#
  loc_network_overlaps@LIBLOC_1 0.9.5
  loc_network_prefix@LIBLOC_1 0.9.5
  loc_network_ref@LIBLOC_1 0.9.4
+ loc_network_reverse_pointer@LIBLOC_2 0.9.18
  loc_network_set_asn@LIBLOC_1 0.9.4
  loc_network_set_country_code@LIBLOC_1 0.9.4
  loc_network_set_flag@LIBLOC_1 0.9.4
@@ -109,6 +111,7 @@ libloc.so.1 libloc1 #MINVER#
  loc_network_unref@LIBLOC_1 0.9.4
  loc_new@LIBLOC_1 0.9.4
  loc_ref@LIBLOC_1 0.9.4
+ loc_set_log_callback@LIBLOC_1 0.9.18
  loc_set_log_fn@LIBLOC_1 0.9.4
  loc_set_log_priority@LIBLOC_1 0.9.4
  loc_unref@LIBLOC_1 0.9.4
