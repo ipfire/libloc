@@ -456,9 +456,6 @@ def installBuildDepsRedHat(distro, compier) {
 	if (distro.contains("almalinux:9")) {
 		sh "dnf group install -y 'Development Tools'"
 
-		// Enable CodeReady Builder for Almalinux 9
-		sh "dnf config-manager --set-enabled crb"
-
 	// Other distributions
 	} else {
 		sh "dnf group install -y development-tools"
