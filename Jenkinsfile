@@ -11,7 +11,6 @@ pipeline {
 					axis {
 						name "DISTRO"
 						values \
-							"almalinux:9", \
 							"archlinux:base-devel", \
 							"debian:trixie", \
 							"debian:bookworm", \
@@ -46,8 +45,8 @@ pipeline {
 								if (env.DISTRO.contains("archlinux")) {
 									installBuildDepsArchLinux(env.DISTRO, env.COMPILER)
 
-								// Fedora, Alma Linux, etc.
-								} else if (env.DISTRO.contains("fedora") || env.DISTRO.contains("almalinux")) {
+								// Fedora, etc.
+								} else if (env.DISTRO.contains("fedora")) {
 									installBuildDepsRedHat(env.DISTRO, env.COMPILER)
 
 								// Debian & Ubuntu
@@ -452,14 +451,7 @@ pipeline {
 
 // Installs everything we need on RHEL/Fedora/etc.
 def installBuildDepsRedHat(distro, compier) {
-	// Install basic development tools
-	if (distro.contains("almalinux:9")) {
-		sh "dnf group install -y 'Development Tools'"
-
-	// Other distributions
-	} else {
-		sh "dnf group install -y development-tools"
-	}
+	sh "dnf group install -y development-tools"
 
 	// Install our own build and runtime dependencies
 	sh """
