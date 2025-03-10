@@ -403,7 +403,7 @@ static int loc_database_clone_handle(struct loc_database* db, FILE* f) {
 
 	// Clone file descriptor
 	fd = dup(fd);
-	if (!fd) {
+	if (fd < 0) {
 		ERROR(db->ctx, "Could not duplicate file descriptor\n");
 		return 1;
 	}
