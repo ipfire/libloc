@@ -324,7 +324,11 @@ static inline int loc_address_get_octet(const struct in6_addr* address, const un
 		if (i >= 4)
 			return -ERANGE;
 
-		return (address->s6_addr32[3] >> (i * 8)) & 0xff;
+		// Format the IPv4 in host-byte order
+		unsigned int a4 = be32toh(address->s6_addr32[3]);
+
+		// Return the nth byte from the left
+		return a4 >> ((3 - i) * 8) & 0xff;
 
 	} else {
 		if (i >= 32)
