@@ -371,7 +371,7 @@ pipeline {
 						// Unstash all stashed packages from the matrix build
 						script {
 							for (distro in ["trixie", "bookworm"]) {
-								for (arch in ["amd64", "arm64"]) {
+								for (arch in ["amd64", "arm64", "armel", "armhf", "i386", "ppc64el"]) {
 									unstash "${distro}-${arch}"
 								}
 
