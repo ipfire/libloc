@@ -169,6 +169,10 @@ CC_CHECK_FLAGS_APPEND([with_cflags], [CFLAGS], [\
 	-fdiagnostics-show-option \
 	-fno-common \
 ])
+CC_CHECK_FLAGS_APPEND([with_ldflags], [LDFLAGS], [\
+	-Wl,--as-needed \
+	-Wl,--gc-sections \
+])
 
 # Enable -fno-semantic-interposition (if available)
 CC_CHECK_FLAGS_APPEND([with_cflags], [CFLAGS], [-fno-semantic-interposition])

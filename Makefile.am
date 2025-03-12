@@ -29,15 +29,6 @@ AM_CFLAGS = \
 AM_LDFLAGS = \
 	$(OUR_LDFLAGS)
 
-# leaving a space here to work around automake's conditionals
- ifeq ($(OS),Darwin)
-	AM_LDFLAGS += -Wl,-dead_strip
- else
-	AM_LDFLAGS += \
-		-Wl,--as-needed \
-		-Wl,--gc-sections
- endif
-
 LIBLOC_CURRENT=1
 LIBLOC_REVISION=3
 LIBLOC_AGE=0
