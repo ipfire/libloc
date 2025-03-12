@@ -105,24 +105,24 @@ AC_CHECK_HEADERS_ONCE([
 	arpa/nameser_compat.h \
 	endian.h \
 	netinet/in.h \
-    resolv.h \
+	resolv.h \
 	string.h \
 ])
 
 AC_CHECK_FUNCS([ \
-    be16toh \
-    be32toh \
-    be64toh \
-    htobe16 \
-    htobe32 \
-    htobe64 \
-    madvise \
-    mmap \
-    munmap \
-    res_query \
+	be16toh \
+	be32toh \
+	be64toh \
+	htobe16 \
+	htobe32 \
+	htobe64 \
+	madvise \
+	mmap \
+	munmap \
+	res_query \
 	__secure_getenv \
 	secure_getenv \
-    qsort \
+	qsort \
 ])
 
 CC_CHECK_FLAGS_APPEND([with_cflags], [CFLAGS], [\
