@@ -208,7 +208,7 @@ pipeline {
 
 							axis {
 								name "ARCH"
-								values "amd64", "arm64", "armel", "armhf", "i386", "ppc64el", "s390x"
+								values "amd64", "arm64", "armel", "armhf", "i386", "ppc64el", "riscv64", "s390x"
 							}
 						}
 
