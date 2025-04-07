@@ -351,7 +351,7 @@ int main(int argc, char** argv) {
 
 	// Lookup an address in the subnet
 	err = loc_database_lookup_from_string(db, "2001:db8::", &network1);
-	if (err) {
+	if (err || !network1) {
 		fprintf(stderr, "Could not look up 2001:db8::\n");
 		exit(EXIT_FAILURE);
 	}
