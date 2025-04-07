@@ -459,6 +459,7 @@ def installBuildDepsRedHat(distro, compier) {
 			asciidoc \
 			autoconf \
 			automake \
+			gawk \
 			intltool \
 			libtool \
 			pkg-config \
