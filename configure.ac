@@ -30,6 +30,9 @@ LT_INIT([
 AC_PREFIX_DEFAULT([/usr])
 gl_LD_VERSION_SCRIPT
 
+AM_GNU_GETTEXT_VERSION(0.21)
+AM_GNU_GETTEXT([external])
+
 IT_PROG_INTLTOOL([0.40.0])
 
 # Interpret embedded Python in HTML files

@@ -9,7 +9,7 @@ if [ -f .git/hooks/pre-commit.sample -a ! -f .git/hooks/pre-commit ] ; then
 fi
 
 intltoolize --force --automake
-autoreconf --install --symlink
+autoreconf --force --install --symlink
 
 libdir() {
         echo $(cd $1/$(gcc -print-multi-os-directory); pwd)
