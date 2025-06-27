@@ -460,6 +460,7 @@ def installBuildDepsRedHat(distro, compier) {
 			autoconf \
 			automake \
 			gawk \
+			gettext \
 			intltool \
 			libtool \
 			pkg-config \
@@ -485,6 +486,7 @@ def installBuildDepsArchLinux(distro, compiler) {
 			asciidoc \
 			autoconf \
 			automake \
+			gettext \
 			intltool \
 			libtool \
 			pkg-config \
@@ -507,6 +509,7 @@ def installBuildDepsDebian(distro, compiler, arch) {
 			asciidoc \
 			autoconf \
 			automake \
+			autopoint \
 			build-essential \
 			intltool \
 			libtool \
