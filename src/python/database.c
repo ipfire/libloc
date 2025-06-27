@@ -213,10 +213,11 @@ static PyObject* Database_lookup(DatabaseObject* self, PyObject* args) {
 		switch (errno) {
 			case EINVAL:
 				PyErr_Format(PyExc_ValueError, "Invalid IP address: %s", address);
-				return NULL;
+				break;
 
 			default:
 				PyErr_SetFromErrno(PyExc_OSError);
+				break;
 		}
 
 		return NULL;
