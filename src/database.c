@@ -907,13 +907,7 @@ static int __loc_database_lookup(struct loc_database* db, const struct in6_addr*
 
 		// Move on to the next node
 		r = __loc_database_lookup(db, address, network, network_address, node_index, level + 1);
-
-		// End here if a result was found
-		if (r == 0)
-			return r;
-
-		// Raise any errors
-		else if (r < 0)
+		if (r < 0)
 			return r;
 
 		DEBUG(db->ctx, "No match found below level %u\n", level);
@@ -922,7 +916,7 @@ static int __loc_database_lookup(struct loc_database* db, const struct in6_addr*
 	}
 
 	// If this node has a leaf, we will check if it matches
-	if (__loc_database_node_is_leaf(node_v1)) {
+	if (!*network && __loc_database_node_is_leaf(node_v1)) {
 		r = __loc_database_lookup_handle_leaf(db, address, network, network_address, level, node_v1);
 		if (r < 0)
 			return r;
