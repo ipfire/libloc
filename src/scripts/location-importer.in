@@ -1651,7 +1651,7 @@ class CLI(object):
 
 	async def _handle_update_announcements_from_bird(self, server):
 		# Pre-compile the regular expression for faster searching
-		route = re.compile(b"^\s(.+?)\s+.+?\[(?:AS(.*?))?.\]$")
+		route = re.compile(br"^\s(.+?)\s+.+?\[(?:AS(.*?))?.\]$")
 
 		log.info("Requesting routing table from Bird (%s)" % server)
 
@@ -1721,7 +1721,7 @@ class CLI(object):
 			# Run "show route all" for each network
 			for line in self._bird_cmd(server, "show route %s all" % network):
 				# Try finding the path
-				m = re.match(b"\s+BGP\.as_path:.* (\d+) {\d+}$", line)
+				m = re.match(br"\s+BGP\.as_path:.* (\d+) {\d+}$", line)
 				if m:
 					# Select the last AS number in the path
 					autnum = m.group(1).decode()
