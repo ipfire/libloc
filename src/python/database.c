@@ -48,8 +48,11 @@ static int Database_init(DatabaseObject* self, PyObject* args, PyObject* kwargs)
 	FILE* f = NULL;
 
 	// Parse arguments
-	if (!PyArg_ParseTuple(args, "s", &path))
+	if (!PyArg_ParseTuple(args, "|s", &path))
 		return -1;
+
+	if (!path)
+		path = strdup("@databasedir@/database.db");
 
 	// Copy path
 	self->path = strdup(path);
