@@ -379,7 +379,7 @@ class CLI(object):
 				n
 			(
 				network               inet NOT NULL,
-				autnum                integer,
+				autnum                bigint,
 				country               text,
 				is_anonymous_proxy    boolean,
 				is_satellite_provider boolean,
