@@ -1,0 +1,291 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-11-22 17:58+0000\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=INTEGER; plural=EXPRESSION;\n"
+
+msgid "Won't write binary output to stdout"
+msgstr ""
+
+msgid "Location Importer Command Line Interface"
+msgstr ""
+
+msgid "Enable debug output"
+msgstr ""
+
+msgid "Enable quiet mode"
+msgstr ""
+
+msgid "Database Hostname"
+msgstr ""
+
+msgid "HOST"
+msgstr ""
+
+msgid "Database Name"
+msgstr ""
+
+msgid "NAME"
+msgstr ""
+
+msgid "Database Username"
+msgstr ""
+
+msgid "USERNAME"
+msgstr ""
+
+msgid "Database Password"
+msgstr ""
+
+msgid "PASSWORD"
+msgstr ""
+
+#. Write Database
+msgid "Write database to file"
+msgstr ""
+
+msgid "Database File"
+msgstr ""
+
+msgid "Signing Key"
+msgstr ""
+
+msgid "Backup Signing Key"
+msgstr ""
+
+msgid "Sets the vendor"
+msgstr ""
+
+msgid "Sets a description"
+msgstr ""
+
+msgid "Sets the license"
+msgstr ""
+
+msgid "Database Format Version"
+msgstr ""
+
+#. Update WHOIS
+msgid "Update WHOIS Information"
+msgstr ""
+
+msgid "Only update these sources"
+msgstr ""
+
+msgid "Update BGP Annoucements"
+msgstr ""
+
+msgid "Route Server to connect to"
+msgstr ""
+
+msgid "SERVER"
+msgstr ""
+
+msgid "Update Geofeeds"
+msgstr ""
+
+msgid "Update Feeds"
+msgstr ""
+
+msgid "Only update these feeds"
+msgstr ""
+
+msgid "Update overrides"
+msgstr ""
+
+msgid "Files to import"
+msgstr ""
+
+msgid "Import countries"
+msgstr ""
+
+msgid "File to import"
+msgstr ""
+
+msgid "Location Database Command Line Interface"
+msgstr ""
+
+msgid "Path to database"
+msgstr ""
+
+msgid "Public Signing Key"
+msgstr ""
+
+msgid "Show database version"
+msgstr ""
+
+msgid "Lookup one or multiple IP addresses"
+msgstr ""
+
+msgid "Dump the entire database"
+msgstr ""
+
+#. Update
+msgid "Update database"
+msgstr ""
+
+msgid "Update the library only once per interval"
+msgstr ""
+
+msgid "Verify the downloaded database"
+msgstr ""
+
+msgid "Get information about one or multiple Autonomous Systems"
+msgstr ""
+
+msgid "Search for Autonomous Systems that match the string"
+msgstr ""
+
+msgid "Lists all networks in an AS"
+msgstr ""
+
+msgid "Lists all networks in a country"
+msgstr ""
+
+msgid "Lists all networks with flags"
+msgstr ""
+
+msgid "Anonymous Proxies"
+msgstr ""
+
+msgid "Satellite Providers"
+msgstr ""
+
+msgid "Anycasts"
+msgstr ""
+
+msgid "Hostile Networks safe to drop"
+msgstr ""
+
+msgid "Lists all bogons"
+msgstr ""
+
+msgid "Lists all countries"
+msgstr ""
+
+msgid "Show the name of the country"
+msgstr ""
+
+msgid "Show the continent"
+msgstr ""
+
+msgid "Exports data in many formats to load it into packet filters"
+msgstr ""
+
+msgid "Output format"
+msgstr ""
+
+msgid "Output directory"
+msgstr ""
+
+msgid "Specify address family"
+msgstr ""
+
+msgid "List country codes or ASNs to export"
+msgstr ""
+
+#, python-format
+msgid "Invalid IP address: %s"
+msgstr ""
+
+#, python-format
+msgid "Nothing found for %(address)s"
+msgstr ""
+
+msgid "Network"
+msgstr ""
+
+msgid "Country"
+msgstr ""
+
+msgid "Autonomous System"
+msgstr ""
+
+msgid "Anonymous Proxy"
+msgstr ""
+
+msgid "yes"
+msgstr ""
+
+msgid "Satellite Provider"
+msgstr ""
+
+msgid "Anycast"
+msgstr ""
+
+msgid "Hostile Network safe to drop"
+msgstr ""
+
+#, python-format
+msgid "Invalid ASN: %s"
+msgstr ""
+
+#, python-format
+msgid "Could not find AS%s"
+msgstr ""
+
+#, python-format
+msgid "AS%(asn)s belongs to %(name)s"
+msgstr ""
+
+msgid "The database has been updated recently"
+msgstr ""
+
+msgid "You must at least pass one flag"
+msgstr ""
+
+#, python-format
+msgid "One Day"
+msgid_plural "%(days)s Days"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "One Hour"
+msgid_plural "%(hours)s Hours"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "One Minute"
+msgid_plural "%(minutes)s Minutes"
+msgstr[0] ""
+msgstr[1] ""
+
+#, python-format
+msgid "One Second"
+msgid_plural "%(seconds)s Seconds"
+msgstr[0] ""
+msgstr[1] ""
+
+msgid "Now"
+msgstr ""
+
+#, python-format
+msgid "%s ago"
+msgstr ""
+
+msgid "Copies a location database"
+msgstr ""
+
+#. Input File
+msgid "File to read"
+msgstr ""
+
+#. Output File
+msgid "File to write"
+msgstr ""

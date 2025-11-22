@@ -73,9 +73,9 @@ AM_V_XSLT_0 = @echo "  XSLT    " $@;
 
 # ------------------------------------------------------------------------------
 
-.PHONY: update-po
-update-po: po/POTFILES.in
-	$(MAKE) -C po update-po
+.PHONY: update-pot
+update-pot: po/POTFILES.in
+	$(MAKE) -C po $(GETTEXT_PACKAGE).pot
 
 po/POTFILES.in: Makefile
 	find $(abs_srcdir)/src $(abs_srcdir)/tools \
